@@ -8,7 +8,7 @@ export default function SuccessPage() {
 
   return (
     <main className="safe-bottom min-h-[calc(100vh-2rem)] bg-mint">
-      <TopBar title="提交成功" subtitle="资料包领取提醒" showBack={false} />
+      <TopBar title="提交成功" subtitle="出行计划已保存" showBack={false} />
 
       <section className="px-5 py-8">
         <div className="rounded-[28px] bg-white p-6 text-center shadow-soft">
@@ -16,10 +16,9 @@ export default function SuccessPage() {
             <CheckCircle2 size={40} />
           </div>
           <p className="mt-5 text-sm font-bold text-coral">已保存你的{resultType}</p>
-          <h1 className="mt-2 text-3xl font-black leading-tight text-ink">资料领取信息提交成功</h1>
+          <h1 className="mt-2 text-3xl font-black leading-tight text-ink">出行计划提交成功</h1>
           <p className="mt-4 text-base leading-relaxed text-ink/64">
-            提交成功，可以关注小红书 <span className="font-black text-pine">@你的账号名</span>
-            并私信<span className="font-black text-coral">【自驾】</span>领取完整资料包。
+            提交成功，已保存你的出行计划。你也可以关注小红书，后续获取更多租车自驾攻略。
           </p>
 
           <div className="mt-6 rounded-[22px] bg-amberSoft p-4 text-left">
@@ -30,7 +29,7 @@ export default function SuccessPage() {
               <div>
                 <p className="text-sm font-black text-[#8a4b14]">私信建议</p>
                 <p className="mt-1 text-sm leading-relaxed text-[#8a4b14]/78">
-                  可以附上目的地、出行月份和人数，我会按你的情况补一份租车避坑提醒。
+                  如需交流，可以附上目的地、出行月份和人数，我会按你的情况整理租车避坑提醒。
                 </p>
               </div>
             </div>
@@ -45,7 +44,7 @@ export default function SuccessPage() {
           </Link>
         </div>
 
-        <p className="mt-6 text-center text-sm font-black text-[#9a551d]">更多租车自驾攻略：小红书 @你的账号名</p>
+        <p className="mt-6 text-center text-sm font-black text-[#9a551d]">更多租车自驾攻略，可以关注小红书 @你的账号名。</p>
       </section>
     </main>
   );

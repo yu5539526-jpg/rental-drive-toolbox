@@ -256,7 +256,7 @@ function SummaryCard({ summary, onOpenLead }) {
         className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-coral px-4 py-4 font-black text-white"
       >
         <WalletCards size={18} />
-        保存结果并领取完整资料包
+        提交并保存我的出行计划
       </button>
     </section>
   );

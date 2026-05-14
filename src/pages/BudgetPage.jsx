@@ -85,10 +85,10 @@ export default function BudgetPage() {
             <button
               type="button"
               onClick={() => setLeadOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-coral px-4 py-3 font-black text-white"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-coral px-3 py-3 text-sm font-black leading-tight text-white"
             >
               <WalletCards size={18} />
-              保存领取
+              提交并保存我的出行计划
             </button>
           ) : (
             <button
@@ -117,8 +117,6 @@ export default function BudgetPage() {
 function BudgetFormStep({ step, draft, result, update }) {
   return (
     <div className="grid gap-4">
-      <PosterPreview src="assets/budget.png" alt="自驾旅行预算表" />
-
       <section className="screen-card rounded-[22px] p-4">
         <div className="mb-4 flex items-center gap-2">
           <span className="grid h-10 w-10 place-items-center rounded-2xl bg-pine text-white">
@@ -178,14 +176,6 @@ function BudgetFormStep({ step, draft, result, update }) {
 
       <EnergyInfoCard selectedType={draft.energyType} result={result} compact />
       <BudgetPreview result={result} />
-    </div>
-  );
-}
-
-function PosterPreview({ src, alt }) {
-  return (
-    <div className="w-full rounded-[22px] border border-pine/10 bg-white p-2 shadow-sm">
-      <img src={src} alt={alt} className="mx-auto h-auto max-h-[260px] max-w-full rounded-2xl object-contain" />
     </div>
   );
 }
@@ -317,7 +307,7 @@ function BudgetResult({ result, draft, onOpenLead, onReset }) {
           onClick={onOpenLead}
           className="rounded-2xl bg-coral px-4 py-4 text-base font-black text-white shadow-lg shadow-coral/20"
         >
-          保存结果并领取完整资料包
+          提交并保存我的出行计划
         </button>
         <button
           type="button"

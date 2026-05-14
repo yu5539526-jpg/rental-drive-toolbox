@@ -88,8 +88,10 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-bold text-coral">保存结果</p>
-            <h2 className="mt-1 text-xl font-black text-ink">保存结果并领取完整资料包</h2>
-            <p className="mt-1 text-sm text-ink/60">提交后会保存本次结果，方便后续接入资料发放。</p>
+            <h2 className="mt-1 text-xl font-black text-ink">保存结果并提交出行计划</h2>
+            <p className="mt-1 text-sm text-ink/60">
+              提交后会保存你的本次验车/预算结果，方便后续整理自驾需求和优化工具。
+            </p>
           </div>
           <button
             type="button"
@@ -216,7 +218,7 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
           disabled={!canSubmit || submitting}
           className="mt-5 w-full rounded-2xl bg-coral px-5 py-4 text-base font-black text-white shadow-lg shadow-coral/20 disabled:cursor-not-allowed disabled:bg-ink/25"
         >
-          {submitting ? '提交中...' : '提交并领取资料包'}
+          {submitting ? '提交中...' : '提交并保存我的出行计划'}
         </button>
       </form>
     </div>

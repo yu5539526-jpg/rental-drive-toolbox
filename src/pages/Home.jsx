@@ -54,7 +54,7 @@ export default function Home() {
         </div>
 
         <p className="mt-7 rounded-2xl bg-amberSoft px-4 py-3 text-center text-sm font-black text-[#9a551d]">
-          更多租车自驾攻略：小红书 @你的账号名
+          更多租车自驾攻略，可以关注小红书 @你的账号名。
         </p>
       </section>
     </main>

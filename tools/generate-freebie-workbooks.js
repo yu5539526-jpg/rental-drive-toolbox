@@ -684,8 +684,8 @@ function buildChecklistWorkbook() {
       name: "PDF导出建议版式",
       rows: [
         [c("PDF 导出建议版式", S.title), empty(S.title), empty(S.title), empty(S.title)],
-        [c("适合用途", S.section), c("小红书笔记预览图、粉丝领取前试看、私信自动回复附件说明。", S.border), empty(), empty()],
-        [c("推荐导出范围", S.section), c("使用说明、验车完成度、拍照模板可做预览；完整领取版建议包含全部 Sheet。", S.border), empty(), empty()],
+        [c("适合用途", S.section), c("小红书笔记预览图、用户提交前试看、私信自动回复附件说明。", S.border), empty(), empty()],
+        [c("推荐导出范围", S.section), c("使用说明、验车完成度、拍照模板可做预览；完整版建议包含全部 Sheet。", S.border), empty(), empty()],
         [c("页面设置", S.section), c("A4 竖向；页边距选“窄”；缩放选“将所有列调整为一页”；清单页允许多页。", S.border), empty(), empty()],
         [c("截图建议", S.section), c("手机截图优先截：标题区、完成度统计区、拍照模板前 10 项；清单长表可导出 PDF 展示。", S.border), empty(), empty()],
         [c("品牌露出", S.section), c("导出前把底部“小红书 @你的账号名”替换为你的真实账号。", S.warning), empty(), empty()],
@@ -971,7 +971,7 @@ function buildBudgetWorkbook() {
       name: "PDF导出建议版式",
       rows: [
         [c("PDF 导出建议版式", S.title), empty(S.title), empty(S.title), empty(S.title)],
-        [c("推荐导出范围", S.section), c("使用说明 + 总预算汇总 + 智能预算判断 + 示例预算，可做领取前预览；完整版包含预算填写表。"), empty(), empty()],
+        [c("推荐导出范围", S.section), c("使用说明 + 总预算汇总 + 智能预算判断 + 示例预算，可做提交前预览；完整版包含预算填写表。"), empty(), empty()],
         [c("页面设置", S.section), c("A4 竖向；页边距选“窄”；缩放选“将所有列调整为一页”；预算填写表允许多页。"), empty(), empty()],
         [c("预览顺序", S.section), c("第 1 页放使用说明，第 2 页放总预算汇总，第 3 页放智能预算判断，第 4 页放示例预算。"), empty(), empty()],
         [c("小红书截图", S.section), c("建议截“旅行总预算 / 人均预算 / 出行前建议准备资金”和“预算优化建议”两块。"), empty(), empty()],
