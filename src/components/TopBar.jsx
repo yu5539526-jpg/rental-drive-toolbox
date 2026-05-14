@@ -5,7 +5,7 @@ export default function TopBar({ title, subtitle, showBack = true }) {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-pine/10 bg-mint/95 px-4 pb-3 pt-4 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-pine/10 bg-mint/95 px-4 pb-2.5 pt-3 backdrop-blur">
       <div className="flex items-center gap-3">
         {showBack ? (
           <button

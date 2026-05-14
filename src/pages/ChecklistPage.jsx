@@ -3,20 +3,28 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import LeadCaptureModal from '../components/LeadCaptureModal.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import TopBar from '../components/TopBar.jsx';
-import { STATUS_OPTIONS, checklistModules, flatChecklistItems } from '../data/checklist.js';
+import {
+  STATUS_OPTIONS,
+  allChecklistItems,
+  checklistModules,
+  flatChecklistItems,
+  flatQuickChecklistItems,
+  quickChecklistModules,
+} from '../data/checklist.js';
 
 const STORAGE_KEY = 'rentalDrive.checklistState';
+const MODE_STORAGE_KEY = 'rentalDrive.checklistMode';
 
 const statusStyles = {
   unchecked: 'bg-white text-ink/56 ring-1 ring-pine/10',
   ok: 'bg-pine text-white',
-  issue: 'bg-coral text-white',
+  issue: 'bg-[#ffe4df] text-[#a83c33] ring-1 ring-[#f4b3aa]',
   na: 'bg-skySoft text-ink',
 };
 
 const riskStyles = {
   高风险: {
-    badge: 'bg-coral text-white',
+    badge: 'bg-[#ffe4df] text-[#a83c33] ring-1 ring-[#f4b3aa]',
     tone: 'coral',
   },
   中风险: {
@@ -37,6 +45,7 @@ const riskAdvice = {
 
 export default function ChecklistPage() {
   const [state, setState] = useState(loadChecklistState);
+  const [mode, setMode] = useState(loadChecklistMode);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [leadOpen, setLeadOpen] = useState(false);
   const summaryRef = useRef(null);
@@ -45,10 +54,16 @@ export default function ChecklistPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
-  const stats = useMemo(() => getChecklistStats(state), [state]);
+  useEffect(() => {
+    localStorage.setItem(MODE_STORAGE_KEY, mode);
+  }, [mode]);
+
+  const currentModules = mode === 'quick' ? quickChecklistModules : checklistModules;
+  const currentItems = mode === 'quick' ? flatQuickChecklistItems : flatChecklistItems;
+  const stats = useMemo(() => getChecklistStats(currentItems, state), [currentItems, state]);
   const summary = useMemo(
-    () => (summaryVisible ? buildSummary(state, stats) : null),
-    [state, stats, summaryVisible],
+    () => (summaryVisible ? buildSummary(currentItems, state, stats) : null),
+    [currentItems, state, stats, summaryVisible],
   );
   const riskStyle = riskStyles[stats.riskLevel];
 
@@ -70,7 +85,7 @@ export default function ChecklistPage() {
     }, 0);
   };
 
-  const resultSnapshot = summary || buildSummary(state, stats);
+  const resultSnapshot = summary || buildSummary(currentItems, state, stats);
 
   return (
     <main className="safe-bottom min-h-[calc(100vh-2rem)] bg-mint">
@@ -81,8 +96,10 @@ export default function ChecklistPage() {
       </section>
 
       <section className="px-4 pb-24 pt-4">
+        <ModeSwitch mode={mode} setMode={setMode} />
+
         <div className="grid gap-5">
-          {checklistModules.map((module, moduleIndex) => {
+          {currentModules.map((module, moduleIndex) => {
             const moduleStats = getModuleStats(module.items, state);
             return (
               <section key={module.id}>
@@ -150,7 +167,7 @@ export default function ChecklistPage() {
             <button
               type="button"
               onClick={generateSummary}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-coral px-3 text-sm font-black text-white shadow-lg shadow-coral/20"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-pine px-3 text-sm font-black text-white shadow-lg shadow-pine/20"
             >
               <Sparkles size={17} />
               生成验车清单
@@ -176,29 +193,73 @@ export default function ChecklistPage() {
 }
 
 function RealtimeFeedback({ stats, riskStyle }) {
+  const missingHigh = stats.highUnfinishedItems.slice(0, 4);
+  const issueItems = stats.issueItems.slice(0, 3);
+
   return (
     <div className="rounded-[22px] bg-white p-4 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-bold text-ink/52">实时验车反馈</p>
-          <p className="mt-0.5 text-xl font-black text-ink">{stats.percent}% 完成</p>
+          <p className="text-xs font-bold text-ink/52">当前验车状态</p>
+          <p className="mt-0.5 text-xl font-black text-ink">{stats.riskLevel}</p>
         </div>
-        <span className={`rounded-full px-3 py-1.5 text-xs font-black ${riskStyle.badge}`}>{stats.riskLevel}</span>
+        <div className="text-right">
+          <span className={`rounded-full px-3 py-1.5 text-xs font-black ${riskStyle.badge}`}>{stats.percent}% 完成</span>
+          <p className="mt-1 text-[11px] font-bold text-ink/45">实时更新</p>
+        </div>
       </div>
       <ProgressBar value={stats.percent} tone={riskStyle.tone} />
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <Metric label="未检查" value={stats.unchecked} />
-        <Metric label="有问题" value={stats.issueCount} danger={stats.issueCount > 0} />
         <Metric label="高危未完" value={stats.highUnfinished} danger={stats.highUnfinished > 0} />
-      </div>
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <Metric label="总项" value={stats.total} />
-        <Metric label="有效项" value={stats.activeTotal} />
+        <Metric label="有问题" value={stats.issueCount} danger={stats.issueCount > 0} />
         <Metric label="已完成" value={stats.completed} highlight />
       </div>
-      <p className="mt-3 rounded-2xl bg-mint px-3 py-2 text-xs font-bold leading-relaxed text-ink/68">
-        {riskAdvice[stats.riskLevel]}
-      </p>
+      <ActionLine
+        title="还差关键项"
+        text={missingHigh.length ? missingHigh.join('、') : '暂无高风险未完成项'}
+        danger={missingHigh.length > 0}
+      />
+      <ActionLine
+        title="有问题项目"
+        text={issueItems.length ? issueItems.join('、') : '暂无标记为有问题的项目'}
+        danger={issueItems.length > 0}
+      />
+      <p className="mt-2 rounded-2xl bg-mint px-3 py-2 text-xs font-bold leading-relaxed text-ink/68">{riskAdvice[stats.riskLevel]}</p>
+    </div>
+  );
+}
+
+function ModeSwitch({ mode, setMode }) {
+  const options = [
+    { value: 'quick', label: '3 分钟快速验车' },
+    { value: 'detail', label: '详细验车模式' },
+  ];
+
+  return (
+    <div className="mb-4 rounded-[22px] bg-white p-2 shadow-sm">
+      <div className="grid grid-cols-2 gap-2">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setMode(option.value)}
+            className={`min-h-11 rounded-2xl px-3 text-sm font-black transition ${
+              mode === option.value ? 'bg-pine text-white shadow-sm' : 'bg-mint text-ink/62'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ActionLine({ title, text, danger }) {
+  return (
+    <div className={`mt-2 rounded-2xl px-3 py-2 ${danger ? 'bg-[#fff0ed]' : 'bg-mint'}`}>
+      <p className={`text-[11px] font-black ${danger ? 'text-[#a83c33]' : 'text-ink/48'}`}>{title}</p>
+      <p className="mt-1 text-xs font-bold leading-relaxed text-ink/70">{text}</p>
     </div>
   );
 }
@@ -215,7 +276,7 @@ function Metric({ label, value, highlight, danger }) {
 function RiskPill({ risk }) {
   const className =
     risk === '高'
-      ? 'bg-coral text-white'
+      ? 'bg-[#ffe4df] text-[#a83c33] ring-1 ring-[#f4b3aa]'
       : risk === '中'
         ? 'bg-amberSoft text-[#99551d] ring-1 ring-[#efc894]'
         : 'bg-skySoft text-ink';
@@ -253,7 +314,7 @@ function SummaryCard({ summary, onOpenLead }) {
       <button
         type="button"
         onClick={onOpenLead}
-        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-coral px-4 py-4 font-black text-white"
+        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-pine px-4 py-4 font-black text-white"
       >
         <WalletCards size={18} />
         提交并保存我的出行计划
@@ -272,7 +333,7 @@ function SummaryList({ title, empty, items }) {
 }
 
 function createInitialState() {
-  return Object.fromEntries(flatChecklistItems.map((item) => [item.id, 'unchecked']));
+  return Object.fromEntries(allChecklistItems.map((item) => [item.id, 'unchecked']));
 }
 
 function loadChecklistState() {
@@ -284,15 +345,28 @@ function loadChecklistState() {
   }
 }
 
-function getChecklistStats(state) {
-  const total = flatChecklistItems.length;
-  const notApplicable = flatChecklistItems.filter((item) => state[item.id] === 'na').length;
+function loadChecklistMode() {
+  try {
+    const saved = localStorage.getItem(MODE_STORAGE_KEY);
+    return saved === 'detail' ? 'detail' : 'quick';
+  } catch {
+    return 'quick';
+  }
+}
+
+function getChecklistStats(items, state) {
+  const total = items.length;
+  const notApplicable = items.filter((item) => state[item.id] === 'na').length;
   const activeTotal = Math.max(total - notApplicable, 0);
-  const completed = flatChecklistItems.filter((item) => ['ok', 'issue'].includes(state[item.id])).length;
-  const unchecked = flatChecklistItems.filter((item) => state[item.id] === 'unchecked').length;
-  const issueCount = flatChecklistItems.filter((item) => state[item.id] === 'issue').length;
+  const completed = items.filter((item) => ['ok', 'issue'].includes(state[item.id])).length;
+  const unchecked = items.filter((item) => state[item.id] === 'unchecked').length;
+  const issueItems = items.filter((item) => state[item.id] === 'issue').map((item) => item.title);
   const percent = activeTotal ? Math.round((completed / activeTotal) * 100) : 100;
-  const highUnfinished = flatChecklistItems.filter((item) => item.risk === '高' && state[item.id] === 'unchecked').length;
+  const highUnfinishedItems = items
+    .filter((item) => item.risk === '高' && state[item.id] === 'unchecked')
+    .map((item) => item.title);
+  const highUnfinished = highUnfinishedItems.length;
+  const issueCount = issueItems.length;
   const riskLevel =
     highUnfinished > 0
       ? '高风险'
@@ -311,6 +385,8 @@ function getChecklistStats(state) {
     notApplicable,
     issueCount,
     highUnfinished,
+    highUnfinishedItems,
+    issueItems,
     riskLevel,
   };
 }
@@ -322,13 +398,13 @@ function getModuleStats(items, state) {
   return { activeTotal, completed };
 }
 
-function buildSummary(state, stats) {
-  const unfinishedHighRisk = flatChecklistItems
+function buildSummary(items, state, stats) {
+  const unfinishedHighRisk = items
     .filter((item) => item.risk === '高' && state[item.id] === 'unchecked')
     .map((item) => item.title);
 
-  const issueItems = flatChecklistItems.filter((item) => state[item.id] === 'issue').map((item) => item.title);
-  const uncheckedItems = flatChecklistItems.filter((item) => state[item.id] === 'unchecked').map((item) => item.title);
+  const issueItems = items.filter((item) => state[item.id] === 'issue').map((item) => item.title);
+  const uncheckedItems = items.filter((item) => state[item.id] === 'unchecked').map((item) => item.title);
   const suggestions = [];
 
   if (unfinishedHighRisk.length) {

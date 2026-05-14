@@ -85,7 +85,7 @@ export default function BudgetPage() {
             <button
               type="button"
               onClick={() => setLeadOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-coral px-3 py-3 text-sm font-black leading-tight text-white"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-pine px-3 py-3 text-sm font-black leading-tight text-white"
             >
               <WalletCards size={18} />
               提交并保存我的出行计划
@@ -183,28 +183,25 @@ function BudgetFormStep({ step, draft, result, update }) {
 function BudgetPreview({ result }) {
   return (
     <section className="rounded-[22px] bg-ink p-4 text-white shadow-soft">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-white/58">实时预算预览</p>
-          <p className="mt-1 text-3xl font-black">{formatMoney(result.tripTotal)}</p>
-          <p className="mt-1 text-xs font-bold text-white/58">旅行总预算，不含押金</p>
+          <p className="mt-1 text-sm font-bold text-white/72">当前粗略预算</p>
+          <p className="mt-0.5 text-3xl font-black">{formatMoney(result.tripTotal)}</p>
         </div>
         <div className="rounded-2xl bg-white/10 px-3 py-2 text-right">
-          <p className="text-[11px] text-white/54">人均</p>
-          <p className="text-base font-black">{formatMoney(result.perPerson)}</p>
+          <p className="text-[11px] text-white/54">完整度</p>
+          <p className="text-base font-black">{result.completenessPercent}%</p>
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <PreviewMetric label="建议准备" value={formatMoney(result.preparedFunds)} />
-        <PreviewMetric label="车辆交通" value={formatMoney(result.vehicleTransport)} />
-        <PreviewMetric label="住宿餐饮" value={formatMoney(result.lodgingDining)} />
-        <PreviewMetric label="应急预算" value={formatMoney(result.emergency)} />
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <PreviewMetric label="人均约" value={formatMoney(result.perPerson)} />
+        <PreviewMetric label="日均约" value={formatMoney(result.dailyAverage)} />
+        <PreviewMetric label="押金占用" value={formatMoney(result.temporaryFunds)} />
       </div>
-      {result.isRoughEstimate ? (
-        <p className="mt-3 rounded-2xl bg-white/10 px-3 py-2 text-xs font-bold leading-relaxed text-white/72">
-          部分费用未填写，当前结果为粗略估算。
-        </p>
-      ) : null}
+      <p className="mt-3 rounded-2xl bg-white/10 px-3 py-2 text-xs font-bold leading-relaxed text-white/72">
+        {result.completenessText}
+      </p>
     </section>
   );
 }
@@ -232,17 +229,18 @@ function BudgetResult({ result, draft, onOpenLead, onReset }) {
     <div className="grid gap-4">
       <section className="rounded-[28px] bg-pine p-5 text-white shadow-soft">
         <p className="text-sm font-bold text-white/70">{draft.destination || '本次自驾'} 预算结果</p>
-        <div className="mt-3">
-          <p className="text-sm font-bold text-white/64">旅行总预算（不含押金）</p>
-          <p className="mt-1 text-[44px] font-black leading-none">{formatMoney(result.tripTotal)}</p>
+        <div className="mt-3 rounded-[22px] bg-white/12 p-4">
+          <p className="text-sm font-bold text-white/70">本次自驾预计总花费</p>
+          <p className="mt-1 text-[42px] font-black leading-none">{formatMoney(result.tripTotal)}</p>
+          <p className="mt-3 text-sm font-black leading-relaxed text-white/84">{result.budgetSummary}</p>
         </div>
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-3">
           <BigMetric label="人均预算" value={formatMoney(result.perPerson)} />
-          <BigMetric label="建议准备资金" value={formatMoney(result.preparedFunds)} tone="warm" />
+          <BigMetric label="日均预算" value={formatMoney(result.dailyAverage)} />
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 text-center">
-          <MiniResult label="日均预算" value={formatMoney(result.dailyAverage)} />
-          <MiniResult label="人均日预算" value={formatMoney(result.perPersonDaily)} />
+        <div className="mt-3 rounded-2xl bg-amberSoft p-4 text-[#8a4b14]">
+          <p className="text-xs font-bold text-[#8a4b14]/70">出行前建议准备资金，包含押金占用</p>
+          <p className="mt-1 text-2xl font-black">{formatMoney(result.preparedFunds)}</p>
         </div>
       </section>
 
@@ -253,7 +251,7 @@ function BudgetResult({ result, draft, onOpenLead, onReset }) {
       ) : null}
 
       <section className="screen-card rounded-[22px] p-4">
-        <h2 className="mb-3 text-lg font-black text-ink">费用分类</h2>
+        <h2 className="mb-3 text-lg font-black text-ink">费用拆分</h2>
         <div className="grid gap-2">
           {feeCards.map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-3 rounded-2xl bg-mint px-4 py-3">
@@ -282,7 +280,9 @@ function BudgetResult({ result, draft, onOpenLead, onReset }) {
           <div className="mt-3">
             <ProgressBar value={result.vehicleCostRatio} tone={result.vehicleCostRatio >= 45 ? 'coral' : 'pine'} />
           </div>
-          <p className="mt-3 text-sm font-bold leading-relaxed text-ink">{result.vehicleCostJudgment}</p>
+          <p className="mt-3 text-sm font-bold leading-relaxed text-ink">
+            车辆成本占比 {formatPercent(result.vehicleCostRatio)}，{result.vehicleCostJudgment}
+          </p>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3">
           <BadgeBox label="人均预算等级" value={result.budgetLevel} />
@@ -305,7 +305,7 @@ function BudgetResult({ result, draft, onOpenLead, onReset }) {
         <button
           type="button"
           onClick={onOpenLead}
-          className="rounded-2xl bg-coral px-4 py-4 text-base font-black text-white shadow-lg shadow-coral/20"
+          className="rounded-2xl bg-pine px-4 py-4 text-base font-black text-white shadow-lg shadow-pine/20"
         >
           提交并保存我的出行计划
         </button>
@@ -337,13 +337,8 @@ function EnergyInfoCard({ selectedType, result, compact = false }) {
           <p className="mt-1 text-xs font-bold leading-relaxed text-ink/62">
             当前选择：{current.label}，按 {current.unitText} 估算，预计能源费用 {formatMoney(result.energyCost)}。
           </p>
-          {compact ? (
-            <p className="mt-2 text-xs leading-relaxed text-ink/56">
-              默认值：油车 8.0L/100km、汽油 8.3元/L；新能源 17kWh/100km、公共充电 1.5元/kWh；增程 0.48元/km。
-            </p>
-          ) : (
-            <p className="mt-2 text-xs leading-relaxed text-ink/56">{ENERGY_NOTE}</p>
-          )}
+          <p className="mt-1 text-xs leading-relaxed text-ink/56">公式：{current.formulaText}</p>
+          {!compact ? <p className="mt-2 text-xs leading-relaxed text-ink/56">{ENERGY_NOTE}</p> : null}
         </div>
       </div>
     </section>
@@ -355,15 +350,6 @@ function BigMetric({ label, value, tone }) {
     <div className={`rounded-2xl px-3 py-3 ${tone === 'warm' ? 'bg-amberSoft text-[#8a4b14]' : 'bg-white/12 text-white'}`}>
       <p className={`text-xs font-bold ${tone === 'warm' ? 'text-[#8a4b14]/64' : 'text-white/60'}`}>{label}</p>
       <p className="mt-1 text-xl font-black">{value}</p>
-    </div>
-  );
-}
-
-function MiniResult({ label, value }) {
-  return (
-    <div className="rounded-2xl bg-white/12 px-2 py-3">
-      <p className="text-[11px] font-bold text-white/60">{label}</p>
-      <p className="mt-1 text-sm font-black">{value}</p>
     </div>
   );
 }

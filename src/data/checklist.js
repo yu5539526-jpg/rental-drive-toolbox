@@ -260,6 +260,131 @@ export const checklistModules = [
   },
 ];
 
+export const quickChecklistModules = [
+  {
+    id: 'quickScene',
+    title: '3 分钟快速验车',
+    items: [
+      {
+        id: 'bodyVideo',
+        title: '车身一圈视频',
+        advice: '从车头开始顺时针拍完整视频，车牌、四面车身和门店环境都入镜。',
+        risk: '高',
+      },
+      {
+        id: 'quickFrontBumper',
+        title: '前保险杠',
+        advice: '拍清前杠、前唇、左右边角，有刮痕要让门店写进验车单。',
+        risk: '高',
+      },
+      {
+        id: 'quickRearBumper',
+        title: '后保险杠',
+        advice: '拍清后杠、尾门下沿和倒车雷达周围，避免还车被追责。',
+        risk: '高',
+      },
+      {
+        id: 'quickTires',
+        title: '四个轮胎',
+        advice: '看胎面、胎侧、鼓包、裂纹和扎钉，四条轮胎都拍近景。',
+        risk: '高',
+      },
+      {
+        id: 'quickWheelRims',
+        title: '四个轮毂',
+        advice: '轮毂外圈剐蹭最容易扯皮，四个轮毂都拍清楚。',
+        risk: '高',
+      },
+      {
+        id: 'quickWindshield',
+        title: '前挡风玻璃',
+        advice: '重点看石子坑、裂纹和明显划痕，拍近景留证。',
+        risk: '高',
+      },
+      {
+        id: 'quickMirrors',
+        title: '后视镜',
+        advice: '检查外壳、镜片、折叠功能，破损要现场确认。',
+        risk: '高',
+      },
+      {
+        id: 'quickBottom',
+        title: '底盘可见区域',
+        advice: '蹲下拍前唇、侧裙和后杠下沿，低底盘车尤其要看。',
+        risk: '高',
+      },
+      {
+        id: 'quickEnergyLevel',
+        title: '仪表盘油量/电量',
+        advice: '取车前拍仪表盘，确认油量/电量和合同还车规则一致。',
+        risk: '高',
+      },
+      {
+        id: 'quickMileage',
+        title: '当前里程',
+        advice: '拍下当前总里程，确认是否限制里程和超里程费用。',
+        risk: '高',
+      },
+      {
+        id: 'dashboard',
+        title: '仪表盘故障灯',
+        advice: '启动后确认发动机、电池、刹车、胎压等报警灯是否熄灭。',
+        risk: '高',
+      },
+      {
+        id: 'quickDepositAmount',
+        title: '押金金额',
+        advice: '确认车辆押金和违章押金分别是多少，截图保存。',
+        risk: '高',
+      },
+      {
+        id: 'quickDepositReturn',
+        title: '押金退还时间',
+        advice: '问清冻结多久、什么时候退、违章押金多久解冻。',
+        risk: '高',
+      },
+      {
+        id: 'insuranceCopy',
+        title: '保险责任',
+        advice: '确认基础险、补充险、免赔范围和事故报案方式。',
+        risk: '高',
+      },
+      {
+        id: 'quickTireWheelCoverage',
+        title: '轮胎轮毂是否赔付',
+        advice: '轮胎轮毂常被排除在保险外，一定要问清是否覆盖。',
+        risk: '高',
+      },
+      {
+        id: 'quickGlassCoverage',
+        title: '玻璃是否赔付',
+        advice: '确认前挡、侧窗、天窗玻璃单独破损是否赔付。',
+        risk: '高',
+      },
+      {
+        id: 'returnFuel',
+        title: '还车油量/电量要求',
+        advice: '确认满油满还、同电量还，还是按门店规则结算。',
+        risk: '高',
+      },
+      {
+        id: 'settlement',
+        title: '还车凭证',
+        advice: '还车时拿到结算单或还车记录，保存费用确认和押金说明。',
+        risk: '高',
+      },
+    ],
+  },
+];
+
 export const flatChecklistItems = checklistModules.flatMap((module) =>
   module.items.map((item) => ({ ...item, moduleId: module.id, moduleTitle: module.title })),
+);
+
+export const flatQuickChecklistItems = quickChecklistModules.flatMap((module) =>
+  module.items.map((item) => ({ ...item, moduleId: module.id, moduleTitle: module.title })),
+);
+
+export const allChecklistItems = Array.from(
+  new Map([...flatChecklistItems, ...flatQuickChecklistItems].map((item) => [item.id, item])).values(),
 );

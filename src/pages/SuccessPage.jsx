@@ -18,7 +18,7 @@ export default function SuccessPage() {
           <p className="mt-5 text-sm font-bold text-coral">已保存你的{resultType}</p>
           <h1 className="mt-2 text-3xl font-black leading-tight text-ink">出行计划提交成功</h1>
           <p className="mt-4 text-base leading-relaxed text-ink/64">
-            提交成功，已保存你的出行计划。你也可以关注小红书，后续获取更多租车自驾攻略。
+            提交成功，已保存你的出行计划。更多租车自驾攻略，可以关注小红书 @你的账号名。
           </p>
 
           <div className="mt-6 rounded-[22px] bg-amberSoft p-4 text-left">

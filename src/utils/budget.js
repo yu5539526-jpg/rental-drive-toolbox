@@ -55,6 +55,7 @@ export function calculateBudget(draft) {
   const temporaryFunds = amount(draft.vehicleDeposit) + amount(draft.violationDeposit);
   const preparedFunds = tripTotal + temporaryFunds;
   const vehicleCostRatio = tripTotal ? (vehicleTransport / tripTotal) * 100 : 0;
+  const completeness = getBudgetCompleteness(draft);
 
   const result = {
     tripDays,
@@ -83,6 +84,9 @@ export function calculateBudget(draft) {
     vehicleCostRatio: roundPercent(vehicleCostRatio),
     budgetLevel: getBudgetLevel(perPerson),
     vehicleCostJudgment: getVehicleCostJudgment(vehicleCostRatio),
+    budgetSummary: getBudgetSummary(perPerson),
+    completenessPercent: completeness.percent,
+    completenessText: completeness.text,
     isRoughEstimate: isRoughEstimate(draft),
   };
 
@@ -93,16 +97,23 @@ export function calculateBudget(draft) {
 }
 
 function getBudgetLevel(perPerson) {
-  if (perPerson < 2000) return '经济型';
-  if (perPerson < 5000) return '适中型';
-  if (perPerson < 8000) return '舒适型';
+  if (perPerson < 2000) return '经济预算型';
+  if (perPerson < 5000) return '适中预算型';
+  if (perPerson < 8000) return '舒适预算型';
   return '高预算型';
 }
 
+function getBudgetSummary(perPerson) {
+  if (perPerson < 2000) return '你的这趟自驾属于：经济预算型';
+  if (perPerson < 5000) return '你的这趟自驾属于：适中预算型';
+  if (perPerson < 8000) return '你的这趟自驾属于：舒适预算型';
+  return '你的这趟自驾属于：高预算型';
+}
+
 function getVehicleCostJudgment(ratio) {
-  if (ratio < 30) return '车辆成本合理';
-  if (ratio < 45) return '车辆成本偏高但可接受';
-  return '车辆成本较高，建议降低车型等级、减少租车天数或避免高价车型';
+  if (ratio < 30) return '车辆成本占比合理，可以接受。';
+  if (ratio < 45) return '车辆成本占比正常偏高，可以接受。';
+  return '车辆成本占比较高，建议降低车型等级、减少租车天数或避开高价车型。';
 }
 
 function getBudgetSuggestions({ draft, result, rawVehicleCostRatio, lodging, scenic, baseActual }) {
@@ -152,4 +163,41 @@ function isRoughEstimate(draft) {
   ];
   const filled = importantFields.filter((field) => amount(draft[field]) > 0).length;
   return filled < 4;
+}
+
+function getBudgetCompleteness(draft) {
+  const importantFields = [
+    'tripDays',
+    'people',
+    'rentalDays',
+    'mileage',
+    'rentalPlatformTotal',
+    'hotelNightPrice',
+    'breakfast',
+    'lunch',
+    'dinner',
+    'ticket',
+    'roundTripTransit',
+  ];
+  const filled = importantFields.filter((field) => amount(draft[field]) > 0).length;
+  const percent = Math.round((filled / importantFields.length) * 100);
+
+  if (filled < 4) {
+    return {
+      percent,
+      text: '部分费用未填写，当前结果为粗略估算。',
+    };
+  }
+
+  if (filled < 8) {
+    return {
+      percent,
+      text: '预算已具备参考价值，补充住宿、餐饮和门票后会更准确。',
+    };
+  }
+
+  return {
+    percent,
+    text: '预算信息较完整，可作为出行前准备资金参考。',
+  };
 }

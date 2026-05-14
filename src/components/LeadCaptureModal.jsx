@@ -210,13 +210,13 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
         </div>
 
         <p className="mt-4 rounded-2xl bg-mint px-3 py-2 text-xs font-bold leading-relaxed text-ink/58">
-          你填写的信息仅用于自驾需求分析、案例整理和资料优化，不会公开展示个人联系方式。
+          你填写的信息仅用于自驾需求分析、案例整理和工具优化，不会公开展示个人联系方式。
         </p>
 
         <button
           type="submit"
           disabled={!canSubmit || submitting}
-          className="mt-5 w-full rounded-2xl bg-coral px-5 py-4 text-base font-black text-white shadow-lg shadow-coral/20 disabled:cursor-not-allowed disabled:bg-ink/25"
+          className="mt-5 w-full rounded-2xl bg-pine px-5 py-4 text-base font-black text-white shadow-lg shadow-pine/20 disabled:cursor-not-allowed disabled:bg-ink/25"
         >
           {submitting ? '提交中...' : '提交并保存我的出行计划'}
         </button>
