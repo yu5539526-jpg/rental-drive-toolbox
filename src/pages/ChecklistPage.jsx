@@ -1,5 +1,5 @@
 import { RotateCcw, ShieldAlert, Sparkles, WalletCards } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import LeadCaptureModal from '../components/LeadCaptureModal.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import TopBar from '../components/TopBar.jsx';
@@ -39,6 +39,7 @@ export default function ChecklistPage() {
   const [state, setState] = useState(loadChecklistState);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [leadOpen, setLeadOpen] = useState(false);
+  const summaryRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -62,6 +63,13 @@ export default function ChecklistPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
 
+  const generateSummary = () => {
+    setSummaryVisible(true);
+    window.setTimeout(() => {
+      summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  };
+
   const resultSnapshot = summary || buildSummary(state, stats);
 
   return (
@@ -73,29 +81,6 @@ export default function ChecklistPage() {
       </section>
 
       <section className="px-4 pb-24 pt-4">
-        <PosterPreview />
-
-        <div className="mb-4 mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={reset}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-ink shadow-sm"
-          >
-            <RotateCcw size={17} />
-            一键重置
-          </button>
-          <button
-            type="button"
-            onClick={() => setSummaryVisible(true)}
-            className="inline-flex flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-coral px-4 py-3 text-sm font-black text-white shadow-lg shadow-coral/20"
-          >
-            <Sparkles size={17} />
-            生成验车结果摘要
-          </button>
-        </div>
-
-        {summary ? <SummaryCard summary={summary} onOpenLead={() => setLeadOpen(true)} /> : null}
-
         <div className="grid gap-5">
           {checklistModules.map((module, moduleIndex) => {
             const moduleStats = getModuleStats(module.items, state);
@@ -143,6 +128,41 @@ export default function ChecklistPage() {
             );
           })}
         </div>
+
+        <section className="mt-6 rounded-[24px] border border-pine/10 bg-white p-4 shadow-soft">
+          <div>
+            <p className="text-xs font-bold text-ink/52">检查完成后</p>
+            <h2 className="mt-1 text-lg font-black text-ink">生成本次验车清单</h2>
+            <p className="mt-1 text-sm leading-relaxed text-ink/62">
+              根据你刚才标记的状态，汇总完成度、风险项和需要补拍留证的内容。
+            </p>
+          </div>
+
+          <div className="mt-4 grid grid-cols-[0.85fr_1.35fr] gap-3">
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-mint px-3 text-sm font-black text-ink"
+            >
+              <RotateCcw size={17} />
+              重置
+            </button>
+            <button
+              type="button"
+              onClick={generateSummary}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-coral px-3 text-sm font-black text-white shadow-lg shadow-coral/20"
+            >
+              <Sparkles size={17} />
+              生成验车清单
+            </button>
+          </div>
+        </section>
+
+        {summary ? (
+          <div ref={summaryRef} className="mt-5 scroll-mt-24">
+            <SummaryCard summary={summary} onOpenLead={() => setLeadOpen(true)} />
+          </div>
+        ) : null}
       </section>
 
       <LeadCaptureModal
@@ -179,18 +199,6 @@ function RealtimeFeedback({ stats, riskStyle }) {
       <p className="mt-3 rounded-2xl bg-mint px-3 py-2 text-xs font-bold leading-relaxed text-ink/68">
         {riskAdvice[stats.riskLevel]}
       </p>
-    </div>
-  );
-}
-
-function PosterPreview() {
-  return (
-    <div className="w-full rounded-[22px] border border-pine/10 bg-white p-2 shadow-sm">
-      <img
-        src="assets/checklist.png"
-        alt="租车取车验车清单"
-        className="mx-auto h-auto max-h-[260px] max-w-full rounded-2xl object-contain"
-      />
     </div>
   );
 }

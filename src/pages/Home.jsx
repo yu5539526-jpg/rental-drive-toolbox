@@ -1,20 +1,5 @@
-import { Calculator, CarFront, ChevronRight, ClipboardCheck, Sparkles } from 'lucide-react';
+import { Calculator, CarFront, ChevronRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const featureCards = [
-  {
-    title: '取车验车',
-    text: '按模块逐项检查，自动判断风险。',
-    icon: ClipboardCheck,
-    to: '/checklist',
-  },
-  {
-    title: '旅行预算',
-    text: '分步骤填写，押金和实际预算分开看。',
-    icon: Calculator,
-    to: '/budget',
-  },
-];
 
 export default function Home() {
   return (
@@ -66,28 +51,6 @@ export default function Home() {
             alt="租车自驾工具包封面"
             className="aspect-[4/3] w-full object-cover object-top"
           />
-        </div>
-
-        <div className="mt-5 grid gap-3">
-          {featureCards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <Link
-                key={card.title}
-                to={card.to}
-                className="screen-card flex items-center gap-4 rounded-[22px] p-4"
-              >
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-pine text-white">
-                  <Icon size={23} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-base font-black text-ink">{card.title}</span>
-                  <span className="mt-1 block text-sm leading-relaxed text-ink/62">{card.text}</span>
-                </span>
-                <ChevronRight size={20} className="text-pine" />
-              </Link>
-            );
-          })}
         </div>
 
         <p className="mt-7 rounded-2xl bg-amberSoft px-4 py-3 text-center text-sm font-black text-[#9a551d]">
