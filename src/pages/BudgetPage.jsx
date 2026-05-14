@@ -66,7 +66,7 @@ export default function BudgetPage() {
         {step === budgetSteps.length - 1 ? (
           <BudgetResult result={result} draft={draft} onOpenLead={() => setLeadOpen(true)} onReset={reset} />
         ) : (
-          <BudgetFormStep step={currentStep} draft={draft} result={result} update={update} />
+          <BudgetFormStep step={currentStep} stepIndex={step} draft={draft} result={result} update={update} />
         )}
       </section>
 
@@ -114,7 +114,7 @@ export default function BudgetPage() {
   );
 }
 
-function BudgetFormStep({ step, draft, result, update }) {
+function BudgetFormStep({ step, stepIndex, draft, result, update }) {
   return (
     <div className="grid gap-4">
       <section className="screen-card rounded-[22px] p-4">
@@ -174,7 +174,7 @@ function BudgetFormStep({ step, draft, result, update }) {
         </div>
       </section>
 
-      <EnergyInfoCard selectedType={draft.energyType} result={result} compact />
+      {stepIndex === 0 ? <EnergyInfoCard selectedType={draft.energyType} result={result} compact /> : null}
       <BudgetPreview result={result} />
     </div>
   );
