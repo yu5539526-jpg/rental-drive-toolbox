@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>租车取车验车清单</title>
+  <style>
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 1242px;
+  min-width: 1242px;
+  height: 1660px;
+  min-height: 1660px;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+  color: #21343a;
+  background: #f6faf7;
+  letter-spacing: 0;
+}
+.page {
+  position: relative;
+  width: 1242px;
+  height: 1660px;
+  overflow: hidden;
+  background: #f6faf7;
+  border-top: 18px solid #1e6f67;
+}
+.brand {
+  position: absolute;
+  top: 45px;
+  right: 64px;
+  font-size: 25px;
+  font-weight: 700;
+  color: #1e6f67;
+}
+.page-number {
+  position: absolute;
+  top: 45px;
+  left: 64px;
+  font-size: 25px;
+  color: #cf7831;
+  font-weight: 800;
+}
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 18px;
+  background: #fff2da;
+  color: #9a551d;
+  border: 2px solid #efc894;
+  border-radius: 8px;
+  font-size: 25px;
+  font-weight: 800;
+}
+.header {
+  padding: 100px 64px 24px;
+}
+h1 {
+  margin: 22px 0 12px;
+  font-size: 58px;
+  line-height: 1.08;
+  color: #183e4d;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.subtitle {
+  width: 950px;
+  font-size: 28px;
+  line-height: 1.45;
+  color: #51666b;
+}
+.table-wrap {
+  margin: 22px 52px 0;
+  background: #ffffff;
+  border: 2px solid #d7e6e2;
+  border-radius: 8px;
+  overflow: hidden;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+th {
+  background: #1e6f67;
+  color: #ffffff;
+  font-size: 24px;
+  line-height: 1.2;
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 900;
+}
+td {
+  border-top: 2px solid #e2ece9;
+  border-right: 2px solid #e2ece9;
+  vertical-align: top;
+  padding: 14px 12px;
+  font-size: 24px;
+  line-height: 1.28;
+  color: #263b40;
+  word-break: break-word;
+}
+td:last-child, th:last-child { border-right: 0; }
+tr:nth-child(even) td { background: #fbfdfb; }
+.name-cell {
+  font-weight: 900;
+  color: #183e4d;
+  font-size: 25px;
+}
+.pill {
+  display: inline-block;
+  border-radius: 8px;
+  padding: 5px 8px;
+  background: #eaf5f2;
+  color: #1e6f67;
+  font-weight: 900;
+  font-size: 21px;
+  margin-top: 6px;
+}
+.warn {
+  color: #b05f1d;
+  font-weight: 900;
+}
+.ok {
+  color: #1e6f67;
+  font-weight: 900;
+}
+.footer {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  bottom: 42px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  font-size: 24px;
+  color: #5b6c70;
+}
+.footer strong {
+  color: #183e4d;
+}
+</style>
+</head>
+<body><main class="page">
+      <style>
+        .check-grid { margin: 20px 52px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .check-block { display: grid; grid-template-columns: 72px 1fr; gap: 16px; min-height: 150px; background: #fff; border: 2px solid #d7e6e2; border-radius: 8px; padding: 20px 18px; }
+        .check-index { width: 58px; height: 58px; border-radius: 8px; background: #1e6f67; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; }
+        .check-block h2 { margin: 0 0 8px; font-size: 31px; color: #183e4d; }
+        .check-block p { margin: 0; font-size: 27px; line-height: 1.33; color: #33494f; }
+        .evidence { margin: 28px 52px 0; background: #fff2da; border: 2px solid #efc894; border-radius: 8px; padding: 24px; font-size: 29px; line-height: 1.4; color: #33494f; }
+        .evidence strong { color: #8a4b14; }
+      </style>
+      <div class="page-number">07/07</div>
+      <div class="brand">目的地自驾攻略</div>
+      <section class="header">
+        <div class="kicker">租车取车验车清单</div>
+        <h1>别急着开走，先留证</h1>
+        <div class="subtitle">新手取车最重要的不是懂车，而是把车况、规则和费用记录清楚。</div>
+      </section>
+      <section class="check-grid"><div class="check-block">
+        <div class="check-index">01</div>
+        <div><h2>预订前</h2><p>取还车点、押金、保险范围、异地还车费</p></div>
+      </div><div class="check-block">
+        <div class="check-index">02</div>
+        <div><h2>柜台签约</h2><p>合同总价、车型车牌、加购项目、救援电话</p></div>
+      </div><div class="check-block">
+        <div class="check-index">03</div>
+        <div><h2>外观</h2><p>车身四角、门边底边、后视镜、保险杠</p></div>
+      </div><div class="check-block">
+        <div class="check-index">04</div>
+        <div><h2>轮胎玻璃</h2><p>胎压胎纹、鼓包、前挡石子坑、车灯裂纹</p></div>
+      </div><div class="check-block">
+        <div class="check-index">05</div>
+        <div><h2>内饰功能</h2><p>座椅污损、空调灯光、雨刷、车机充电口</p></div>
+      </div><div class="check-block">
+        <div class="check-index">06</div>
+        <div><h2>油电里程</h2><p>油量/电量、总里程、还车油电规则</p></div>
+      </div><div class="check-block">
+        <div class="check-index">07</div>
+        <div><h2>试驾</h2><p>刹车、方向、倒车影像、异常异响</p></div>
+      </div><div class="check-block">
+        <div class="check-index">08</div>
+        <div><h2>还车留证</h2><p>到店时间、还车视频、仪表照片、结算凭证</p></div>
+      </div></section>
+      <section class="evidence"><strong>拍照顺序：</strong>车头 → 右侧 → 车尾 → 左侧 → 四条轮胎 → 前挡/车灯 → 内饰 → 仪表盘。还车时按同样角度再拍一遍。</section>
+      <div class="footer"><span>现场发现问题，先让门店写进验车单，再开出门。</span><strong>评论/私信：自驾表</strong></div>
+    </main></body>
+</html>

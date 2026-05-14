@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>自驾旅行预算表</title>
+  <style>
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 1242px;
+  min-width: 1242px;
+  height: 1660px;
+  min-height: 1660px;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+  color: #21343a;
+  background: #f6faf7;
+  letter-spacing: 0;
+}
+.page {
+  position: relative;
+  width: 1242px;
+  height: 1660px;
+  overflow: hidden;
+  background: #f6faf7;
+  border-top: 18px solid #1e6f67;
+}
+.brand {
+  position: absolute;
+  top: 45px;
+  right: 64px;
+  font-size: 25px;
+  font-weight: 700;
+  color: #1e6f67;
+}
+.page-number {
+  position: absolute;
+  top: 45px;
+  left: 64px;
+  font-size: 25px;
+  color: #cf7831;
+  font-weight: 800;
+}
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 18px;
+  background: #fff2da;
+  color: #9a551d;
+  border: 2px solid #efc894;
+  border-radius: 8px;
+  font-size: 25px;
+  font-weight: 800;
+}
+.header {
+  padding: 100px 64px 24px;
+}
+h1 {
+  margin: 22px 0 12px;
+  font-size: 58px;
+  line-height: 1.08;
+  color: #183e4d;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.subtitle {
+  width: 950px;
+  font-size: 28px;
+  line-height: 1.45;
+  color: #51666b;
+}
+.table-wrap {
+  margin: 22px 52px 0;
+  background: #ffffff;
+  border: 2px solid #d7e6e2;
+  border-radius: 8px;
+  overflow: hidden;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+th {
+  background: #1e6f67;
+  color: #ffffff;
+  font-size: 24px;
+  line-height: 1.2;
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 900;
+}
+td {
+  border-top: 2px solid #e2ece9;
+  border-right: 2px solid #e2ece9;
+  vertical-align: top;
+  padding: 14px 12px;
+  font-size: 24px;
+  line-height: 1.28;
+  color: #263b40;
+  word-break: break-word;
+}
+td:last-child, th:last-child { border-right: 0; }
+tr:nth-child(even) td { background: #fbfdfb; }
+.name-cell {
+  font-weight: 900;
+  color: #183e4d;
+  font-size: 25px;
+}
+.pill {
+  display: inline-block;
+  border-radius: 8px;
+  padding: 5px 8px;
+  background: #eaf5f2;
+  color: #1e6f67;
+  font-weight: 900;
+  font-size: 21px;
+  margin-top: 6px;
+}
+.warn {
+  color: #b05f1d;
+  font-weight: 900;
+}
+.ok {
+  color: #1e6f67;
+  font-weight: 900;
+}
+.footer {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  bottom: 42px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  font-size: 24px;
+  color: #5b6c70;
+}
+.footer strong {
+  color: #183e4d;
+}
+</style>
+</head>
+<body><main class="page">
+      <style>
+        .budget-formula { margin: 26px 52px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .formula-box { background: #fff2da; border: 2px solid #efc894; border-radius: 8px; padding: 22px 24px; min-height: 150px; }
+        .formula-box h2 { margin: 0 0 10px; font-size: 31px; color: #8a4b14; }
+        .formula-box p { margin: 0; font-size: 27px; line-height: 1.35; color: #33494f; }
+        .budget-note { margin: 22px 52px 0; padding: 22px 24px; background: #eaf5f2; border: 2px solid #c8ddd8; border-radius: 8px; font-size: 27px; line-height: 1.4; color: #24464a; }
+        .budget-table td { font-size: 28px; padding: 20px 18px; }
+        .budget-table th { font-size: 27px; }
+      </style>
+      <div class="page-number">06/07</div>
+      <div class="brand">目的地自驾攻略</div>
+      <section class="header">
+        <div class="kicker">自驾旅行预算表</div>
+        <h1>先拆费用，再决定怎么玩</h1>
+        <div class="subtitle">别只看租车日租价；真正影响预算的是保险、油电、停车、酒店和项目。</div>
+      </section>
+      <section class="table-wrap">
+        <table class="budget-table">
+          <colgroup><col style="width:24%"><col style="width:42%"><col style="width:34%"></colgroup>
+          <thead><tr><th>费用项</th><th>怎么估</th><th>新手提醒</th></tr></thead>
+          <tbody><tr><td class="name-cell">大交通</td><td>机票/高铁往返</td><td>按人填；先锁大交通</td></tr><tr><td class="name-cell">租车及保险</td><td>租金+基础险+补充保障</td><td>看最终支付页总价</td></tr><tr><td class="name-cell">油电/过路/停车</td><td>里程+高速+景区停车</td><td>长线预留 10%-15%</td></tr><tr><td class="name-cell">酒店</td><td>房价×晚数×房间数</td><td>带停车位优先</td></tr><tr><td class="name-cell">门票及项目</td><td>门票+索道+船票+体验</td><td>可玩可不玩单独列</td></tr><tr><td class="name-cell">饮食</td><td>人均餐费×天数×人数</td><td>特色餐单独加预算</td></tr><tr><td class="name-cell">其他和预备金</td><td>装备/洗车/寄存/临时改线</td><td>建议留 5%-10%</td></tr></tbody>
+        </table>
+      </section>
+      <section class="budget-formula">
+        <div class="formula-box"><h2>总预算</h2><p>大交通 + 租车保险 + 油电过路停车 + 酒店 + 门票项目 + 饮食 + 其他</p></div>
+        <div class="formula-box"><h2>人均费用</h2><p>总预算 ÷ 出行人数；多人同行别忘了停车、过路费按车分摊。</p></div>
+      </section>
+      <div class="budget-note">Excel 版已经留好“预算 / 实际 / 差额”公式，出发前填预算，回来后填实际，下一次选目的地会更准。</div>
+      <div class="footer"><span>预算不是为了省到极限，是为了路上少被临时费用打乱。</span><strong>评论/私信：自驾表</strong></div>
+    </main></body>
+</html>
