@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
-    "deploy": "npm run build && gh-pages -d dist"
+    "preview": "vite preview --host 0.0.0.0",
+    "deploy": "npm run deploy:cloudbase",
+    "deploy:cloudbase": "npm run build && tcb hosting deploy dist -e pyuy-trip-d8g0ttzhed2f4cbec"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",

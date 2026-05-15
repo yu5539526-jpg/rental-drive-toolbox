@@ -1,7 +1,9 @@
-﻿node_modules/
+node_modules/
 dist/
 .env
 .env.local
-.vercel/
 .DS_Store
 *.log
+.vscode/
+.idea/
+.vercel/

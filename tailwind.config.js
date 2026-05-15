@@ -4,16 +4,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        pine: '#1e6f67',
-        ink: '#183e4d',
-        mint: '#eef8f4',
-        cream: '#fff8ed',
-        amberSoft: '#fff2da',
-        coral: '#ef6f61',
-        skySoft: '#e8f4ff',
+        pine: '#2F6B5F',
+        ink: '#1F2D2A',
+        muted: '#6B7C78',
+        mint: '#EAF4EF',
+        cream: '#F8F5EC',
+        amberSoft: '#F6E7B8',
+        coral: '#D96B5F',
+        card: '#FFFFFF',
+        softLine: 'rgba(47, 107, 95, 0.12)',
       },
       boxShadow: {
-        soft: '0 18px 42px rgba(24, 62, 77, 0.12)',
+        soft: '0 18px 42px rgba(31, 45, 42, 0.12)',
+        card: '0 12px 30px rgba(31, 45, 42, 0.08)',
+        shell: '0 24px 70px rgba(31, 45, 42, 0.18)',
       },
       fontFamily: {
         sans: ['Inter', 'PingFang SC', 'Microsoft YaHei', 'Arial', 'sans-serif'],
