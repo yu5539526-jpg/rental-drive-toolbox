@@ -14,7 +14,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import LeadCaptureModal from '../components/LeadCaptureModal.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
@@ -147,21 +147,11 @@ export default function BudgetPage() {
   };
 
   return (
-    <main className="min-h-screen bg-transparent">
+    <main className="min-h-screen bg-cream">
       <TopBar title={step === budgetSteps.length - 1 ? '预算结果' : '自驾预算计算器'} />
 
-      <section className="sticky top-14 z-10 border-b border-pine/10 bg-cream/90 px-4 py-3 backdrop-blur">
-        <div className="rounded-[22px] bg-card p-4 shadow-card ring-1 ring-pine/10">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <span className="text-sm font-bold text-pine">
-              第 {step + 1} 步 / 共 {budgetSteps.length} 步
-            </span>
-            <span className="text-sm font-bold text-muted">{progress}%</span>
-          </div>
-          <h1 className="mb-3 text-[19px] font-bold leading-tight text-ink">{currentStep.title}</h1>
-          <ProgressBar value={progress} />
-          <p className="mt-3 text-xs font-medium leading-relaxed text-muted">{currentStep.hint}</p>
-        </div>
+      <section className="sticky top-14 z-10 bg-cream/92 px-4 py-3 backdrop-blur">
+        <StepProgressCard step={step} total={budgetSteps.length} progress={progress} currentStep={currentStep} />
       </section>
 
       <section className="page-pad px-4 pt-4">
@@ -190,8 +180,8 @@ export default function BudgetPage() {
       <BottomActionBar layout="double">
         {step === budgetSteps.length - 1 ? (
           <>
-            <BottomActionButton type="button" variant="secondary" onClick={openLead}>
-              提交保存
+            <BottomActionButton type="button" variant="secondary" className="text-xs" onClick={openLead}>
+              保存到出行计划
             </BottomActionButton>
             <BottomActionButton type="button" onClick={openBudgetCard}>
               <Image size={18} />
@@ -225,9 +215,27 @@ export default function BudgetPage() {
   );
 }
 
+function StepProgressCard({ step, total, progress, currentStep }) {
+  return (
+    <div className="rounded-[24px] border border-pine/10 bg-card/95 p-4 shadow-card">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="rounded-full bg-aquaCard px-3 py-1.5 text-sm font-bold text-pine">
+          第 {step + 1} 步 / 共 {total} 步
+        </span>
+        <span className="text-sm font-bold text-muted">{progress}%</span>
+      </div>
+      <h1 className="text-[20px] font-bold leading-tight text-ink">{currentStep.title}</h1>
+      <p className="mt-2 text-sm font-medium leading-relaxed text-muted">{currentStep.hint}</p>
+      <div className="mt-4">
+        <ProgressBar value={progress} />
+      </div>
+    </div>
+  );
+}
+
 function SelectedRentalPlanCard({ plan, currentTotal, onBack, onClear }) {
   return (
-    <section className="mb-4 rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
+    <section className="mb-4 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-muted">已选租车方案</p>
@@ -235,9 +243,9 @@ function SelectedRentalPlanCard({ plan, currentTotal, onBack, onClear }) {
             {plan.platform}｜{plan.carModel}
           </h2>
         </div>
-        <span className="shrink-0 rounded-full bg-mint px-3 py-1.5 text-xs font-bold text-pine">已带入</span>
+        <span className="shrink-0 rounded-full bg-aquaCard px-3 py-1.5 text-xs font-bold text-pine">已带入</span>
       </div>
-      <div className="mt-3 grid gap-2 rounded-2xl bg-mint px-3 py-3 text-sm font-medium leading-relaxed text-ink">
+      <div className="mt-3 grid gap-2 rounded-2xl bg-aquaCard px-3 py-3 text-sm font-medium leading-relaxed text-ink">
         <p>平台：{plan.platform}</p>
         <p>车型：{plan.carModel}</p>
         <p>保险：{plan.insurancePlan}</p>
@@ -247,14 +255,14 @@ function SelectedRentalPlanCard({ plan, currentTotal, onBack, onClear }) {
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-card px-3 text-sm font-bold text-pine ring-1 ring-pine/10"
+          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-card px-3 text-sm font-bold text-pine ring-1 ring-pine/15"
         >
           返回修改方案
         </button>
         <button
           type="button"
           onClick={onClear}
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-mint px-3 text-sm font-bold text-pine"
+          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-aquaCard px-3 text-sm font-bold text-pine"
         >
           清除已选方案
         </button>
@@ -268,13 +276,11 @@ function BudgetFormStep({ step, stepIndex, draft, result, update }) {
 
   return (
     <div className="grid gap-4">
-      <section className="screen-card rounded-[24px] p-4">
-        {isBasicStep ? (
-          <BasicInfoStep step={step} draft={draft} update={update} />
-        ) : (
-          <StandardBudgetFields step={step} draft={draft} update={update} />
-        )}
-      </section>
+      {isBasicStep ? (
+        <BasicInfoStep step={step} draft={draft} update={update} />
+      ) : (
+        <StandardBudgetFields step={step} draft={draft} update={update} />
+      )}
 
       {stepIndex === 0 ? <EnergyInfoCard selectedType={draft.energyType} result={result} compact /> : null}
       <BudgetPreview result={result} draft={draft} />
@@ -284,23 +290,29 @@ function BudgetFormStep({ step, stepIndex, draft, result, update }) {
 
 function BasicInfoStep({ step, draft, update }) {
   const textFields = step.fields.filter((field) => ['destination', 'departureCity'].includes(field.name));
-  const numberFields = step.fields.filter((field) => !['destination', 'departureCity'].includes(field.name));
+  const routeFields = step.fields.filter((field) => ['tripDays', 'people', 'rentalDays', 'mileage'].includes(field.name));
 
   return (
     <div className="grid gap-5">
-      <EnergyTypeCards choice={step.choice} value={draft[step.choice.name]} onChange={(value) => update(step.choice.name, value)} />
+      <FieldGroup title="能源类型" compact>
+        <EnergyTypeCards choice={step.choice} value={draft[step.choice.name]} onChange={(value) => update(step.choice.name, value)} />
+      </FieldGroup>
 
-      <div className="grid gap-4">
-        {textFields.map((field) => (
-          <BudgetInputField key={field.name} field={field} value={draft[field.name]} onChange={(value) => update(field.name, value)} />
-        ))}
-      </div>
+      <FieldGroup title="基础行程">
+        <div className="grid gap-4">
+          {textFields.map((field) => (
+            <BudgetInputField key={field.name} field={field} value={draft[field.name]} onChange={(value) => update(field.name, value)} />
+          ))}
+        </div>
+      </FieldGroup>
 
-      <div className="grid grid-cols-2 gap-3">
-        {numberFields.map((field) => (
-          <BudgetInputField key={field.name} field={field} value={draft[field.name]} onChange={(value) => update(field.name, value)} />
-        ))}
-      </div>
+      <FieldGroup title="里程与天数">
+        <div className="grid grid-cols-2 gap-3">
+          {routeFields.map((field) => (
+            <BudgetInputField key={field.name} field={field} value={draft[field.name]} onChange={(value) => update(field.name, value)} />
+          ))}
+        </div>
+      </FieldGroup>
     </div>
   );
 }
@@ -310,7 +322,6 @@ function EnergyTypeCards({ choice, value, onChange }) {
 
   return (
     <div>
-      <p className="mb-2 text-sm font-bold text-ink">{choice.label}</p>
       <div className="grid gap-3">
         {choice.options.map((option) => {
           const meta = ENERGY_CARD_META[option.value] || { icon: Zap, title: option.label, description: '' };
@@ -322,22 +333,22 @@ function EnergyTypeCards({ choice, value, onChange }) {
               key={option.value}
               type="button"
               onClick={() => onChange(option.value)}
-              className={`flex min-h-[72px] items-center gap-3 rounded-[18px] border px-3.5 py-3 text-left transition active:scale-[0.99] ${
+              className={`flex min-h-[76px] items-center gap-3 rounded-[20px] border px-3.5 py-3 text-left transition hover:-translate-y-0.5 active:scale-[0.99] ${
                 active
-                  ? 'border-pine bg-pine text-white shadow-lg shadow-pine/15'
-                  : 'border-pine/10 bg-mint/70 text-ink shadow-sm'
+                  ? 'border-pine bg-gradient-to-r from-[#356F67] to-[#4A8F83] text-lightText shadow-lg shadow-pine/15'
+                  : 'border-pine/10 bg-card text-ink shadow-sm hover:border-pine/25 hover:bg-aquaCard'
               }`}
             >
               <span
                 className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${
-                  active ? 'bg-white/15 text-white' : 'bg-card text-pine'
+                  active ? 'bg-white/15 text-lightText' : 'bg-aquaCard text-pine'
                 }`}
               >
                 <Icon size={22} />
               </span>
               <span className="min-w-0">
                 <span className="block text-base font-bold leading-tight">{meta.title}</span>
-                <span className={`mt-1 block text-xs font-medium leading-relaxed ${active ? 'text-white/82' : 'text-muted'}`}>
+                <span className={`mt-1 block text-xs font-medium leading-relaxed ${active ? 'text-white/80' : 'text-muted'}`}>
                   {meta.description}
                 </span>
               </span>
@@ -346,6 +357,15 @@ function EnergyTypeCards({ choice, value, onChange }) {
         })}
       </div>
     </div>
+  );
+}
+
+function FieldGroup({ title, children, compact = false }) {
+  return (
+    <section className={`rounded-[24px] border border-pine/10 bg-card ${compact ? 'p-3.5' : 'p-4'} shadow-card`}>
+      <h3 className="mb-3 text-sm font-bold text-ink">{title}</h3>
+      {children}
+    </section>
   );
 }
 
@@ -359,17 +379,16 @@ function StandardBudgetFields({ step, draft, update }) {
           const fields = group.fields.map((name) => fieldsByName.get(name)).filter(Boolean);
 
           return (
-            <section key={group.title} className="rounded-[20px] bg-cream/70 p-3.5 ring-1 ring-pine/10">
-              <h3 className="mb-3 text-sm font-bold text-ink">{group.title}</h3>
+            <FieldGroup key={group.title} title={group.title}>
               <div className="grid gap-3">
                 {fields.map((field) => (
                   <BudgetInputField key={field.name} field={field} value={draft[field.name]} onChange={(value) => update(field.name, value)} />
                 ))}
               </div>
-            </section>
+            </FieldGroup>
           );
         })}
-        <p className="rounded-2xl bg-mint px-3 py-2.5 text-xs font-bold leading-relaxed text-pine">
+        <p className="rounded-2xl bg-amberSoft/45 px-3 py-2.5 text-xs font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
           没填的费用会按 0 计算，结果适合作为粗略估算。
         </p>
       </div>
@@ -397,7 +416,7 @@ function BudgetInputField({ field, value, onChange }) {
           value={value ?? ''}
           onChange={(event) => onChange(event.target.value)}
           placeholder={field.placeholder || '0'}
-          className={`h-12 w-full rounded-[14px] border border-pine/15 bg-card px-3.5 text-[15px] font-semibold text-ink outline-none shadow-sm transition focus:border-pine focus:ring-2 focus:ring-pine/10 ${
+          className={`h-12 w-full rounded-[16px] border border-pine/15 bg-aquaCard/70 px-3.5 text-[15px] font-semibold text-ink outline-none transition placeholder:text-muted/55 focus:border-pine focus:bg-card focus:ring-2 focus:ring-pine/10 ${
             field.suffix ? 'pr-14' : ''
           }`}
         />
@@ -418,9 +437,9 @@ function BudgetPreview({ result, draft }) {
 
   if (!hasBudget) {
     return (
-      <section className="rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
+      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
         <div className="flex gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-mint text-pine">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-aquaCard text-pine">
             <Calculator size={19} />
           </span>
           <div>
@@ -435,7 +454,7 @@ function BudgetPreview({ result, draft }) {
   }
 
   return (
-    <section className="rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
+    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-bold text-ink">当前预估</p>
@@ -443,22 +462,23 @@ function BudgetPreview({ result, draft }) {
             {result.completenessPercent < 40 ? '继续补充里程和费用后，预算会更准确。' : result.completenessText}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-mint px-3 py-1.5 text-xs font-bold text-pine">{result.completenessPercent}%</span>
+        <span className="shrink-0 rounded-full bg-aquaCard px-3 py-1.5 text-xs font-bold text-pine">{result.completenessPercent}%</span>
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <PreviewMetric label="总预算" value={formatMoney(result.tripTotal)} strong />
-        <PreviewMetric label="人均" value={formatMoney(result.perPerson)} />
-        <PreviewMetric label="日均" value={formatMoney(result.dailyAverage)} />
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <PreviewMetric label="当前预估总预算" value={formatMoney(result.tripTotal)} strong />
+        <PreviewMetric label="人均预算" value={formatMoney(result.perPerson)} />
+        <PreviewMetric label="日均预算" value={formatMoney(result.dailyAverage)} />
+        <PreviewMetric label="押金占用" value={formatMoney(result.temporaryFunds)} muted />
       </div>
     </section>
   );
 }
 
-function PreviewMetric({ label, value, strong }) {
+function PreviewMetric({ label, value, strong, muted }) {
   return (
-    <div className={`rounded-2xl px-3 py-2 ${strong ? 'bg-pine text-white' : 'bg-mint text-ink'}`}>
-      <p className={`text-[11px] font-bold ${strong ? 'text-white/70' : 'text-muted'}`}>{label}</p>
-      <p className={`mt-0.5 text-sm font-bold ${strong ? 'text-white' : 'text-ink'}`}>{value}</p>
+    <div className={`rounded-2xl px-3 py-2.5 ${strong ? 'bg-gradient-to-r from-[#356F67] to-[#4A8F83] text-lightText' : muted ? 'bg-amberSoft/45 text-ink' : 'bg-aquaCard text-ink'}`}>
+      <p className={`text-[11px] font-bold ${strong ? 'text-white/75' : 'text-muted'}`}>{label}</p>
+      <p className={`mt-0.5 text-base font-bold ${strong ? 'text-lightText' : 'text-ink'}`}>{value}</p>
     </div>
   );
 }
@@ -507,9 +527,9 @@ function BudgetResult({ result, draft, selectedPlan, cardStatus, onReset, onEdit
     ['景区游玩费用', result.scenic],
     ['大交通费用', result.bigTraffic],
     ['其他费用', result.otherFees],
-    ['应急预算', result.emergency],
   ];
-  const splitTotal = Math.max(result.tripTotal, 1);
+  const splitTotal = Math.max(feeCards.reduce((total, [, value]) => total + value, 0), 1);
+  const budgetReport = buildBudgetReport(result);
 
   const copyBudgetResult = async () => {
     const text = buildBudgetCopyText(result, draft, selectedPlan);
@@ -519,117 +539,183 @@ function BudgetResult({ result, draft, selectedPlan, cardStatus, onReset, onEdit
 
   return (
     <div className="grid gap-4">
-      <section className="rounded-[24px] bg-pine p-5 text-white shadow-soft">
-        <p className="text-sm font-bold text-white/70">{draft.destination || '本次自驾'}</p>
-        <h2 className="mt-1 text-xl font-bold">本次自驾预算结果</h2>
-        <p className="mt-4 text-[44px] font-bold leading-none tracking-normal">{formatMoney(result.tripTotal)}</p>
-        <p className="mt-3 text-sm font-medium leading-relaxed text-white/80">{result.budgetSummary}</p>
-        {selectedPlan ? (
-          <div className="mt-4 rounded-2xl bg-white/10 px-3 py-3">
-            <p className="text-[11px] font-bold text-white/60">本次租车方案</p>
-            <p className="mt-1 break-words text-sm font-bold leading-relaxed">
-              {selectedPlan.platform}｜{selectedPlan.carModel}｜{selectedPlan.insurancePlan}｜{formatMoney(draft.rentalPlatformTotal || selectedPlan.totalPrice)}
-            </p>
-          </div>
-        ) : null}
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <BigMetric label="人均预算" value={formatMoney(result.perPerson)} />
-          <BigMetric label="日均预算" value={formatMoney(result.dailyAverage)} />
-          <BigMetric label="押金占用" value={formatMoney(result.temporaryFunds)} />
-        </div>
-      </section>
+      <ResultHeroCard result={result} draft={draft} />
+
+      <ResultRentalPlanCard selectedPlan={selectedPlan} currentTotal={draft.rentalPlatformTotal || selectedPlan?.totalPrice} />
 
       {result.isRoughEstimate ? (
-        <p className="rounded-[18px] bg-amberSoft px-4 py-3 text-sm font-bold leading-relaxed text-[#7A5521]">
+        <p className="rounded-[18px] bg-amberSoft/45 px-4 py-3 text-sm font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
           部分费用未填写，当前结果为粗略估算。
         </p>
       ) : null}
 
       <section className="screen-card rounded-[24px] p-4">
-        <h2 className="mb-3 text-lg font-bold text-ink">费用拆分</h2>
-        <div className="grid gap-3">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold text-muted">消费结构图</p>
+            <h2 className="mt-1 text-lg font-bold text-ink">费用拆分</h2>
+          </div>
+          <span className="shrink-0 rounded-full bg-aquaCard px-3 py-1.5 text-xs font-bold text-pine">不含押金</span>
+        </div>
+        <div className="grid gap-3.5">
           {feeCards.map(([label, value]) => (
             <FeeSplitRow key={label} label={label} value={value} percent={Math.min(100, Math.round((value / splitTotal) * 100))} />
           ))}
         </div>
       </section>
 
-      <section className="screen-card rounded-[24px] p-4">
-        <h2 className="mb-3 text-lg font-bold text-ink">押金与资金准备</h2>
-        <div className="grid gap-3">
-          <HighlightRow label="临时占用资金" value={formatMoney(result.temporaryFunds)} note="车辆押金 + 违章押金" />
-          <HighlightRow label="出行前建议准备资金" value={formatMoney(result.preparedFunds)} note="旅行总预算 + 临时占用资金" />
-        </div>
-      </section>
-
-      <section className="screen-card rounded-[24px] p-4">
-        <h2 className="mb-3 text-lg font-bold text-ink">预算判断</h2>
-        <div className="rounded-2xl bg-mint p-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-bold text-muted">车辆成本占比</span>
-            <span className="text-xl font-bold text-pine">{formatPercent(result.vehicleCostRatio)}</span>
-          </div>
-          <div className="mt-3">
-            <ProgressBar value={result.vehicleCostRatio} tone={result.vehicleCostRatio >= 45 ? 'coral' : 'pine'} />
-          </div>
-          <p className="mt-3 text-sm font-medium leading-relaxed text-ink">
-            车辆成本占比 {formatPercent(result.vehicleCostRatio)}，{result.vehicleCostJudgment}
-          </p>
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <BadgeBox label="人均预算等级" value={result.budgetLevel} />
-          <BadgeBox label="能源估算" value={formatMoney(result.energyCost)} />
-        </div>
-      </section>
+      <BudgetLevelPanel report={budgetReport} result={result} />
 
       <EnergyInfoCard selectedType={draft.energyType} result={result} />
 
-      <section className="screen-card rounded-[24px] p-4">
-        <h2 className="text-lg font-bold text-ink">预算优化建议</h2>
-        <ul className="mt-3 space-y-2 text-sm leading-relaxed text-muted">
-          {result.suggestions.map((suggestion) => (
-            <li key={suggestion}>• {suggestion}</li>
-          ))}
-        </ul>
-      </section>
+      <BudgetTipsCard suggestions={result.suggestions} />
 
-      <section className="rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
-        <div className="grid gap-3">
-          <button
-            type="button"
-            onClick={copyBudgetResult}
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-mint px-4 font-bold text-pine"
-          >
-            <Copy size={18} />
+      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+        <h2 className="text-lg font-bold text-ink">分享和保存</h2>
+        <p className="mt-1 text-sm font-medium leading-relaxed text-muted">生成预算卡适合截图发给同行人，文字版适合复制到聊天或备忘录。</p>
+        <div className="mt-4 grid gap-2">
+          <ResultActionButton onClick={copyBudgetResult} icon={<Copy size={18} />}>
             复制预算结果
-          </button>
+          </ResultActionButton>
+          <ResultActionButton onClick={onEdit} icon={<ChevronLeft size={17} />}>
+            返回修改预算
+          </ResultActionButton>
+          <ResultActionButton onClick={onReset} icon={<RotateCcw size={17} />}>
+            重新填写
+          </ResultActionButton>
         </div>
         {copyStatus ? <p className="mt-2 text-center text-xs font-bold text-muted">{copyStatus}</p> : null}
-        {cardStatus ? <p className="mt-2 text-center text-xs font-bold text-[#7A5521]">{cardStatus}</p> : null}
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={onEdit}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-card px-3 text-sm font-bold text-pine ring-1 ring-pine/10"
-          >
-            <ChevronLeft size={17} />
-            继续修改
-          </button>
-          <button
-            type="button"
-            onClick={onReset}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-card px-3 text-sm font-bold text-pine ring-1 ring-pine/10"
-          >
-            <RotateCcw size={17} />
-            重新填写
-          </button>
-        </div>
+        {cardStatus ? <p className="mt-2 text-center text-xs font-bold text-[#735B16]">{cardStatus}</p> : null}
       </section>
 
-      <p className="rounded-2xl bg-cream px-4 py-3 text-xs font-medium leading-relaxed text-muted">
+      <p className="rounded-2xl bg-aquaCard px-4 py-3 text-xs font-medium leading-relaxed text-muted">
         结果仅供出行前估算，实际价格以租车平台、酒店、景区和路况为准。
       </p>
     </div>
+  );
+}
+
+function ResultHeroCard({ result, draft }) {
+  return (
+    <section className="rounded-[24px] bg-gradient-to-b from-[#356F67] to-[#4A8F83] p-5 text-lightText shadow-[0_12px_32px_rgba(34,82,71,0.12)]">
+      <p className="text-sm font-bold text-white/70">{draft.destination || '本次自驾'}</p>
+      <h2 className="mt-1 text-xl font-bold">本次自驾预算结果</h2>
+      <div className="mt-5">
+        <p className="text-xs font-bold text-white/65">预计总花费</p>
+        <p className="mt-1 text-[48px] font-bold leading-none tracking-normal">{formatMoney(result.tripTotal)}</p>
+        <p className="mt-2 text-xs font-medium leading-relaxed text-white/70">不含押金占用，押金会影响出发前资金准备。</p>
+      </div>
+      <div className="mt-5 grid grid-cols-2 gap-2">
+        <ResultMetric label="人均预算" value={formatMoney(result.perPerson)} />
+        <ResultMetric label="日均预算" value={formatMoney(result.dailyAverage)} />
+        <ResultMetric label="押金占用" value={formatMoney(result.temporaryFunds)} subtle />
+        <ResultMetric label="出行前建议准备资金" value={formatMoney(result.preparedFunds)} wide />
+      </div>
+    </section>
+  );
+}
+
+function ResultMetric({ label, value, subtle = false, wide = false }) {
+  return (
+    <div className={`rounded-2xl px-3 py-3 ${wide ? 'col-span-2' : ''} ${subtle ? 'bg-amberSoft/45 text-ink' : 'bg-white/12 text-lightText'}`}>
+      <p className={`text-[11px] font-bold ${subtle ? 'text-muted' : 'text-white/65'}`}>{label}</p>
+      <p className={`mt-1 text-lg font-bold leading-tight ${subtle ? 'text-ink' : 'text-lightText'}`}>{value}</p>
+    </div>
+  );
+}
+
+function ResultRentalPlanCard({ selectedPlan, currentTotal }) {
+  if (!selectedPlan) {
+    return (
+      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+        <p className="text-sm font-bold text-ink">本次租车方案</p>
+        <p className="mt-1 text-sm font-medium leading-relaxed text-muted">还没选择租车方案，可以先去“租车方案对比”看不同平台价格。</p>
+        <Link
+          to="/price-compare"
+          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-aquaCard px-4 text-sm font-bold text-pine"
+        >
+          去对比租车方案
+        </Link>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <p className="text-sm font-bold text-muted">本次租车方案</p>
+      <h3 className="mt-1 break-words text-lg font-bold leading-tight text-ink">
+        {selectedPlan.platform}｜{selectedPlan.carModel}｜{selectedPlan.insurancePlan}
+      </h3>
+      <div className="mt-3 rounded-2xl bg-aquaCard px-3 py-3">
+        <p className="text-xs font-bold text-muted">含保险租车总价</p>
+        <p className="mt-1 text-xl font-bold text-pine">{formatMoney(currentTotal || selectedPlan.totalPrice)}</p>
+      </div>
+    </section>
+  );
+}
+
+function BudgetLevelPanel({ report, result }) {
+  return (
+    <section className="screen-card rounded-[24px] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold text-muted">预算等级</p>
+          <h2 className="mt-1 text-lg font-bold text-ink">人均日预算判断</h2>
+        </div>
+        <span className="shrink-0 rounded-full bg-amberSoft/45 px-3 py-1.5 text-xs font-bold text-[#735B16] ring-1 ring-warning/20">{report.level}</span>
+      </div>
+      <p className="mt-3 text-sm font-medium leading-relaxed text-muted">{report.message}</p>
+      <div className="mt-4 rounded-2xl bg-aquaCard p-4">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-bold text-muted">车辆成本占比</span>
+          <span className="text-xl font-bold text-pine">{formatPercent(result.vehicleCostRatio)}</span>
+        </div>
+        <div className="mt-3">
+          <ProgressBar value={result.vehicleCostRatio} tone={result.vehicleCostRatio >= 45 ? 'coral' : 'pine'} />
+        </div>
+        <p className="mt-3 text-sm font-medium leading-relaxed text-ink">
+          {result.vehicleCostJudgment}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function BudgetTipsCard({ suggestions }) {
+  const defaultTips = [
+    '租车和住宿通常是主要支出，可以优先对比不同平台和车型。',
+    '押金不是实际消费，但会影响出发前资金准备。',
+    '多人出行建议提前把人均预算发给同行人确认。',
+  ];
+  const tips = suggestions?.length ? suggestions : defaultTips;
+
+  return (
+    <section className="rounded-[24px] border border-pine/10 bg-aquaCard p-4 shadow-card">
+      <div className="flex items-center gap-2">
+        <span className="grid h-8 w-8 place-items-center rounded-2xl bg-card text-base">💡</span>
+        <h2 className="text-lg font-bold text-ink">预算优化建议</h2>
+      </div>
+      <ul className="mt-3 grid gap-2 text-sm leading-relaxed text-muted">
+        {tips.map((suggestion) => (
+          <li key={suggestion} className="rounded-2xl bg-card/75 px-3 py-2.5">
+            {suggestion}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ResultActionButton({ children, icon, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-card px-4 text-sm font-bold text-pine ring-1 ring-pine/15"
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
 
@@ -647,7 +733,7 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 px-4 sm:items-center">
       <div className="flex max-h-[94vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-[28px] bg-card shadow-soft sm:rounded-[28px]">
-        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center border-b border-[rgba(47,107,95,0.08)] bg-card/95 px-3 backdrop-blur">
+        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center border-b border-[rgba(47,122,109,0.08)] bg-card/95 px-3 backdrop-blur">
           <button
             type="button"
             onClick={onClose}
@@ -661,21 +747,23 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto pb-4">
-          <div className="mx-4 mt-4 rounded-2xl bg-mint px-3 py-2 text-center text-xs font-bold leading-relaxed text-pine">
+          <div className="mx-4 mt-4 rounded-2xl bg-aquaCard px-3 py-2 text-center text-xs font-bold leading-relaxed text-pine">
             适合截图保存或发给同行人。
           </div>
 
-          <div className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-[390px] overflow-hidden rounded-[24px] bg-gradient-to-br from-cream via-mint to-[#F8EABD] shadow-card ring-1 ring-pine/10">
-            <div className="bg-pine px-5 pb-5 pt-4 text-white">
-              <p className="text-xs font-bold text-white/70">pYuY 租车自驾决策工具箱</p>
+          <div className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-[390px] overflow-hidden rounded-[24px] border border-pine/10 bg-gradient-to-br from-cream via-aquaCard to-amberSoft/45 shadow-[0_12px_32px_rgba(34,82,71,0.12)]">
+            <div className="bg-gradient-to-b from-[#356F67] to-[#4A8F83] px-5 pb-5 pt-4 text-lightText">
+              <p className="text-xs font-bold text-white/70">pYuY 租车自驾工具箱</p>
               <h3 className="mt-2 text-2xl font-bold leading-tight">我的自驾预算卡</h3>
-              <p className="mt-4 text-xs font-bold text-white/65">预计总花费</p>
-              <p className="mt-1 text-[42px] font-bold leading-none tracking-normal">{formatMoney(result.tripTotal)}</p>
-              <p className="mt-2 text-sm font-medium text-white/80">不含押金占用，押金在资金准备里单独看</p>
+              <div className="mt-5 rounded-[20px] bg-white/12 px-4 py-3">
+                <p className="text-xs font-bold text-white/65">预计总花费</p>
+                <p className="mt-1 text-[44px] font-bold leading-none tracking-normal">{formatMoney(result.tripTotal)}</p>
+                <p className="mt-2 text-xs font-medium leading-relaxed text-white/80">押金不算实际花费，但会影响出发前准备资金。</p>
+              </div>
             </div>
 
-            <div className="grid gap-4 p-4">
-              <section className="rounded-[20px] bg-white/80 p-3 ring-1 ring-pine/10">
+            <div className="grid gap-3.5 p-4">
+              <section className="rounded-[20px] bg-white/88 p-3 ring-1 ring-pine/10">
                 <h4 className="mb-3 text-sm font-bold text-ink">行程信息</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {cardData.baseInfo.map(([label, value]) => (
@@ -684,62 +772,61 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
                 </div>
               </section>
 
-            {selectedPlan ? (
-              <section className="rounded-[20px] bg-white/85 p-3 ring-1 ring-pine/10">
-                <h4 className="text-sm font-bold text-ink">本次租车方案</h4>
-                <div className="mt-3 grid gap-2 rounded-2xl bg-mint px-3 py-3 text-sm font-medium leading-relaxed text-ink">
-                  <p>平台：{selectedPlan.platform}</p>
-                  <p>车型：{selectedPlan.carModel}</p>
-                  <p>保险：{selectedPlan.insurancePlan}</p>
-                  <p className="font-bold text-pine">含保险租车总价：{formatMoney(draft.rentalPlatformTotal || selectedPlan.totalPrice)}</p>
+              {selectedPlan ? (
+                <section className="rounded-[20px] bg-white/88 p-3 ring-1 ring-pine/10">
+                  <h4 className="text-sm font-bold text-ink">本次租车方案</h4>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <InfoCell label="平台" value={selectedPlan.platform} />
+                    <InfoCell label="车型" value={selectedPlan.carModel} />
+                    <InfoCell label="保险" value={selectedPlan.insurancePlan} />
+                    <InfoCell label="租车总价" value={formatMoney(draft.rentalPlatformTotal || selectedPlan.totalPrice)} strong />
+                  </div>
+                </section>
+              ) : null}
+
+              <section className="rounded-[20px] bg-white/88 p-3 ring-1 ring-pine/10">
+                <h4 className="mb-3 text-sm font-bold text-ink">核心金额</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <MoneyCell label="人均预算" value={formatMoney(result.perPerson)} />
+                  <MoneyCell label="日均预算" value={formatMoney(result.dailyAverage)} />
+                  <MoneyCell label="押金占用" value={formatMoney(result.temporaryFunds)} muted />
+                  <MoneyCell label="建议准备资金" value={formatMoney(result.preparedFunds)} strong />
                 </div>
               </section>
-            ) : null}
 
-            <section className="rounded-[20px] bg-white/85 p-3 ring-1 ring-pine/10">
-              <h4 className="mb-3 text-sm font-bold text-ink">核心预算</h4>
-              <div className="grid grid-cols-2 gap-2">
-                <MoneyCell label="人均预算" value={formatMoney(result.perPerson)} />
-                <MoneyCell label="日均预算" value={formatMoney(result.dailyAverage)} />
-                <MoneyCell label="押金占用" value={formatMoney(result.temporaryFunds)} muted />
-                <MoneyCell label="建议准备资金" value={formatMoney(result.preparedFunds)} />
-              </div>
-            </section>
+              <section className="rounded-[20px] bg-white/88 p-3 ring-1 ring-pine/10">
+                <h4 className="text-sm font-bold text-ink">费用拆分</h4>
+                <div className="mt-3 grid gap-2.5">
+                  {cardData.feeCards.map(([label, value]) => (
+                    <BudgetCardFeeRow
+                      key={label}
+                      label={label}
+                      value={value}
+                      percent={Math.min(100, Math.round((value / cardData.splitTotal) * 100))}
+                    />
+                  ))}
+                </div>
+              </section>
 
-            <section className="rounded-[20px] bg-white/85 p-3 ring-1 ring-pine/10">
-              <h4 className="text-sm font-bold text-ink">费用拆分</h4>
-              <div className="mt-3 grid gap-2.5">
-                {cardData.feeCards.map(([label, value]) => (
-                  <BudgetCardFeeRow
-                    key={label}
-                    label={label}
-                    value={value}
-                    percent={Math.min(100, Math.round((value / cardData.splitTotal) * 100))}
-                  />
-                ))}
-              </div>
-            </section>
+              <section className="rounded-[20px] bg-white/88 p-3 ring-1 ring-pine/10">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-bold text-muted">预算等级</p>
+                  <span className="shrink-0 rounded-full bg-amberSoft/45 px-3 py-1.5 text-xs font-bold text-[#735B16] ring-1 ring-warning/20">{cardData.level}</span>
+                </div>
+                <p className="mt-2 text-sm font-medium leading-relaxed text-muted">{cardData.judgment}</p>
+              </section>
 
-            <section className="rounded-[20px] bg-pine/95 p-3 text-white">
-              <p className="text-xs font-bold text-white/65">预算判断</p>
-              <p className="mt-1 text-xl font-bold">{cardData.level}</p>
-              <p className="mt-2 text-sm font-medium leading-relaxed text-white/85">{cardData.judgment}</p>
-            </section>
-
-            <section className="rounded-[20px] bg-white/80 p-3 text-center ring-1 ring-pine/10">
-              <p className="text-sm font-bold leading-relaxed text-pine">可以截图发给同行人，一起确认这趟预算是否合适。</p>
-              <p className="mt-1 text-lg font-bold leading-tight text-ink">你觉得这个预算能接受吗？</p>
-            </section>
-
-            <p className="text-center text-[11px] font-medium leading-relaxed text-muted">
-              结果仅供出行前估算，实际价格以租车平台、酒店、景区和路况为准。
-              <br />
-              来自 pYuY 租车自驾决策工具箱
-            </p>
+              <section className="rounded-[20px] bg-white/80 p-3 text-center ring-1 ring-pine/10">
+                <p className="text-lg font-bold leading-tight text-ink">你觉得这个预算能接受吗？</p>
+                <p className="mt-2 text-xs font-medium leading-relaxed text-muted">
+                  结果仅供出行前估算，实际价格以租车平台、酒店、景区和路况为准。
+                </p>
+                <p className="mt-2 text-[11px] font-bold text-pine">来自 pYuY 租车自驾工具箱</p>
+              </section>
+            </div>
           </div>
-        </div>
 
-          <p className="mx-4 mt-3 rounded-2xl bg-mint px-3 py-2 text-center text-xs font-bold leading-relaxed text-pine">
+          <p className="mx-4 mt-3 rounded-2xl bg-aquaCard px-3 py-2 text-center text-xs font-bold leading-relaxed text-pine">
             可以截图保存或复制文字版。
           </p>
           {copyStatus ? <p className="mx-4 mt-2 text-center text-xs font-bold text-muted">{copyStatus}</p> : null}
@@ -760,26 +847,27 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
   );
 }
 
-function InfoCell({ label, value }) {
+function InfoCell({ label, value, strong = false }) {
   return (
-    <div className="rounded-2xl bg-mint px-3 py-2">
+    <div className="rounded-2xl bg-aquaCard px-3 py-2">
       <p className="text-[11px] font-bold text-muted">{label}</p>
-      <p className="mt-0.5 break-words text-sm font-bold leading-tight text-ink">{value || '未填写'}</p>
+      <p className={`mt-0.5 break-words text-sm font-bold leading-tight ${strong ? 'text-pine' : 'text-ink'}`}>{value || '未填写'}</p>
     </div>
   );
 }
 
-function MoneyCell({ label, value, muted }) {
+function MoneyCell({ label, value, muted = false, strong = false }) {
   return (
-    <div className={`rounded-2xl px-3 py-2 ${muted ? 'bg-amberSoft' : 'bg-mint'}`}>
-      <p className="text-[11px] font-bold text-muted">{label}</p>
-      <p className="mt-0.5 text-base font-bold leading-tight text-ink">{value}</p>
+    <div className={`rounded-2xl px-3 py-2 ${muted ? 'bg-amberSoft/45' : strong ? 'bg-pine text-lightText' : 'bg-aquaCard'}`}>
+      <p className={`text-[11px] font-bold ${strong ? 'text-white/70' : 'text-muted'}`}>{label}</p>
+      <p className={`mt-0.5 text-base font-bold leading-tight ${strong ? 'text-lightText' : 'text-ink'}`}>{value}</p>
     </div>
   );
 }
 
 function BudgetCardFeeRow({ label, value, percent }) {
   const isEmpty = Number(value) <= 0;
+  const isLow = !isEmpty && percent < 8;
 
   return (
     <div className={isEmpty ? 'opacity-55' : ''}>
@@ -787,8 +875,8 @@ function BudgetCardFeeRow({ label, value, percent }) {
         <span className="text-sm font-medium text-muted">{label}</span>
         <span className="shrink-0 text-sm font-bold text-ink">{formatMoney(value)}</span>
       </div>
-      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-mint">
-        <div className={`h-full rounded-full ${isEmpty ? 'bg-muted/30' : 'bg-pine'}`} style={{ width: `${isEmpty ? 4 : Math.max(percent, 6)}%` }} />
+      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-aquaCard">
+        <div className={`h-full rounded-full ${isEmpty ? 'bg-muted/30' : isLow ? 'bg-mint' : 'bg-pine'}`} style={{ width: `${isEmpty ? 4 : Math.max(percent, 6)}%` }} />
       </div>
     </div>
   );
@@ -801,7 +889,7 @@ function EnergyInfoCard({ selectedType, result, compact = false }) {
   const rules = ['oil', 'electric', 'extended'].map((type) => ENERGY_DEFAULTS[type]);
 
   return (
-    <section className={`rounded-[24px] bg-cream p-4 ring-1 ring-pine/10 ${compact ? '' : 'shadow-sm'}`}>
+    <section className={`rounded-[24px] bg-aquaCard p-4 ring-1 ring-pine/10 ${compact ? '' : 'shadow-sm'}`}>
       <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full gap-3 text-left" aria-expanded={open}>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-card text-pine">
           <Info size={18} />
@@ -846,14 +934,20 @@ function BigMetric({ label, value }) {
 }
 
 function FeeSplitRow({ label, value, percent }) {
+  const isEmpty = Number(value) <= 0;
+  const isLow = !isEmpty && percent < 8;
+
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-medium text-muted">{label}</span>
         <span className="shrink-0 text-base font-bold text-ink">{formatMoney(value)}</span>
       </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-mint">
-        <div className="h-full rounded-full bg-pine transition-all duration-300" style={{ width: `${percent}%` }} />
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-aquaCard">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${isEmpty ? 'bg-muted/30' : isLow ? 'bg-mint' : 'bg-pine'}`}
+          style={{ width: `${isEmpty ? 4 : Math.max(percent, 6)}%` }}
+        />
       </div>
     </div>
   );
@@ -861,13 +955,13 @@ function FeeSplitRow({ label, value, percent }) {
 
 function HighlightRow({ label, value, note }) {
   return (
-    <div className="rounded-2xl bg-amberSoft p-4">
+    <div className="rounded-2xl bg-amberSoft/45 p-4 ring-1 ring-warning/20">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-[#7A5521]">{label}</p>
-          <p className="mt-1 text-xs font-medium text-[#7A5521]/75">{note}</p>
+          <p className="text-sm font-bold text-[#735B16]">{label}</p>
+          <p className="mt-1 text-xs font-medium text-[#735B16]/75">{note}</p>
         </div>
-        <p className="shrink-0 text-xl font-bold text-[#7A5521]">{value}</p>
+        <p className="shrink-0 text-xl font-bold text-[#735B16]">{value}</p>
       </div>
     </div>
   );
@@ -875,7 +969,7 @@ function HighlightRow({ label, value, note }) {
 
 function BadgeBox({ label, value }) {
   return (
-    <div className="rounded-2xl bg-mint p-4">
+    <div className="rounded-2xl bg-aquaCard p-4">
       <p className="text-xs font-bold text-muted">{label}</p>
       <p className="mt-1 text-lg font-bold text-ink">{value}</p>
     </div>
@@ -900,13 +994,7 @@ function buildBudgetCardData(result, draft) {
     ['大交通费用', result.bigTraffic],
     ['其他费用', result.otherFees],
   ];
-  const level = getBudgetCardLevel(result.perPersonDaily);
-  const dominantLabels = [...feeCards]
-    .filter(([, value]) => value > 0)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 2)
-    .map(([label]) => label.replace('费用', ''));
-  const dominant = dominantLabels.length ? dominantLabels.join('、') : '车辆与住宿';
+  const report = buildBudgetReport(result);
 
   return {
     baseInfo: [
@@ -919,8 +1007,30 @@ function buildBudgetCardData(result, draft) {
     ],
     feeCards,
     splitTotal: Math.max(feeCards.reduce((total, [, value]) => total + value, 0), 1),
+    level: report.level,
+    judgment: report.message,
+  };
+}
+
+function buildBudgetReport(result) {
+  const feeCards = [
+    ['车辆与交通', result.vehicleTransport],
+    ['住宿餐饮', result.lodgingDining],
+    ['景区游玩', result.scenic],
+    ['大交通', result.bigTraffic],
+    ['其他', result.otherFees],
+  ];
+  const level = getBudgetCardLevel(result.perPersonDaily);
+  const dominantLabels = [...feeCards]
+    .filter(([, value]) => Number(value) > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([label]) => label);
+  const dominant = dominantLabels.length ? dominantLabels.join('与') : '车辆与住宿';
+
+  return {
     level,
-    judgment: `这趟行程预算比较清楚，人均日预算属于${level}，${dominant}是主要支出，适合和同行人一起确认是否能接受。`,
+    message: `这趟行程预算比较均衡，${dominant}是主要支出，适合正常自驾出游，也方便提前和同行人确认。`,
   };
 }
 

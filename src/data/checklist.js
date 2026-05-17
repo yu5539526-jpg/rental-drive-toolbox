@@ -1,8 +1,8 @@
 export const STATUS_OPTIONS = [
-  { value: 'unchecked', label: '未检查' },
-  { value: 'ok', label: '正常' },
-  { value: 'issue', label: '有问题' },
-  { value: 'na', label: '不适用' },
+  { value: 'unchecked', label: '还没确认' },
+  { value: 'ok', label: '已确认没问题' },
+  { value: 'issue', label: '建议补拍/备注' },
+  { value: 'na', label: '本项不用看' },
 ];
 
 export const checklistModules = [
@@ -31,7 +31,7 @@ export const checklistModules = [
       {
         id: 'pickupContract',
         title: '订单总价与加购项目',
-        advice: '检查日租金、保险、服务费、异地还车费、手续费是否和下单页一致。',
+        advice: '核对日租金、保险、服务费、异地还车费、手续费是否和下单页一致。',
         risk: '高',
       },
       {
@@ -44,30 +44,30 @@ export const checklistModules = [
   },
   {
     id: 'exterior',
-    title: '车身外观检查',
+    title: '车身外观留证',
     items: [
       {
         id: 'bodyVideo',
-        title: '绕车一圈视频留证',
-        advice: '从车头开始顺时针拍完整视频，车牌、门店环境和车身四面都入镜。',
+        title: '车身一圈视频',
+        advice: '从车头开始绕车一圈，拍清车身四面和整体车况。',
         risk: '高',
       },
       {
         id: 'bumper',
         title: '前后保险杠与车身四角',
-        advice: '重点看剐蹭、凹陷、补漆、底边刮痕，发现后建议请门店同步确认并拍近景留证。',
+        advice: '重点拍边角、底部和已有划痕，方便还车时核对。',
         risk: '高',
       },
       {
         id: 'doors',
         title: '车门边缘与门把手',
-        advice: '门边、门槛、把手附近容易有小划痕，拍近景照片留证。',
+        advice: '门边、门槛、把手附近容易有小划痕，建议拍近景照片留证。',
         risk: '中',
       },
       {
         id: 'mirrorsLights',
         title: '后视镜、车灯和玻璃',
-        advice: '检查灯罩裂纹、前挡石子坑、后视镜外壳破损和玻璃贴膜气泡。',
+        advice: '拍清灯罩裂纹、前挡石子坑、后视镜外壳和玻璃贴膜气泡。',
         risk: '高',
       },
       {
@@ -80,30 +80,30 @@ export const checklistModules = [
   },
   {
     id: 'tires',
-    title: '轮胎轮毂检查',
+    title: '轮胎轮毂留证',
     items: [
       {
         id: 'tirePressure',
         title: '胎压和仪表胎压报警',
-        advice: '启动后看胎压报警灯，长线自驾前胎压异常要现场处理。',
+        advice: '启动后看胎压报警灯，长线自驾前如有异常，建议现场确认处理方式。',
         risk: '高',
       },
       {
         id: 'tirePattern',
         title: '胎纹深度和磨损程度',
-        advice: '看四条轮胎磨损是否严重、是否偏磨，雨雪路面尤其重要。',
+        advice: '拍四条轮胎的胎纹和磨损情况，雨雪路面出行前建议多确认一遍。',
         risk: '高',
       },
       {
         id: 'tireDamage',
         title: '鼓包、裂纹和扎钉',
-        advice: '轮胎侧壁鼓包、裂纹、扎钉都要拍照并要求换车或处理。',
+        advice: '轮胎侧壁鼓包、裂纹、扎钉建议拍清楚，并和门店确认是否需要换车或处理。',
         risk: '高',
       },
       {
         id: 'wheelRim',
         title: '轮毂剐蹭和变形',
-        advice: '轮毂边缘常被追责，四个轮毂都拍近景。',
+        advice: '轮毂剐蹭比较常见，建议四个轮毂都单独拍清楚。',
         risk: '中',
       },
       {
@@ -116,7 +116,7 @@ export const checklistModules = [
   },
   {
     id: 'interior',
-    title: '车内功能检查',
+    title: '车内功能确认',
     items: [
       {
         id: 'dashboard',
@@ -127,13 +127,13 @@ export const checklistModules = [
       {
         id: 'brakeSteer',
         title: '刹车、方向和异响',
-        advice: '低速试一下刹车和方向盘，明显异响或跑偏要立刻反馈。',
+        advice: '低速试一下刹车和方向盘，如有明显异响或跑偏，建议及时反馈门店。',
         risk: '高',
       },
       {
         id: 'acLights',
         title: '空调、灯光、雨刷',
-        advice: '检查空调冷热风、远近光、转向灯、雨刷和除雾功能。',
+        advice: '确认空调冷热风、远近光、转向灯、雨刷和除雾功能能正常使用。',
         risk: '中',
       },
       {
@@ -163,13 +163,13 @@ export const checklistModules = [
       {
         id: 'insuranceCopy',
         title: '保险凭证或保险说明',
-        advice: '确认基础险、补充险、免赔范围和事故报案方式。',
+        advice: '确认基础险、补充险、免赔范围和特殊情况报案方式。',
         risk: '高',
       },
       {
         id: 'warningTriangle',
         title: '三角警示牌',
-        advice: '检查车内是否有三角警示牌，长途高速必备。',
+        advice: '确认车内是否有三角警示牌，长途高速出行建议提前看一眼。',
         risk: '中',
       },
       {
@@ -199,7 +199,7 @@ export const checklistModules = [
       {
         id: 'deductible',
         title: '免赔额和不赔范围',
-        advice: '重点看轮胎、玻璃、底盘、涉水、单方事故是否覆盖。',
+        advice: '建议确认轮胎、玻璃、底盘、涉水、单方情况等是否覆盖。',
         risk: '高',
       },
       {
@@ -216,8 +216,8 @@ export const checklistModules = [
       },
       {
         id: 'rescueFee',
-        title: '救援、拖车和事故处理费用',
-        advice: '问清事故报案流程、救援是否免费、拖车费用谁承担。',
+        title: '救援、拖车和特殊情况费用',
+        advice: '问清报案流程、救援是否免费、拖车费用谁承担，方便需要时快速处理。',
         risk: '高',
       },
     ],
@@ -247,13 +247,13 @@ export const checklistModules = [
       {
         id: 'belongings',
         title: '个人物品和车内清洁',
-        advice: '检查后备厢、座椅缝、充电线、证件，简单清理明显垃圾。',
+        advice: '确认后备厢、座椅缝、充电线、证件，顺手清理明显垃圾。',
         risk: '低',
       },
       {
         id: 'settlement',
         title: '结算单和押金退还记录',
-        advice: '确认无新增费用后再离店，保存结算单、退押金说明和客服记录。',
+        advice: '确认结算信息后再离店，保存结算单、退押金说明和客服记录。',
         risk: '高',
       },
     ],
@@ -274,7 +274,7 @@ export const quickChecklistModules = [
       {
         id: 'quickBumpers',
         title: '前后保险杠',
-        advice: '重点拍边角、底部、已有划痕和磕碰。',
+        advice: '重点拍边角、底部和已有划痕，方便还车时核对。',
         risk: '高',
       },
       {

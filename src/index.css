@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  color: #1f2d2a;
-  background: #f8f5ec;
+  color: #18322d;
+  background: #f6f8f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -16,7 +16,7 @@
 }
 
 html {
-  background: #f8f5ec;
+  background: #f6f8f5;
   scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom));
 }
 
@@ -26,8 +26,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 50% -10%, rgba(47, 107, 95, 0.12), transparent 36rem),
-    linear-gradient(145deg, #eaf4ef 0%, #f8f5ec 48%, #edf6f0 100%);
+    radial-gradient(circle at 50% -10%, rgba(47, 122, 109, 0.12), transparent 34rem),
+    linear-gradient(145deg, #f2f7f5 0%, #f6f8f5 52%, #ddefea 100%);
 }
 
 #root {
@@ -84,13 +84,13 @@ a {
   min-height: 100vh;
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(234, 244, 239, 0.96), rgba(248, 245, 236, 0.96));
+  background: linear-gradient(180deg, rgba(242, 247, 245, 0.96), rgba(246, 248, 245, 0.98));
 }
 
 .screen-card {
-  border: 1px solid rgba(47, 107, 95, 0.1);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 30px rgba(31, 45, 42, 0.08);
+  border: 1px solid rgba(47, 122, 109, 0.08);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(34, 82, 71, 0.08);
 }
 
 .page-pad {
@@ -99,7 +99,7 @@ a {
 
 .bottom-action {
   background: rgba(248, 250, 246, 0.92);
-  border-top: 1px solid rgba(47, 107, 95, 0.12);
+  border-top: 1px solid rgba(47, 122, 109, 0.12);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
@@ -107,7 +107,7 @@ a {
 
 .modal-bottom-action {
   background: rgba(248, 250, 246, 0.92);
-  border-top: 1px solid rgba(47, 107, 95, 0.12);
+  border-top: 1px solid rgba(47, 122, 109, 0.12);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
@@ -135,7 +135,7 @@ a {
     max-width: 430px;
     border: 1px solid rgba(255, 255, 255, 0.75);
     border-radius: 30px;
-    box-shadow: 0 24px 70px rgba(31, 45, 42, 0.18);
+    box-shadow: 0 24px 70px rgba(34, 82, 71, 0.16);
   }
 }
 

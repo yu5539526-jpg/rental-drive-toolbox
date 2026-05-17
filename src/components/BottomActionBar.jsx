@@ -11,12 +11,12 @@ export default function BottomActionBar({ children, layout = 'single', className
 export function BottomActionButton({ as: Component = 'button', variant = 'primary', className = '', children, ...props }) {
   const variantClass =
     variant === 'secondary'
-      ? 'bg-card text-pine shadow-sm ring-1 ring-pine/10 disabled:text-muted/50'
-      : 'bg-pine text-white shadow-lg shadow-pine/20 disabled:bg-muted/40 disabled:text-white/80';
+      ? 'bg-card text-pine shadow-sm ring-1 ring-pine/15 disabled:bg-aquaCard disabled:text-muted/60'
+      : 'bg-gradient-to-r from-[#356F67] to-[#4A8F83] text-lightText shadow-lg shadow-pine/20 disabled:from-muted/40 disabled:to-muted/40 disabled:text-white/80';
 
   return (
     <Component
-      className={`inline-flex h-12 min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-3 text-center text-sm font-bold leading-tight disabled:cursor-not-allowed ${variantClass} ${className}`}
+      className={`inline-flex h-12 min-h-12 w-full items-center justify-center gap-2 rounded-[18px] px-3 text-center text-sm font-bold leading-tight disabled:cursor-not-allowed ${variantClass} ${className}`}
       {...props}
     >
       {children}

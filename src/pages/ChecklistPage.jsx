@@ -1,4 +1,4 @@
-import { ShieldAlert, Sparkles, WalletCards } from 'lucide-react';
+import { Armchair, Camera, Car, CircleDot, Gauge, Lightbulb, Sparkles, Video, WalletCards } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import LeadCaptureModal from '../components/LeadCaptureModal.jsx';
@@ -21,7 +21,7 @@ const statusStyles = {
   unchecked: {
     active: 'bg-card text-muted shadow-sm ring-1 ring-pine/10',
     card: 'ring-pine/10',
-    badge: 'bg-[#F3F1EA] text-muted ring-pine/10',
+    badge: 'bg-aquaCard text-muted ring-pine/10',
   },
   ok: {
     active: 'bg-pine text-white shadow-sm',
@@ -29,25 +29,25 @@ const statusStyles = {
     badge: 'bg-mint text-pine ring-pine/15',
   },
   issue: {
-    active: 'bg-[#FBEDEA] text-coral shadow-sm ring-1 ring-coral/20',
+    active: 'bg-coral/10 text-coral shadow-sm ring-1 ring-coral/20',
     card: 'ring-coral/25',
-    badge: 'bg-[#FBEDEA] text-coral ring-coral/15',
+    badge: 'bg-coral/10 text-coral ring-coral/15',
   },
   na: {
-    active: 'bg-[#E8E6DF] text-muted shadow-sm',
+    active: 'bg-aquaCard text-muted shadow-sm',
     card: 'ring-pine/8',
-    badge: 'bg-[#F3F1EA] text-muted ring-pine/10',
+    badge: 'bg-aquaCard text-muted ring-pine/10',
   },
 };
 
 const riskStyles = {
   建议补拍: {
-    badge: 'bg-amberSoft text-[#7A5521] ring-1 ring-[#E3CB8D]',
+    badge: 'bg-amberSoft/45 text-[#735B16] ring-1 ring-warning/20',
     tone: 'amber',
     label: '建议补拍',
   },
   继续补齐: {
-    badge: 'bg-amberSoft text-[#7A5521] ring-1 ring-[#E3CB8D]',
+    badge: 'bg-amberSoft/45 text-[#735B16] ring-1 ring-warning/20',
     tone: 'amber',
     label: '继续补齐',
   },
@@ -59,9 +59,20 @@ const riskStyles = {
 };
 
 const riskAdvice = {
-  建议补拍: '还有关键照片没留，建议先补拍车身、轮胎、玻璃、内饰和仪表盘。',
+  建议补拍: '出发前顺手拍一遍，先补齐车身视频、轮胎、轮毂、玻璃和仪表盘。',
   继续补齐: '大部分项目已完成，再补齐几个易遗漏项，还车沟通会更轻松。',
   留证充分: '关键照片和视频留得不错，后续还车更有依据。',
+};
+
+const quickItemIcons = {
+  bodyVideo: Video,
+  quickBumpers: Car,
+  quickWheelRims: CircleDot,
+  quickTires: CircleDot,
+  quickWindshield: Camera,
+  quickMirrorsLights: Lightbulb,
+  quickInteriorSeats: Armchair,
+  quickEnergyMileage: Gauge,
 };
 
 export default function ChecklistPage() {
@@ -117,26 +128,16 @@ export default function ChecklistPage() {
   const resultSnapshot = summary || buildSummary(currentItems, state, stats);
 
   return (
-    <main className="min-h-screen bg-transparent">
+    <main className="min-h-screen bg-cream">
       <TopBar title="取车留证清单" />
 
-      <section className="sticky top-14 z-10 border-b border-pine/10 bg-cream/90 px-4 py-3 backdrop-blur">
+      <section className="page-pad px-4 pt-4">
+        <IntroCard />
+        <ModeSwitch mode={mode} setMode={updateMode} />
         <RealtimeFeedback stats={stats} riskStyle={riskStyle} />
-        <p className="mt-2 rounded-2xl bg-card px-3 py-2 text-xs font-bold leading-relaxed text-pine shadow-sm" role="status" aria-live="polite">
+        <p className="mb-4 mt-3 rounded-2xl bg-aquaCard px-3 py-2 text-xs font-bold leading-relaxed text-pine" role="status" aria-live="polite">
           {feedback}
         </p>
-      </section>
-
-      <section className="page-pad px-4 pt-4">
-        <ModeSwitch mode={mode} setMode={updateMode} />
-
-        <section className="mb-3 rounded-[22px] bg-card px-4 py-3 text-sm font-bold leading-relaxed text-pine shadow-sm ring-1 ring-pine/10">
-          建议先拍完整车身视频，再逐项补拍轮胎、轮毂、玻璃和仪表盘。
-        </section>
-
-        <section className="mb-4 rounded-[22px] bg-amberSoft px-4 py-3 text-sm font-bold leading-relaxed text-[#7A5521]">
-          买了高档保险通常会省心很多，但取车时保留关键照片和视频，仍然能减少还车沟通成本。
-        </section>
 
         <div className="grid gap-5">
           {currentModules.map((module, moduleIndex) => {
@@ -167,7 +168,7 @@ export default function ChecklistPage() {
           <p className="text-xs font-bold text-muted">留证完成后</p>
           <h2 className="mt-1 text-lg font-bold text-ink">生成本次取车留证摘要</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            汇总已完成项目、未确认项目、问题项和建议补拍内容，方便后面保存或复盘。
+            汇总已完成项目、还没确认项目、需备注项目和建议补拍内容，方便后面保存或复盘。
           </p>
         </section>
 
@@ -178,24 +179,15 @@ export default function ChecklistPage() {
         ) : null}
       </section>
 
-      <BottomActionBar layout={summaryVisible ? 'double' : 'single'}>
-        {summaryVisible ? (
-          <>
-            <BottomActionButton type="button" variant="secondary" onClick={generateSummary}>
-              <Sparkles size={17} />
-              更新摘要
-            </BottomActionButton>
-            <BottomActionButton type="button" onClick={openLead}>
-              <WalletCards size={17} />
-              保存计划
-            </BottomActionButton>
-          </>
-        ) : (
-          <BottomActionButton type="button" onClick={generateSummary}>
+      <BottomActionBar layout="double">
+        <BottomActionButton type="button" variant="secondary" className="text-xs" onClick={openLead}>
+          <WalletCards size={17} />
+          保存到出行计划
+        </BottomActionButton>
+        <BottomActionButton type="button" onClick={generateSummary}>
             <Sparkles size={17} />
             生成留证摘要
-          </BottomActionButton>
-        )}
+        </BottomActionButton>
       </BottomActionBar>
 
       <LeadCaptureModal
@@ -208,16 +200,43 @@ export default function ChecklistPage() {
   );
 }
 
+function IntroCard() {
+  return (
+    <section className="mb-4 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <div className="flex items-start gap-3">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[20px] bg-aquaCard text-xl" aria-hidden="true">
+          📸
+        </span>
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold leading-tight text-ink">取车留证清单</h1>
+          <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted">买了保险也建议拍一遍，关键照片别漏掉。</p>
+          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
+            高保障方案通常会更省心，但取车时保留关键照片和视频，仍然能减少还车沟通成本。
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ChecklistItem({ item, value, onUpdate }) {
   const currentStatus = STATUS_OPTIONS.find((option) => option.value === value) || STATUS_OPTIONS[0];
   const currentStyle = statusStyles[value] || statusStyles.unchecked;
+  const Icon = quickItemIcons[item.id];
 
   return (
-    <article className={`screen-card rounded-[22px] p-4 transition-colors duration-200 ${currentStyle.card}`}>
+    <article className={`rounded-[22px] border border-pine/10 bg-card p-4 shadow-card transition-colors duration-200 ${currentStyle.card}`}>
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-base font-bold leading-snug text-ink">{item.title}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-muted/85">{item.advice}</p>
+        <div className="flex min-w-0 gap-3">
+          {Icon ? (
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-aquaCard text-pine">
+              <Icon size={19} />
+            </span>
+          ) : null}
+          <div className="min-w-0">
+            <h3 className="text-base font-bold leading-snug text-ink">{item.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{item.advice}</p>
+          </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <RiskPill item={item} />
@@ -233,9 +252,9 @@ function ChecklistItem({ item, value, onUpdate }) {
         columns={4}
         ariaLabel={`${item.title}状态`}
         className="mt-4"
-        optionClassName="px-1"
+        optionClassName="min-h-10 px-1 text-[12px]"
         getOptionClassName={(option, active) =>
-          active ? statusStyles[option.value].active : 'text-muted/70 hover:bg-card/60 hover:text-ink'
+          active ? statusStyles[option.value].active : 'text-muted/70 hover:bg-card/70 hover:text-ink'
         }
       />
     </article>
@@ -243,38 +262,29 @@ function ChecklistItem({ item, value, onUpdate }) {
 }
 
 function RealtimeFeedback({ stats, riskStyle }) {
-  const missingHigh = stats.highUnfinishedItems.slice(0, 3);
-  const issueItems = stats.issueItems.slice(0, 2);
+  const needRetake = stats.highUnfinished;
 
   return (
-    <div className="rounded-[22px] bg-card p-4 shadow-card ring-1 ring-pine/10">
-      <div className="mb-2 flex items-start justify-between gap-3">
+    <div className="mb-4 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-bold text-muted">取车留证进度</p>
-          <p className="mt-1 text-2xl font-bold text-ink">
-            {stats.completed}
-            <span className="text-base font-medium text-muted">/{stats.activeTotal}</span>
-          </p>
+          <p className="text-xs font-bold text-muted">本次留证进度</p>
+          <h2 className="mt-1 text-lg font-bold text-ink">已完成 {stats.completed} / {stats.activeTotal} 项</h2>
         </div>
         <div className="text-right">
-          <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${riskStyle.badge}`}>{riskStyle.label}</span>
+          <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${riskStyle.badge}`}>{stats.percent}%</span>
           <p className="mt-1 text-[11px] font-bold text-muted">{stats.percent}% 完成</p>
         </div>
       </div>
-      <ProgressBar value={stats.percent} tone={riskStyle.tone} />
+      <ProgressBar value={stats.percent} tone="pine" />
 
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <Metric label="未检查" value={stats.unchecked} />
-        <Metric label="有问题" value={stats.issueCount} danger={stats.issueCount > 0} />
-        <Metric label="必拍未完" value={stats.highUnfinished} danger={stats.highUnfinished > 0} />
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <Metric label="已完成" value={`${stats.completed}/${stats.activeTotal}`} />
+        <Metric label="需备注" value={`${stats.issueCount} 项`} danger={stats.issueCount > 0} />
+        <Metric label="建议补拍" value={`${needRetake} 项`} danger={needRetake > 0} />
       </div>
 
-      <div className="mt-3 grid gap-2">
-        <ActionLine title="建议补拍" text={missingHigh.length ? missingHigh.join('、') : '暂无必拍未完成项'} danger={missingHigh.length > 0} />
-        <ActionLine title="有问题项目" text={issueItems.length ? issueItems.join('、') : '暂无标记为有问题的项目'} danger={issueItems.length > 0} />
-      </div>
-
-      <p className="mt-3 rounded-2xl bg-mint px-3 py-2 text-xs font-medium leading-relaxed text-muted">{riskAdvice[stats.riskLevel]}</p>
+      <p className="mt-3 rounded-2xl bg-aquaCard px-3 py-2 text-xs font-bold leading-relaxed text-pine">{riskAdvice[stats.riskLevel]}</p>
     </div>
   );
 }
@@ -284,24 +294,33 @@ function ModeSwitch({ mode, setMode }) {
     { value: 'quick', label: '省心版：8 项必拍' },
     { value: 'detail', label: '认真版：完整检查' },
   ];
+  const description =
+    mode === 'quick'
+      ? '适合大多数平台租车场景，几分钟拍完关键位置。'
+      : '适合基础保障、夜间取车、长途自驾、异地还车或路线复杂的情况。';
 
   return (
-    <SegmentedControl
-      options={options}
-      value={mode}
-      onChange={setMode}
-      columns={2}
-      ariaLabel="清单模式"
-      className="mb-4 rounded-[22px] bg-card p-1.5 shadow-sm"
-      optionClassName="min-h-11 rounded-2xl px-3 text-sm"
-      getOptionClassName={(_option, active) => (active ? 'bg-pine text-white shadow-sm' : 'bg-mint text-pine')}
-    />
+    <div className="mb-4">
+      <SegmentedControl
+        options={options}
+        value={mode}
+        onChange={setMode}
+        columns={2}
+        ariaLabel="清单模式"
+        className="rounded-[18px] bg-aquaCard p-1.5"
+        optionClassName="min-h-11 rounded-2xl px-2 text-[13px]"
+        getOptionClassName={(_option, active) => (active ? 'bg-pine text-lightText shadow-sm' : 'text-muted hover:bg-card/70 hover:text-ink')}
+      />
+      <p className="mt-2 rounded-2xl bg-card px-3 py-2 text-xs font-bold leading-relaxed text-muted shadow-sm ring-1 ring-pine/10">
+        {description}
+      </p>
+    </div>
   );
 }
 
 function ActionLine({ title, text, danger }) {
   return (
-    <div className={`rounded-2xl px-3 py-2 ${danger ? 'bg-[#FBEDEA]' : 'bg-mint'}`}>
+    <div className={`rounded-2xl px-3 py-2 ${danger ? 'bg-coral/10' : 'bg-mint'}`}>
       <p className={`text-[11px] font-bold ${danger ? 'text-coral' : 'text-muted'}`}>{title}</p>
       <p className="mt-1 text-xs font-medium leading-relaxed text-ink">{text}</p>
     </div>
@@ -310,8 +329,8 @@ function ActionLine({ title, text, danger }) {
 
 function Metric({ label, value, danger }) {
   return (
-    <div className="rounded-2xl bg-mint px-2 py-2">
-      <div className={`text-lg font-bold ${danger ? 'text-coral' : 'text-pine'}`}>{value}</div>
+    <div className="rounded-2xl bg-aquaCard px-2 py-2 text-center">
+      <div className={`text-base font-bold ${danger ? 'text-coral' : 'text-pine'}`}>{value}</div>
       <div className="mt-0.5 text-[11px] font-bold text-muted">{label}</div>
     </div>
   );
@@ -320,15 +339,15 @@ function Metric({ label, value, danger }) {
 function RiskPill({ item }) {
   const label = getRiskTag(item);
   const className =
-    label === '易产生争议'
-      ? 'bg-amberSoft/70 text-[#7A5521] ring-[#E3CB8D]/70'
+    label === '容易遗漏'
+      ? 'bg-amberSoft/45 text-[#735B16] ring-warning/20'
       : label === '建议确认'
-        ? 'bg-[#EDF1EA]/80 text-pine ring-pine/10'
-        : label === '必拍'
+        ? 'bg-aquaCard text-pine ring-pine/10'
+        : label === '关键留证'
           ? 'bg-mint/80 text-pine ring-pine/15'
-          : label === '重点'
-            ? 'bg-[#EDF1EA]/80 text-pine ring-pine/10'
-            : 'bg-[#F3F1EA] text-muted ring-pine/10';
+        : label === '方便核对'
+            ? 'bg-aquaCard text-pine ring-pine/10'
+            : 'bg-aquaCard text-muted ring-pine/10';
 
   return <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${className}`}>{label}</span>;
 }
@@ -336,54 +355,72 @@ function RiskPill({ item }) {
 function getRiskTag(item) {
   if (item.risk === '高') {
     if (/deposit|fee|settlement|fuel|insurance|deductible|returnFuel|coverage|license|contract|driver/i.test(item.id)) return '建议确认';
-    if (/video|body|bumper|tire|wheel|glass|mirror|light|interior|seat|dashboard|mileage|energy|windshield/i.test(item.id)) return '必拍';
-    return '重点';
+    if (/video|body|bumper|tire|wheel|glass|mirror|light|interior|seat|dashboard|mileage|energy|windshield/i.test(item.id)) return '关键留证';
+    return '方便核对';
   }
 
   if (item.risk === '中') {
-    if (/tool|time|point|spare|charging|parking|belongings|overTime/i.test(item.id)) return '易遗漏';
-    return '重点';
+    if (/tool|time|point|spare|charging|parking|belongings|overTime/i.test(item.id)) return '容易遗漏';
+    return '方便核对';
   }
 
-  return '易遗漏';
+  return '容易遗漏';
 }
 
 function SummaryCard({ summary }) {
   return (
-    <section className="rounded-[24px] bg-pine p-4 text-white shadow-soft">
+    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
       <div className="flex items-center gap-2">
-        <ShieldAlert size={18} className="text-amberSoft" />
-        <h2 className="text-lg font-bold">本次取车留证摘要</h2>
+        <span className="grid h-9 w-9 place-items-center rounded-2xl bg-aquaCard text-pine">
+          <Camera size={18} />
+        </span>
+        <h2 className="text-lg font-bold text-ink">本次取车留证摘要</h2>
+      </div>
+      <div className="mt-3 rounded-2xl bg-aquaCard p-3 text-sm font-bold leading-relaxed text-ink">
+        <p>你已经完成 {summary.completedCount} 项留证。</p>
+        <p className="mt-1">仍有 {summary.remainingAdviceCount} 项建议补拍。</p>
+        <p className="mt-1">有 {summary.issueCount} 项被标记为需要注意。</p>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-white/10 p-3">
-          <p className="text-xs text-white/60">已完成留证项目</p>
-          <p className="mt-1 text-2xl font-bold">{summary.completion}</p>
+        <div className="rounded-2xl bg-aquaCard p-3">
+          <p className="text-xs font-bold text-muted">留证完成度</p>
+          <p className="mt-1 text-2xl font-bold text-pine">{summary.completion}</p>
         </div>
-        <div className="rounded-2xl bg-white/10 p-3">
-          <p className="text-xs text-white/60">留证提醒</p>
-          <p className="mt-1 text-2xl font-bold">{riskStyles[summary.riskLevel].label}</p>
+        <div className="rounded-2xl bg-amberSoft/45 p-3 ring-1 ring-warning/20">
+          <p className="text-xs font-bold text-[#735B16]/75">留证提醒</p>
+          <p className="mt-1 text-lg font-bold text-[#735B16]">{riskStyles[summary.riskLevel].label}</p>
         </div>
       </div>
-      <SummaryList title="仍未确认项目" empty="暂无仍未确认项目" items={summary.unfinishedHighRisk} />
-      <SummaryList title="标记为有问题的项目" empty="暂无标记为有问题的项目" items={summary.issueItems} />
-      <div className="mt-3 rounded-2xl bg-white/10 p-3">
-        <p className="text-xs font-bold text-white/60">建议补拍内容</p>
-        <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
+      <SummaryList title="建议补拍项目" empty="暂无建议补拍项目" items={summary.unfinishedHighRisk} tone="warm" />
+      <SummaryList title="需要备注的项目" empty="暂无需要备注的项目" items={summary.issueItems} tone="danger" />
+      <div className="mt-3 rounded-2xl bg-aquaCard p-3">
+        <p className="text-xs font-bold text-muted">建议补拍内容</p>
+        <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-ink">
           {summary.suggestions.map((item) => (
             <li key={item}>• {item}</li>
           ))}
         </ul>
       </div>
+      <p className="mt-3 rounded-2xl bg-mint px-3 py-2 text-xs font-bold leading-relaxed text-pine">
+        建议在还车前保留好照片、视频和平台沟通记录。
+      </p>
     </section>
   );
 }
 
-function SummaryList({ title, empty, items }) {
+function SummaryList({ title, empty, items, tone = 'default' }) {
+  const hasItems = items.length > 0;
+  const toneClass =
+    tone === 'danger' && hasItems
+      ? 'bg-coral/10 text-coral'
+      : tone === 'warm' && hasItems
+        ? 'bg-amberSoft/45 text-[#735B16]'
+        : 'bg-aquaCard text-ink';
+
   return (
-    <div className="mt-3 rounded-2xl bg-white/10 p-3">
-      <p className="text-xs font-bold text-white/60">{title}</p>
-      <p className="mt-2 text-sm leading-relaxed">{items.length ? items.join('、') : empty}</p>
+    <div className={`mt-3 rounded-2xl p-3 ${toneClass}`}>
+      <p className="text-xs font-bold opacity-75">{title}</p>
+      <p className="mt-2 text-sm font-medium leading-relaxed">{hasItems ? items.join('、') : empty}</p>
     </div>
   );
 }
@@ -464,21 +501,24 @@ function buildSummary(items, state, stats) {
   const suggestions = [];
 
   if (unfinishedHighRisk.length) {
-    suggestions.push('建议先补齐必拍项，尤其是车身一圈视频、轮胎、轮毂、玻璃、内饰和仪表盘。');
+    suggestions.push('建议先补齐关键留证项，尤其是车身一圈视频、轮胎、轮毂、玻璃、内饰和仪表盘。');
   }
 
   if (issueItems.length) {
-    suggestions.push(`标记有问题的项目建议拍近景，并让门店同步确认：${issueItems.slice(0, 3).join('、')}。`);
+    suggestions.push(`需要注意的项目建议拍近景，并和门店同步备注：${issueItems.slice(0, 3).join('、')}。`);
   }
 
   if (uncheckedItems.length) {
-    suggestions.push(`仍未确认项目可以按需补拍：${uncheckedItems.slice(0, 4).join('、')}。`);
+    suggestions.push(`还没确认的项目可以按需补拍：${uncheckedItems.slice(0, 4).join('、')}。`);
   }
 
-  suggestions.push('补拍车身四面、四条轮胎、前挡玻璃、内饰、仪表盘、合同总价和押金规则。');
+  suggestions.push('出发前顺手拍一遍车身四面、四条轮胎、前挡玻璃、内饰、仪表盘、合同总价和押金规则。');
 
   return {
     completion: `${stats.percent}%`,
+    completedCount: stats.completed,
+    remainingAdviceCount: unfinishedHighRisk.length,
+    issueCount: issueItems.length,
     riskLevel: stats.riskLevel,
     unfinishedHighRisk,
     issueItems,

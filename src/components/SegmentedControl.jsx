@@ -17,7 +17,7 @@ export default function SegmentedControl({
   const gridClass = columnClasses[columns || options.length] || 'grid-cols-2';
 
   return (
-    <div className={`rounded-2xl bg-[#F1F3EC] p-1 ring-1 ring-pine/10 ${className}`} role="group" aria-label={ariaLabel}>
+    <div className={`rounded-[18px] bg-aquaCard p-1 ring-1 ring-pine/10 ${className}`} role="group" aria-label={ariaLabel}>
       <div className={`grid gap-1 ${gridClass}`}>
         {options.map((option) => {
           const active = value === option.value;

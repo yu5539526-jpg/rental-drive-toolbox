@@ -132,7 +132,7 @@ function getBudgetSuggestions({ draft, result, rawVehicleCostRatio, lodging, sce
   }
 
   if (baseActual && scenic / baseActual >= 0.22) {
-    suggestions.push('景区和游玩项目费用较高，建议提前确认门票、区间车、索道等是否必须购买。');
+    suggestions.push('景区和游玩项目费用较高，建议提前确认门票、区间车、索道等是否需要购买。');
   }
 
   if (result.energyType === 'electric' && result.mileage > 800) {

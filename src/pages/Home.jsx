@@ -3,7 +3,7 @@ import { Calculator, Camera, ChevronDown, ChevronRight, Scale, ShieldAlert, Shie
 import { Link } from 'react-router-dom';
 
 const whyItems = [
-  '避免漏拍车损，减少还车沟通成本',
+  '关键照片顺手拍齐，减少还车沟通成本',
   '提前估算油费、电费、保险和门票',
   '生成自己的出行计划，方便保存和复盘',
 ];
@@ -12,8 +12,8 @@ export default function Home() {
   const [isWhyOpen, setIsWhyOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-transparent">
-      <section className="relative overflow-hidden bg-pine px-5 pb-5 pt-5 text-white">
+    <main className="min-h-screen bg-cream">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#356F67] to-[#4A8F83] px-5 pb-7 pt-5 text-white">
         <div className="flex items-center justify-between gap-3">
           <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/15 px-3 text-xs font-bold">
             <Sparkles size={14} />
@@ -31,7 +31,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="-mt-2 rounded-t-[26px] bg-gradient-to-b from-cream to-mint px-5 pb-7 pt-6">
+      <section className="-mt-5 rounded-t-[26px] bg-gradient-to-b from-cream via-cream to-mint px-5 pb-7 pt-6">
         <div className="grid gap-4">
           <ToolEntry
             to="/budget"
@@ -54,20 +54,20 @@ export default function Home() {
             icon={ShieldCheck}
             title="取车留证清单"
             text="买了保险也建议拍一遍，关键照片别漏掉"
-            button="开始留证检查"
+            button="开始留证"
             priority="secondary"
           />
           <ToolEntry
             to="/risk-check"
             icon={ShieldAlert}
             title="省心程度自测"
-            text="看看这趟适合买高档保险，还是认真留证更划算"
+            text="看看这趟适合买高档保险，还是关键留证更省心"
             button="开始自测"
             priority="secondary"
           />
         </div>
 
-        <section className="fade-up mt-6 rounded-[22px] border border-pine/10 bg-white/75 p-4 shadow-card">
+        <section className="fade-up mt-6 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
           <button
             type="button"
             aria-expanded={isWhyOpen}
@@ -99,7 +99,7 @@ export default function Home() {
           ) : null}
         </section>
 
-        <p className="mt-4 rounded-2xl bg-amberSoft px-4 py-3 text-center text-sm font-bold leading-relaxed text-[#7A5521]">
+        <p className="mt-4 rounded-[20px] bg-amberSoft/45 px-4 py-3 text-center text-sm font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
           收藏后可随时回来比方案、算预算和核对留证步骤
         </p>
       </section>
@@ -112,8 +112,8 @@ function ToolEntry({ to, icon: Icon, title, text, button, priority }) {
 
   return (
     <article
-      className={`fade-up rounded-[22px] bg-card text-ink ring-1 ring-pine/10 ${
-        isPrimary ? 'p-[18px] shadow-soft' : 'p-4 shadow-card'
+      className={`fade-up rounded-[24px] bg-card text-ink ring-1 ring-pine/10 ${
+        isPrimary ? 'p-[18px] shadow-card' : 'p-4 shadow-card'
       }`}
     >
       <div className="flex items-start gap-3.5">
@@ -133,8 +133,8 @@ function ToolEntry({ to, icon: Icon, title, text, button, priority }) {
         to={to}
         className={`inline-flex w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-center font-bold leading-tight ${
           isPrimary
-            ? 'mt-4 min-h-12 bg-pine text-sm text-white shadow-lg shadow-pine/20'
-            : 'mt-3 min-h-11 border border-pine/15 bg-mint text-[13px] text-pine'
+            ? 'mt-4 min-h-12 bg-gradient-to-r from-[#356F67] to-[#4A8F83] text-sm text-white shadow-lg shadow-pine/20'
+            : 'mt-3 min-h-11 border border-pine/15 bg-aquaCard text-[13px] text-pine'
         }`}
       >
         {button}

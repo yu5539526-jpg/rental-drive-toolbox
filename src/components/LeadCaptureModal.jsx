@@ -1,7 +1,6 @@
 import { ArrowLeft, Check } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BottomActionButton } from './BottomActionBar.jsx';
 import { submitUserData } from '../services/submitUserData.js';
 
 const concernOptions = [
@@ -18,6 +17,8 @@ const concernOptions = [
 ];
 
 const budgetOptions = ['2000 以下', '2000-5000', '5000-8000', '8000 以上', '还没确定'];
+const inputClass =
+  'h-12 w-full rounded-[16px] border border-[#2F7A6D]/15 bg-[#F2F7F5] px-3.5 text-[15px] font-semibold text-[#18322D] outline-none transition placeholder:text-[#667B75]/55 focus:border-[#2F7A6D] focus:bg-white focus:ring-2 focus:ring-[#2F7A6D]/12';
 
 export default function LeadCaptureModal({ open, onClose, resultType, resultSnapshot, defaultDestination = '' }) {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
       return;
     }
     setSubmitting(true);
-    setSubmitMessage('正在保存并生成出行计划...');
+    setSubmitMessage('正在保存...');
 
     try {
       await submitUserData({
@@ -91,7 +92,7 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
         resultSnapshot,
       });
 
-      setSubmitMessage('已保存，正在打开出行计划结果页...');
+      setSubmitMessage('已保存，正在打开结果页...');
 
       navigate('/success', {
         state: {
@@ -106,190 +107,198 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 px-4 sm:items-center">
-      <form onSubmit={handleSubmit} className="flex max-h-[92vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-[28px] bg-card shadow-soft sm:rounded-[28px]">
-        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center border-b border-[rgba(47,107,95,0.08)] bg-card/95 px-3 backdrop-blur">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#18322D]/45 px-3 sm:items-center">
+      <form
+        onSubmit={handleSubmit}
+        className="flex max-h-[94vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-[24px] bg-[#F6F8F5] shadow-soft sm:rounded-[24px]"
+      >
+        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center bg-white px-3">
           <button
             type="button"
             onClick={onClose}
-            className="grid h-11 w-11 place-items-center rounded-full text-pine"
+            className="grid h-11 w-11 place-items-center rounded-full text-[#2F7A6D]"
             aria-label="返回"
           >
             <ArrowLeft size={20} />
           </button>
-          <h2 className="truncate px-2 text-center text-[17px] font-bold leading-tight text-ink">保存出行计划</h2>
+          <h2 className="truncate px-2 text-center text-[17px] font-bold leading-tight text-[#18322D]">保存出行计划</h2>
           <span className="h-11 w-11" aria-hidden="true" />
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-4">
-          <div className="mb-4">
-            <p className="text-xs font-bold text-coral">保存结果 · pYuY</p>
-            <h3 className="mt-1 text-xl font-bold text-ink">提交并保存出行计划</h3>
-            <p className="mt-1 text-sm text-muted">
-              提交后会保存你的本次留证、预算或省心自测结果，方便后续整理自驾需求和优化工具。
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-          <Field label="小红书昵称" required>
-            <input
-              value={form.nickname}
-              onChange={(event) => update('nickname', event.target.value)}
-              className="h-12 w-full rounded-[14px] border border-pine/20 bg-card px-3.5 outline-none shadow-sm focus:border-pine focus:ring-2 focus:ring-pine/10"
-              placeholder="例如：pYuY"
-            />
-          </Field>
-
-          <Field label="计划目的地" required>
-            <input
-              value={form.destination}
-              onChange={(event) => update('destination', event.target.value)}
-              className="h-12 w-full rounded-[14px] border border-pine/20 bg-card px-3.5 outline-none shadow-sm focus:border-pine focus:ring-2 focus:ring-pine/10"
-              placeholder="例如：川西、大理、海南"
-            />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="出行月份" required>
-              <input
-                value={form.travelMonth}
-                onChange={(event) => update('travelMonth', event.target.value)}
-                className="h-12 w-full rounded-[14px] border border-pine/20 bg-card px-3.5 outline-none shadow-sm focus:border-pine focus:ring-2 focus:ring-pine/10"
-                placeholder="例如：7 月"
-              />
-            </Field>
-            <Field label="出行人数" required>
-              <input
-                type="number"
-                inputMode="numeric"
-                min="1"
-                value={form.people}
-                onChange={(event) => update('people', event.target.value)}
-                className="h-12 w-full rounded-[14px] border border-pine/20 bg-card px-3.5 outline-none shadow-sm focus:border-pine focus:ring-2 focus:ring-pine/10"
-                placeholder="2"
-              />
-            </Field>
-          </div>
-
-          <Field label="预算区间">
-            <div className="flex flex-wrap gap-2">
-              {budgetOptions.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => update('budgetRange', option)}
-                  className={`min-h-11 rounded-full px-3 py-2 text-sm font-bold ${
-                    form.budgetRange === option ? 'bg-pine text-white' : 'bg-mint text-pine'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-5 pt-4">
+          <section className="rounded-[24px] bg-white p-4 shadow-card ring-1 ring-[#2F7A6D]/10">
+            <div className="mb-5">
+              <p className="text-xs font-bold text-[#2F7A6D]">pYuY 出行计划</p>
+              <h3 className="mt-1 text-xl font-bold leading-tight text-[#18322D]">保存出行计划</h3>
+              <p className="mt-2 text-sm font-medium leading-relaxed text-[#667B75]">
+                留下你的目的地和担心的问题，后续可以整理成匿名案例参考。
+              </p>
             </div>
-          </Field>
 
-          <Field label="最担心的问题（可多选）">
-            <div className="flex flex-wrap gap-2">
-              {concernOptions.map((concern) => {
-                const active = form.concerns.includes(concern);
-                return (
-                  <button
-                    key={concern}
-                    type="button"
-                    onClick={() => toggleConcern(concern)}
-                    className={`inline-flex min-h-11 items-center gap-1 rounded-full px-3 py-2 text-sm font-bold transition ${
-                      active ? 'bg-amberSoft text-[#7A5521] ring-1 ring-[#E3CB8D]' : 'bg-mint text-pine'
-                    }`}
-                  >
-                    {active ? <Check size={14} /> : null}
-                    {concern}
-                  </button>
-                );
-              })}
+            <div className="grid gap-4">
+              <Field label="小红书昵称" required>
+                <input
+                  value={form.nickname}
+                  onChange={(event) => update('nickname', event.target.value)}
+                  className={inputClass}
+                  placeholder="例如：pYuY"
+                />
+              </Field>
+
+              <Field label="计划目的地" required>
+                <input
+                  value={form.destination}
+                  onChange={(event) => update('destination', event.target.value)}
+                  className={inputClass}
+                  placeholder="例如：川西、大理、海南"
+                />
+              </Field>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="出行月份" required>
+                  <input
+                    value={form.travelMonth}
+                    onChange={(event) => update('travelMonth', event.target.value)}
+                    className={inputClass}
+                    placeholder="例如：7 月"
+                  />
+                </Field>
+                <Field label="出行人数" required>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    value={form.people}
+                    onChange={(event) => update('people', event.target.value)}
+                    className={inputClass}
+                    placeholder="2"
+                  />
+                </Field>
+              </div>
+
+              <Field label="预算区间">
+                <div className="flex flex-wrap gap-2">
+                  {budgetOptions.map((option) => (
+                    <PillButton key={option} active={form.budgetRange === option} onClick={() => update('budgetRange', option)}>
+                      {option}
+                    </PillButton>
+                  ))}
+                </div>
+              </Field>
+
+              <Field label="最担心的问题（可多选）">
+                <div className="flex flex-wrap gap-2">
+                  {concernOptions.map((concern) => {
+                    const active = form.concerns.includes(concern);
+                    return (
+                      <PillButton key={concern} active={active} onClick={() => toggleConcern(concern)}>
+                        {active ? <Check size={14} /> : null}
+                        {concern}
+                      </PillButton>
+                    );
+                  })}
+                </div>
+                {!form.concerns.length ? (
+                  <p className="mt-2 rounded-[18px] bg-[#F2F7F5] px-3 py-2 text-xs font-bold leading-relaxed text-[#667B75]">
+                    选几项最关心的内容，后续整理计划会更贴近你的需求。
+                  </p>
+                ) : null}
+                {form.concerns.includes('其他') ? (
+                  <input
+                    value={form.customPainPoint}
+                    onChange={(event) => update('customPainPoint', event.target.value)}
+                    className={`${inputClass} mt-3`}
+                    placeholder="可以补充你的具体担心，比如路线、保险、预算分摊等"
+                  />
+                ) : null}
+              </Field>
+
+              <Field label="联系方式（选填）">
+                <input
+                  value={form.contact}
+                  onChange={(event) => update('contact', event.target.value)}
+                  className={inputClass}
+                  placeholder="微信 / 手机号 / 邮箱"
+                />
+                <span className="mt-1.5 block text-xs leading-relaxed text-[#667B75]">联系方式仍然选填，用于后续与你确认案例细节。</span>
+              </Field>
+
+              <Field label="是否愿意被选为免费案例分析">
+                <div className="grid grid-cols-2 gap-2">
+                  {['是', '否'].map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => update('caseAnalysis', option)}
+                      className={`min-h-11 rounded-[16px] px-4 text-sm font-bold ${
+                        form.caseAnalysis === option ? 'bg-[#2F7A6D] text-white shadow-sm' : 'bg-[#F2F7F5] text-[#2F7A6D]'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </Field>
             </div>
-            {!form.concerns.length ? (
-              <p className="mt-2 rounded-2xl bg-cream px-3 py-2 text-xs font-bold leading-relaxed text-muted">
-                选择你最担心的问题，我后续可以优先整理类似案例。
+
+            <div className="mt-5 rounded-[20px] bg-[#F2F7F5] px-3 py-3 text-xs font-medium leading-relaxed text-[#667B75]">
+              <p className="font-bold text-[#18322D]">隐私提示</p>
+              <p className="mt-1">
+                仅用于整理你的出行计划和后续案例分析参考，不会公开你的联系方式。若用于内容案例，会默认匿名处理。
+              </p>
+              <label className="mt-3 flex items-start gap-2 rounded-[18px] bg-white px-3 py-3 text-[#18322D] ring-1 ring-[#2F7A6D]/10">
+                <input
+                  type="checkbox"
+                  checked={form.privacyAccepted}
+                  onChange={(event) => update('privacyAccepted', event.target.checked)}
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-[#2F7A6D]"
+                />
+                <span>我已了解并同意保存本次出行计划信息。</span>
+              </label>
+            </div>
+
+            {submitMessage ? (
+              <p className="mt-3 rounded-[18px] bg-[#F9EDC6] px-3 py-2 text-xs font-bold leading-relaxed text-[#735B16]" role="status" aria-live="polite">
+                {submitMessage}
               </p>
             ) : null}
-            {form.concerns.includes('其他') ? (
-              <input
-                value={form.customPainPoint}
-                onChange={(event) => update('customPainPoint', event.target.value)}
-                className="mt-3 h-12 w-full rounded-[14px] border border-pine/20 bg-card px-3.5 outline-none shadow-sm focus:border-pine focus:ring-2 focus:ring-pine/10"
-                placeholder="可以补充你的具体担心，比如路线、保险、预算分摊等"
-              />
-            ) : null}
-          </Field>
-
-          <Field label="联系方式（选填）">
-            <input
-              value={form.contact}
-              onChange={(event) => update('contact', event.target.value)}
-              className="h-12 w-full rounded-[14px] border border-pine/20 bg-card px-3.5 outline-none shadow-sm focus:border-pine focus:ring-2 focus:ring-pine/10"
-              placeholder="微信 / 手机号 / 邮箱"
-            />
-            <span className="mt-1.5 block text-xs leading-relaxed text-muted">不要填写身份证、银行卡、精确住址等敏感信息。</span>
-          </Field>
-
-          <Field label="是否愿意被选为免费案例分析">
-            <div className="grid grid-cols-2 gap-2">
-              {['是', '否'].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => update('caseAnalysis', option)}
-                  className={`rounded-2xl px-4 py-3 font-bold ${
-                    form.caseAnalysis === option ? 'bg-pine text-white' : 'bg-mint text-pine'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </Field>
+          </section>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-mint px-3 py-3 text-xs font-medium leading-relaxed text-muted">
-          <p className="font-bold text-ink">隐私提示</p>
-          <p className="mt-1">
-            你填写的昵称、目的地、出行月份、人数、预算区间、担心事项和联系方式，仅用于生成并保存本次出行计划、后续自驾需求分析、小红书匿名案例整理和工具优化。
-          </p>
-          <p className="mt-1">请不要填写身份证、银行卡、精确住址、驾驶证号等敏感信息。</p>
-          <label className="mt-3 flex items-start gap-2 rounded-2xl bg-card px-3 py-3 text-ink">
-            <input
-              type="checkbox"
-              checked={form.privacyAccepted}
-              onChange={(event) => update('privacyAccepted', event.target.checked)}
-              className="mt-0.5 h-5 w-5 shrink-0 accent-pine"
-            />
-            <span>我已阅读并确认以上隐私提示，同意保存本次出行计划。</span>
-          </label>
-        </div>
-
-        {submitMessage ? (
-          <p className="mt-3 rounded-2xl bg-amberSoft px-3 py-2 text-xs font-bold leading-relaxed text-[#7A5521]" role="status" aria-live="polite">
-            {submitMessage}
-          </p>
-        ) : null}
-
-        </div>
-
-        <div className="modal-bottom-action shrink-0 px-5 pt-3">
-          <BottomActionButton type="submit" disabled={!canSubmit || submitting} className="text-base disabled:cursor-not-allowed">
-          {submitting ? '提交中...' : '提交并保存我的出行计划'}
-          </BottomActionButton>
+        <div className="modal-bottom-action shrink-0 bg-[#F6F8F5]/95 px-4 pt-3">
+          <button
+            type="submit"
+            disabled={!canSubmit || submitting}
+            className="inline-flex h-12 min-h-12 w-full items-center justify-center rounded-[18px] bg-gradient-to-r from-[#2F7A6D] to-[#245F55] px-4 text-base font-bold text-white shadow-lg shadow-[#2F7A6D]/20 disabled:cursor-not-allowed disabled:from-[#9CAAA6] disabled:to-[#9CAAA6]"
+          >
+            {submitting ? '正在保存...' : '提交并保存'}
+          </button>
         </div>
       </form>
     </div>
   );
 }
+
+function PillButton({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold leading-tight transition ${
+        active ? 'bg-[#2F7A6D] text-white shadow-sm' : 'bg-[#F2F7F5] text-[#2F7A6D] ring-1 ring-[#2F7A6D]/8'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function Field({ label, required, children }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-bold text-ink">
+      <span className="mb-1.5 block text-sm font-bold text-[#18322D]">
         {label}
-        {required ? <span className="text-coral"> *</span> : null}
+        {required ? <span className="text-[#2F7A6D]"> *</span> : null}
       </span>
       {children}
     </label>
