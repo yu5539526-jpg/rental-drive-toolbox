@@ -1,6 +1,7 @@
-import { AlertTriangle, CheckCircle2, RotateCcw, ShieldAlert, Sparkles, WalletCards } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { AlertTriangle, ShieldAlert, Sparkles, WalletCards } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
+import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import LeadCaptureModal from '../components/LeadCaptureModal.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import TopBar from '../components/TopBar.jsx';
@@ -126,7 +127,7 @@ const scoreRules = {
 };
 
 const actionSuggestions = [
-  '取车时录制车身一圈视频',
+  '取车时录制车身一圈视频，作为基础留证',
   '单独拍轮胎、轮毂、前后保险杠和底盘可见区域',
   '确认保险责任、不计免赔、事故自付额度',
   '确认押金、违章押金、超时费和异地还车费',
@@ -134,10 +135,9 @@ const actionSuggestions = [
 ];
 
 export default function RiskQuizPage() {
-  const navigate = useNavigate();
   const [answers, setAnswers] = useState({});
   const [reportVisible, setReportVisible] = useState(false);
-  const [feedback, setFeedback] = useState('先按真实情况点选，系统会自动汇总风险点。');
+  const [feedback, setFeedback] = useState('先按真实情况点选，系统会自动给出省心建议。');
   const [leadOpen, setLeadOpen] = useState(false);
 
   const report = useMemo(() => buildRiskReport(answers), [answers]);
@@ -147,16 +147,16 @@ export default function RiskQuizPage() {
   const updateAnswer = (id, value) => {
     setAnswers((current) => ({ ...current, [id]: value }));
     setReportVisible(false);
-    setFeedback('已记录，风险评分会随选择实时变化。');
+    setFeedback('已记录，省心指数会随选择实时变化。');
   };
 
   const generateReport = () => {
     if (!canGenerate) {
-      setFeedback(`还差 ${questions.length - answeredCount} 个问题，答完后就能生成风险报告。`);
+      setFeedback(`还差 ${questions.length - answeredCount} 个问题，答完后就能生成省心建议。`);
       return;
     }
     setReportVisible(true);
-    setFeedback('已生成本次租车风险报告。');
+    setFeedback('已生成本次省心程度建议。');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -178,34 +178,34 @@ export default function RiskQuizPage() {
 
   return (
     <main className="min-h-screen bg-transparent">
-      <TopBar title="租车避坑风险自测" subtitle="回答几个问题，看看这趟行程有哪些容易忽略的坑" />
+      <TopBar title="省心程度自测" />
 
       <section className="border-b border-pine/10 bg-cream/90 px-4 py-3">
         <div className="rounded-[22px] bg-card p-4 shadow-card ring-1 ring-pine/10">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-bold text-muted">自测进度</p>
-              <p className="mt-1 text-2xl font-bold text-ink">
-                {answeredCount}
-                <span className="text-base font-medium text-muted">/{questions.length}</span>
-              </p>
+              <p className="mt-1 text-lg font-bold leading-tight text-ink">已完成 {answeredCount} / {questions.length} 题</p>
+              <p className="mt-1 text-xs font-bold text-pine">完成后生成省心建议</p>
             </div>
             <span className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold ${report.badgeClass}`}>{report.level}</span>
           </div>
           <div className="mt-3">
             <ProgressBar value={(answeredCount / questions.length) * 100} tone={report.tone} />
           </div>
+          <p className="mt-2 text-xs font-medium leading-relaxed text-muted">大约 1 分钟完成。</p>
           <p className="mt-3 rounded-2xl bg-mint px-3 py-2 text-xs font-bold leading-relaxed text-pine" role="status" aria-live="polite">
             {feedback}
           </p>
         </div>
       </section>
 
-      <section className={`px-4 pt-4 ${reportVisible ? 'pb-[13rem]' : 'pb-[9.5rem]'}`}>
+      <section className="safe-bottom-action px-4 pt-4">
         {reportVisible ? (
-          <RiskReport report={report} onSave={() => setLeadOpen(true)} onChecklist={() => navigate('/checklist')} />
+          <RiskReport report={report} />
         ) : (
           <div className="grid gap-3">
+            <QuizStartGuide />
             {questions.map((question, index) => (
               <QuestionCard
                 key={question.id}
@@ -219,46 +219,19 @@ export default function RiskQuizPage() {
         )}
       </section>
 
-      <nav className="bottom-action fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] px-4 pt-3 sm:bottom-6 sm:rounded-b-[30px]">
+      <BottomActionBar>
         {reportVisible ? (
-          <div className="grid gap-3">
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={reset}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-card px-3 text-sm font-bold text-pine shadow-sm ring-1 ring-pine/10"
-              >
-                <RotateCcw size={17} />
-                重新自测
-              </button>
-              <Link
-                to="/checklist"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-mint px-3 text-sm font-bold text-pine"
-              >
-                <CheckCircle2 size={17} />
-                去取车验车
-              </Link>
-            </div>
-            <button
-              type="button"
-              onClick={() => setLeadOpen(true)}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-pine px-3 text-sm font-bold text-white shadow-lg shadow-pine/20"
-            >
-              <WalletCards size={18} />
-              提交并保存我的出行计划
-            </button>
-          </div>
+          <BottomActionButton type="button" onClick={() => setLeadOpen(true)}>
+            <WalletCards size={17} />
+            提交并保存我的出行计划
+          </BottomActionButton>
         ) : (
-          <button
-            type="button"
-            onClick={generateReport}
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-pine px-4 font-bold text-white shadow-lg shadow-pine/20"
-          >
+          <BottomActionButton type="button" onClick={generateReport}>
             <Sparkles size={18} />
-            生成风险报告
-          </button>
+            生成省心建议
+          </BottomActionButton>
         )}
-      </nav>
+      </BottomActionBar>
 
       <LeadCaptureModal
         open={leadOpen}
@@ -267,6 +240,22 @@ export default function RiskQuizPage() {
         resultSnapshot={resultSnapshot}
       />
     </main>
+  );
+}
+
+function QuizStartGuide() {
+  return (
+    <section className="rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
+      <div className="flex gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-mint text-pine">
+          <Sparkles size={18} />
+        </span>
+        <div>
+          <p className="text-sm font-bold leading-relaxed text-ink">完成 12 个小问题后，系统会给出这趟出行的省心建议。</p>
+          <p className="mt-1 text-xs font-medium leading-relaxed text-muted">分数越高，越建议选择高保障方案并认真留证。</p>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -301,21 +290,23 @@ function QuestionCard({ question, index, value, onChange }) {
   );
 }
 
-function RiskReport({ report, onSave, onChecklist }) {
+function RiskReport({ report }) {
   return (
     <div className="grid gap-4">
       <section className={`rounded-[24px] p-5 text-white shadow-soft ${report.heroClass}`}>
         <div className="flex items-center gap-2">
           <ShieldAlert size={19} />
-          <p className="text-sm font-bold text-white/78">你的租车风险等级</p>
+          <p className="text-sm font-bold text-white/80">你的省心建议</p>
         </div>
         <h1 className="mt-3 text-[32px] font-bold leading-tight">{report.level}</h1>
+        <p className="mt-4 text-xs font-bold text-white/65">本次省心指数</p>
         <p className="mt-2 text-4xl font-bold leading-none">{report.displayScore} / 100</p>
-        <p className="mt-3 text-sm font-medium leading-relaxed text-white/88">{report.summary}</p>
+        <p className="mt-2 text-xs font-medium leading-relaxed text-white/72">分数越高，代表越建议选择高保障方案并认真留证。</p>
+        <p className="mt-3 text-sm font-medium leading-relaxed text-white/90">{report.summary}</p>
       </section>
 
       <section className="screen-card rounded-[24px] p-4">
-        <h2 className="text-lg font-bold text-ink">风险来源总结</h2>
+        <h2 className="text-lg font-bold text-ink">本次需要重点留意的地方</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {report.sources.map((source) => (
             <span key={source} className="rounded-full bg-mint px-3 py-2 text-xs font-bold text-pine">
@@ -326,7 +317,7 @@ function RiskReport({ report, onSave, onChecklist }) {
       </section>
 
       <section className="screen-card rounded-[24px] p-4">
-        <h2 className="text-lg font-bold text-ink">个性化提醒</h2>
+        <h2 className="text-lg font-bold text-ink">个性化建议</h2>
         <ul className="mt-3 grid gap-2 text-sm leading-relaxed text-muted">
           {report.reminders.map((reminder) => (
             <li key={reminder} className="rounded-2xl bg-mint/70 px-3 py-2.5">
@@ -352,22 +343,26 @@ function RiskReport({ report, onSave, onChecklist }) {
       </section>
 
       <section className="rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
-        <button
-          type="button"
-          onClick={onChecklist}
-          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-mint px-4 font-bold text-pine"
-        >
-          <CheckCircle2 size={18} />
-          去取车验车
-        </button>
-        <button
-          type="button"
-          onClick={onSave}
-          className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-pine px-4 font-bold text-white shadow-lg shadow-pine/20"
-        >
-          <WalletCards size={18} />
-          提交并保存我的出行计划
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            to="/price-compare"
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-mint px-3 text-center text-sm font-bold leading-tight text-pine"
+          >
+            去比租车方案
+          </Link>
+          <Link
+            to="/budget"
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-mint px-3 text-center text-sm font-bold leading-tight text-pine"
+          >
+            去算整趟预算
+          </Link>
+          <Link
+            to="/checklist"
+            className="col-span-2 inline-flex min-h-12 items-center justify-center rounded-2xl bg-card px-3 text-center text-sm font-bold leading-tight text-pine ring-1 ring-pine/10"
+          >
+            去取车留证
+          </Link>
+        </div>
       </section>
     </div>
   );
@@ -397,8 +392,8 @@ function buildRiskReport(answers) {
 function getRiskLevel(score) {
   if (score <= 25) {
     return {
-      label: '低风险',
-      summary: '这趟租车整体风险较低，按流程验车和确认费用即可。',
+      label: '轻松出行型',
+      summary: '这趟整体复杂度不高，按流程取车、拍好关键照片即可。',
       tone: 'pine',
       badgeClass: 'bg-mint text-pine ring-1 ring-pine/20',
       heroClass: 'bg-pine',
@@ -407,8 +402,8 @@ function getRiskLevel(score) {
 
   if (score <= 50) {
     return {
-      label: '中风险',
-      summary: '有几个容易忽略的点，建议出发前重点确认。',
+      label: '常规省心型',
+      summary: '建议至少选择中等保障，并完成省心版 8 项留证。',
       tone: 'amber',
       badgeClass: 'bg-amberSoft text-[#7A5521] ring-1 ring-[#E3CB8D]',
       heroClass: 'bg-[#B8762F]',
@@ -417,8 +412,8 @@ function getRiskLevel(score) {
 
   if (score <= 75) {
     return {
-      label: '中高风险',
-      summary: '这趟行程有一定踩坑概率，建议认真核对保险、押金、路线和验车。',
+      label: '建议高保障型',
+      summary: '这趟路线或用车场景有一定复杂度，建议优先考虑高档保险，同时做好关键留证。',
       tone: 'amber',
       badgeClass: 'bg-[#F8D6B0] text-[#8A4B1F] ring-1 ring-[#E3A45D]',
       heroClass: 'bg-[#C96E2D]',
@@ -426,11 +421,11 @@ function getRiskLevel(score) {
   }
 
   return {
-    label: '高风险',
-    summary: '这趟租车需要重点准备，建议不要只看租车价格，先把风险项逐个确认。',
-    tone: 'coral',
-    badgeClass: 'bg-[#FBE4E0] text-coral ring-1 ring-coral/20',
-    heroClass: 'bg-coral',
+    label: '重点准备型',
+    summary: '这趟不建议只看低价，建议选择更规范的平台、更高保障方案，并完整完成取车留证。',
+    tone: 'amber',
+    badgeClass: 'bg-amberSoft text-[#7A5521] ring-1 ring-[#E3CB8D]',
+    heroClass: 'bg-[#A65F2A]',
   };
 }
 
@@ -438,13 +433,13 @@ function buildRiskSources(answers) {
   const sources = [];
 
   if (answers.oneWay === 'yes' || answers.oneWay === 'unsure') sources.push('异地还车费用');
-  if (answers.nightPickup === 'yes') sources.push('夜间取还车验车');
-  if (answers.insurance === 'unclear' || answers.insurance === 'unsure' || answers.extraCoverage !== 'purchased') sources.push('保险责任不清');
+  if (answers.nightPickup === 'yes') sources.push('夜间取还车留证');
+  if (answers.insurance === 'unclear' || answers.insurance === 'unsure' || answers.extraCoverage !== 'purchased') sources.push('保险责任确认');
   if (answers.deposit === 'unconfirmed') sources.push('押金与违章押金');
   if (answers.smartCar === 'yes' || answers.energyPlan === 'unplanned') sources.push('新能源补能');
   if (answers.specialRoute === 'yes' || answers.specialRoute === 'unsure') sources.push('山区/高原/长途路线');
-  if (answers.multiDriver === 'yes') sources.push('多人驾驶理赔风险');
-  if (answers.extraFees === 'unconfirmed') sources.push('超时费/超公里费');
+  if (answers.multiDriver === 'yes') sources.push('多人驾驶理赔范围');
+  if (answers.extraFees === 'unconfirmed' && (answers.oneWay === 'yes' || answers.oneWay === 'unsure')) sources.push('异地还车费用');
   if (answers.returnEnergy === 'unconfirmed') sources.push('还车油量或电量要求');
 
   return sources.length ? [...new Set(sources)] : ['整体信息确认较完整'];
@@ -454,19 +449,19 @@ function buildReminders(answers) {
   const reminders = [];
 
   if (answers.oneWay === 'yes' || answers.oneWay === 'unsure') {
-    reminders.push('异地还车建议提前确认费用是否已经计入平台总价，避免到店或还车后再补收。');
+    reminders.push('提前确认异地还车费是否已经计入平台总价。');
   }
 
   if (answers.nightPickup === 'yes') {
-    reminders.push('夜间取还车请开闪光灯拍摄车身、轮胎、轮毂、玻璃和底盘可见区域。');
+    reminders.push('建议开闪光灯拍车身、轮胎、轮毂、玻璃和底盘可见区域。');
   }
 
   if (answers.multiDriver === 'yes') {
-    reminders.push('多人轮流驾驶前，确认平台或门店是否允许额外驾驶员，否则可能影响理赔。');
+    reminders.push('确认是否允许额外驾驶员，否则可能影响理赔。');
   }
 
   if (answers.smartCar === 'yes') {
-    reminders.push('新能源或智能车要确认续航、充电口、补能条件、车辆启动方式和钥匙形式。');
+    reminders.push('确认续航、充电口、补能条件、车辆启动方式和钥匙形式。');
   }
 
   if (answers.specialRoute === 'yes' || answers.specialRoute === 'unsure') {
@@ -474,11 +469,11 @@ function buildReminders(answers) {
   }
 
   if (answers.insurance === 'unclear' || answers.insurance === 'unsure' || answers.extraCoverage !== 'purchased') {
-    reminders.push('保险相关要重点核对保险责任、不计免赔、事故自付额度和理赔范围。');
+    reminders.push('重点核对保险责任、不计免赔、事故自付额度、轮胎轮毂玻璃底盘是否覆盖。');
   }
 
   if (answers.deposit === 'unconfirmed') {
-    reminders.push('押金未确认时，先问清车辆押金、违章押金、退还周期和冻结方式。');
+    reminders.push('确认车辆押金、违章押金、退还周期和冻结方式。');
   }
 
   if (answers.extraFees === 'unconfirmed') {
@@ -493,5 +488,5 @@ function buildReminders(answers) {
     reminders.push('补能或加油点还没规划时，建议把第一天和最后一天的补给点先标出来。');
   }
 
-  return reminders.length ? reminders : ['目前主要风险项较少，按流程验车、确认合同和保留照片即可。'];
+  return reminders.length ? reminders : ['这趟整体复杂度不高，按流程取车、确认合同并完成关键留证即可。'];
 }

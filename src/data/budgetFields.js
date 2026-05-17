@@ -1,14 +1,14 @@
 export const budgetSteps = [
   {
     title: '基础信息',
-    hint: '先把目的地、人数和天数定下来，后面的费用会实时估算。',
+    hint: '先把目的地、人数和天数填好，后面的费用会自动汇总。',
     fields: [
       { name: 'destination', label: '目的地', type: 'text', placeholder: '例如：大理、川西、海南环岛' },
       { name: 'departureCity', label: '出发城市', type: 'text', placeholder: '例如：上海' },
       { name: 'tripDays', label: '出行天数', type: 'number', suffix: '天' },
       { name: 'people', label: '出行人数', type: 'number', suffix: '人' },
       { name: 'rentalDays', label: '租车天数', type: 'number', suffix: '天' },
-      { name: 'mileage', label: '预计总里程/km', type: 'number', suffix: 'km' },
+      { name: 'mileage', label: '预计总里程', type: 'number', suffix: 'km' },
     ],
     choice: {
       name: 'energyType',
@@ -22,14 +22,19 @@ export const budgetSteps = [
   },
   {
     title: '车辆与交通费用',
-    hint: '租车费用填平台订单总价即可，能源费用由系统按里程估算。',
+    hint: '填写租车总价、高速、停车和押金，算清车辆相关成本。',
+    groups: [
+      { title: '车辆费用', fields: ['rentalPlatformTotal'] },
+      { title: '其他交通费用', fields: ['tolls', 'parking', 'carWash'] },
+      { title: '押金占用', fields: ['vehicleDeposit', 'violationDeposit'] },
+    ],
     fields: [
       {
         name: 'rentalPlatformTotal',
-        label: '租车平台显示总价',
+        label: '租车平台总价（含保险）',
         type: 'number',
         suffix: '元',
-        help: '填写租车平台订单页看到的总价即可，可包含租金、保险、服务费、异地还车费等。',
+        help: '填写租车平台订单页看到的含保险总价；押金会在资金准备里单独展示。',
       },
       { name: 'tolls', label: '高速费/过路费', type: 'number', suffix: '元' },
       { name: 'parking', label: '停车费', type: 'number', suffix: '元' },
@@ -40,7 +45,11 @@ export const budgetSteps = [
   },
   {
     title: '住宿餐饮费用',
-    hint: '多人同行时，餐饮按人算；酒店按每晚总价算。',
+    hint: '估算住几晚、吃几顿，让同行人提前知道大概花费。',
+    groups: [
+      { title: '住宿费用', fields: ['hotelNightPrice'] },
+      { title: '餐饮费用', fields: ['breakfast', 'lunch', 'dinner', 'snacks', 'specialMeals'] },
+    ],
     fields: [
       { name: 'hotelNightPrice', label: '酒店/民宿每晚总价', type: 'number', suffix: '元/晚' },
       { name: 'breakfast', label: '早餐人均/天', type: 'number', suffix: '元' },
@@ -52,7 +61,12 @@ export const budgetSteps = [
   },
   {
     title: '景区游玩和其他费用',
-    hint: '门票索道按人算，购物装备这类先给自己留一点弹性。',
+    hint: '把门票、区间车、大交通和购物等支出补充完整。',
+    groups: [
+      { title: '游玩费用', fields: ['ticket', 'shuttle', 'cableway', 'entertainment'] },
+      { title: '大交通费用', fields: ['roundTripTransit', 'cityTransport'] },
+      { title: '其他费用', fields: ['shopping', 'gear', 'other'] },
+    ],
     fields: [
       { name: 'ticket', label: '景区门票人均', type: 'number', suffix: '元/人' },
       { name: 'shuttle', label: '景区区间车人均', type: 'number', suffix: '元/人' },
@@ -67,7 +81,7 @@ export const budgetSteps = [
   },
   {
     title: '预算结果',
-    hint: '结果不含押金；押金单独作为临时占用资金展示。',
+    hint: '生成本次自驾预算结果，适合截图或发给同行人确认。',
     fields: [],
   },
 ];

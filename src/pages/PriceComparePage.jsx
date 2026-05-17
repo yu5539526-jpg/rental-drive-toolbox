@@ -1,6 +1,7 @@
 import { Copy, Edit3, Plus, RotateCcw, Send, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { formatMoney } from '../utils/budget.js';
 
@@ -17,7 +18,7 @@ export default function PriceComparePage() {
   const [plans, setPlans] = useState(loadPlans);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState('');
-  const [feedback, setFeedback] = useState('把不同平台看到的含保险总价填进来，就能自动对比。');
+  const [feedback, setFeedback] = useState('把不同平台、车型和保险方案的含保险总价填进来，就能自动对比。');
   const stats = useMemo(() => buildCompareStats(plans), [plans]);
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export default function PriceComparePage() {
     setPlans([]);
     setForm(emptyForm);
     setEditingId('');
-    setFeedback('已清空对比记录，可以重新添加。');
+    setFeedback('已清空方案对比，可以重新添加。');
   };
 
   const copyCompareResult = async () => {
@@ -88,25 +89,29 @@ export default function PriceComparePage() {
     setFeedback(ok ? '对比结果已复制，可以粘贴到备忘录或聊天里。' : '复制失败，可以稍后再试。');
   };
 
+  const usePlanForBudget = (plan) => {
+    navigate('/budget', {
+      state: {
+        prefillRentalPlatformTotal: plan.totalPrice,
+        priceComparePlan: plan,
+      },
+    });
+  };
+
   const useLowestPlan = () => {
     if (!stats.lowest) {
       setFeedback('还没有最低价方案，先添加租车方案。');
       return;
     }
 
-    navigate('/budget', {
-      state: {
-        prefillRentalPlatformTotal: stats.lowest.totalPrice,
-        priceComparePlan: stats.lowest,
-      },
-    });
+    usePlanForBudget(stats.lowest);
   };
 
   return (
     <main className="min-h-screen bg-transparent">
-      <TopBar title="租车价格对比记录" subtitle="把不同平台、不同车型放在一起，先算清含保险总价" />
+      <TopBar title="租车方案对比" />
 
-      <section className="px-4 pb-[13rem] pt-4">
+      <section className="safe-bottom-action px-4 pt-4">
         <form onSubmit={submitPlan} className="screen-card rounded-[24px] p-4">
           <div className="mb-4 flex items-center gap-3">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] bg-mint text-pine">
@@ -140,7 +145,7 @@ export default function PriceComparePage() {
                 value={form.insurancePlan}
                 onChange={(event) => update('insurancePlan', event.target.value)}
                 className="h-12 w-full rounded-[14px] border border-pine/20 bg-card px-3.5 outline-none shadow-sm focus:border-pine focus:ring-2 focus:ring-pine/10"
-                placeholder="例如：基础保障 / 全险 / 尊享保障"
+                placeholder="例如：基础保障 / 最高档保险 / 尊享保障"
               />
             </Field>
             <Field label="租车总价，含保险">
@@ -185,6 +190,27 @@ export default function PriceComparePage() {
           {feedback}
         </p>
 
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={clearPlans}
+            disabled={!plans.length}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-card px-3 text-sm font-bold text-pine shadow-sm ring-1 ring-pine/10 disabled:text-muted/50"
+          >
+            <RotateCcw size={16} />
+            清空对比
+          </button>
+          <button
+            type="button"
+            onClick={copyCompareResult}
+            disabled={!plans.length}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-mint px-3 text-sm font-bold text-pine disabled:text-muted/50"
+          >
+            <Copy size={16} />
+            复制结果
+          </button>
+        </div>
+
         <section className="mt-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-ink">已添加方案</h2>
@@ -193,7 +219,7 @@ export default function PriceComparePage() {
           {plans.length ? (
             <div className="grid gap-3">
               {plans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} stats={stats} onEdit={editPlan} onDelete={deletePlan} />
+                <PlanCard key={plan.id} plan={plan} stats={stats} onEdit={editPlan} onDelete={deletePlan} onUse={usePlanForBudget} />
               ))}
             </div>
           ) : (
@@ -204,37 +230,12 @@ export default function PriceComparePage() {
         <CompareResult stats={stats} />
       </section>
 
-      <nav className="bottom-action fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] px-4 pt-3 sm:bottom-6 sm:rounded-b-[30px]">
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={clearPlans}
-            disabled={!plans.length}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-card px-3 text-sm font-bold text-pine shadow-sm ring-1 ring-pine/10 disabled:text-muted/50"
-          >
-            <RotateCcw size={17} />
-            清空对比
-          </button>
-          <button
-            type="button"
-            onClick={copyCompareResult}
-            disabled={!plans.length}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-mint px-3 text-sm font-bold text-pine disabled:text-muted/50"
-          >
-            <Copy size={17} />
-            复制结果
-          </button>
-        </div>
-        <button
-          type="button"
-          onClick={useLowestPlan}
-          disabled={!stats.lowest}
-          className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-pine px-3 text-center text-sm font-bold leading-tight text-white shadow-lg shadow-pine/20 disabled:bg-muted/40"
-        >
+      <BottomActionBar>
+        <BottomActionButton type="button" onClick={useLowestPlan} disabled={!stats.lowest}>
           <Send size={17} />
           使用最低价方案进入预算计算
-        </button>
-      </nav>
+        </BottomActionButton>
+      </BottomActionBar>
     </main>
   );
 }
@@ -248,7 +249,7 @@ function Field({ label, children }) {
   );
 }
 
-function PlanCard({ plan, stats, onEdit, onDelete }) {
+function PlanCard({ plan, stats, onEdit, onDelete, onUse }) {
   const isLowest = stats.lowest?.id === plan.id;
   const diff = stats.lowest ? plan.totalPrice - stats.lowest.totalPrice : 0;
 
@@ -288,15 +289,45 @@ function PlanCard({ plan, stats, onEdit, onDelete }) {
           删除
         </button>
       </div>
+      <button
+        type="button"
+        onClick={() => onUse(plan)}
+        className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-pine px-3 text-center text-sm font-bold leading-tight text-white shadow-lg shadow-pine/20"
+      >
+        <Send size={16} />
+        使用该方案算预算
+      </button>
     </article>
   );
 }
 
 function EmptyPlanCard() {
   return (
-    <div className="rounded-[22px] bg-card p-4 text-sm font-medium leading-relaxed text-muted shadow-sm ring-1 ring-pine/10">
-      还没有添加方案，把你在不同平台看到的车型价格填进来，就能自动对比。
-    </div>
+    <article className="rounded-[22px] bg-card p-4 shadow-sm ring-1 ring-pine/10">
+      <div className="flex items-start gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] bg-mint text-xl" aria-hidden="true">
+          🚗
+        </span>
+        <div className="min-w-0">
+          <h3 className="text-base font-bold leading-tight text-ink">还没有添加租车方案</h3>
+          <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted">
+            把你在不同平台看到的车型和含保险总价填进来，就能自动比较最低价、价差和推荐选择。
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-2xl bg-cream/80 p-3 ring-1 ring-pine/10">
+        <p className="text-xs font-bold text-muted">示例</p>
+        <div className="mt-2 grid gap-2 text-sm font-bold leading-relaxed text-ink">
+          <p>携程｜问界 M9｜最高档保险｜¥5200</p>
+          <p>一嗨｜理想 L9｜尊享保障｜¥4800</p>
+        </div>
+      </div>
+
+      <p className="mt-3 rounded-2xl bg-mint px-3 py-2 text-xs font-bold leading-relaxed text-pine">
+        先添加 2 个方案，对比结果会更有参考价值。
+      </p>
+    </article>
   );
 }
 
@@ -305,7 +336,10 @@ function CompareResult({ stats }) {
     return (
       <section className="mt-4 rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
         <h2 className="text-lg font-bold text-ink">对比结果</h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted">还没有添加方案，把你在不同平台看到的车型价格填进来，就能自动对比。</p>
+        <div className="mt-3 rounded-2xl bg-mint px-3 py-3">
+          <p className="text-sm font-bold text-pine">添加方案后，这里会显示最低价、最高价、价差和推荐选择。</p>
+          <p className="mt-1 text-xs font-medium leading-relaxed text-muted">先从上方录入 2 个方案，对比会更清楚。</p>
+        </div>
       </section>
     );
   }
@@ -314,7 +348,12 @@ function CompareResult({ stats }) {
     return (
       <section className="mt-4 rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
         <h2 className="text-lg font-bold text-ink">对比结果</h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted">已添加 1 个方案，继续添加其他平台或车型后，可以进行对比。</p>
+        <div className="mt-3 rounded-2xl bg-mint px-3 py-3">
+          <p className="text-sm font-bold text-pine">已添加 1 个方案</p>
+          <p className="mt-1 text-sm font-medium leading-relaxed text-muted">
+            继续添加其他平台或车型后，可以看到最低价、最高价和价差。
+          </p>
+        </div>
       </section>
     );
   }
@@ -347,7 +386,8 @@ function CompareResult({ stats }) {
       <p className="mt-3 rounded-2xl bg-cream px-3 py-3 text-sm font-medium leading-relaxed text-muted">{stats.summary}</p>
 
       {stats.sameModelHint ? <p className="mt-3 rounded-2xl bg-mint px-3 py-3 text-sm font-bold leading-relaxed text-pine">{stats.sameModelHint}</p> : null}
-      {stats.modelGapHint ? <p className="mt-3 rounded-2xl bg-amberSoft px-3 py-3 text-sm font-bold leading-relaxed text-[#7A5521]">{stats.modelGapHint}</p> : null}
+      {stats.insuranceHint ? <p className="mt-3 rounded-2xl bg-amberSoft px-3 py-3 text-sm font-bold leading-relaxed text-[#7A5521]">{stats.insuranceHint}</p> : null}
+      {stats.priceGapHint ? <p className="mt-3 rounded-2xl bg-[#FBEDEA] px-3 py-3 text-sm font-bold leading-relaxed text-coral">{stats.priceGapHint}</p> : null}
     </section>
   );
 }
@@ -366,7 +406,7 @@ function validatePlan(form, count, editingId) {
   const totalPrice = Number(form.totalPrice);
 
   if (hasEmpty) {
-    return { ok: false, message: '请把平台、车型、保险方案和含保险总价都填完整。' };
+    return { ok: false, message: '请把平台、车型、保险方案和租车总价都填完整。' };
   }
 
   if (!Number.isFinite(totalPrice) || totalPrice <= 0) {
@@ -401,9 +441,9 @@ function buildCompareStats(plans) {
     map.set(key, (map.get(key) || 0) + 1);
     return map;
   }, new Map());
-  const uniqueModels = modelCounts.size;
   const hasSameModel = [...modelCounts.values()].some((value) => value > 1);
-  const hasLargeModelGap = uniqueModels > 1 && lowest && diff >= Math.max(800, lowest.totalPrice * 0.25);
+  const hasInsuranceGap = hasMeaningfulInsuranceGap(plans);
+  const hasLargePriceGap = diff > 1000;
 
   return {
     count,
@@ -418,11 +458,25 @@ function buildCompareStats(plans) {
             lowest.totalPrice,
           )}。最高价与最低价相差 ${formatMoney(
             diff,
-          )}。如果车型级别和保险保障接近，建议优先考虑低价方案；如果高价方案保险更完整或车型更适合长途，也可以结合实际需求选择。`
+          )}。如果车型级别和保险保障接近，可以优先考虑低价方案；如果高价方案保险更完整或车型更适合长途，也建议结合路线和用车需求选择。`
         : '',
     sameModelHint: hasSameModel ? '你添加了多个相同车型方案，可以重点比较不同平台的保险方案和含保险总价。' : '',
-    modelGapHint: hasLargeModelGap ? '不同车型之间价格差异较大，建议不要只看总价，也要考虑人数、行李、路线和驾驶难度。' : '',
+    insuranceHint: hasInsuranceGap ? '不同方案的保险保障不同，不建议只看总价。长途、山路、新手或多人出行场景下，高保障方案可能更省心。' : '',
+    priceGapHint: hasLargePriceGap ? '本次方案价差较大，建议确认车型级别、保险范围和租车天数是否一致。' : '',
   };
+}
+
+function hasMeaningfulInsuranceGap(plans) {
+  const categories = new Set(plans.map((plan) => getInsuranceCategory(plan.insurancePlan)));
+  return categories.has('basic') && categories.has('premium');
+}
+
+function getInsuranceCategory(value) {
+  const text = String(value || '').toLowerCase();
+  if (/基础|basic/.test(text)) return 'basic';
+  if (/最高|尊享|全险|高档|全面|不计免赔|premium|plus/.test(text)) return 'premium';
+  if (/中等|标准|standard/.test(text)) return 'standard';
+  return 'other';
 }
 
 function formatPlanLine(plan) {
@@ -431,7 +485,7 @@ function formatPlanLine(plan) {
 }
 
 function buildCompareCopyText(stats) {
-  const lines = ['租车平台价格对比记录'];
+  const lines = ['租车方案对比'];
 
   stats.sorted.forEach((plan, index) => {
     lines.push(`${index + 1}. ${plan.platform}｜${plan.carModel}｜${plan.insurancePlan}｜${formatMoney(plan.totalPrice)}`);
@@ -445,12 +499,13 @@ function buildCompareCopyText(stats) {
     lines.push(`平均价格：${formatMoney(stats.average)}`);
     lines.push(stats.summary);
     if (stats.sameModelHint) lines.push(stats.sameModelHint);
-    if (stats.modelGapHint) lines.push(stats.modelGapHint);
+    if (stats.insuranceHint) lines.push(stats.insuranceHint);
+    if (stats.priceGapHint) lines.push(stats.priceGapHint);
   }
 
   lines.push('');
   lines.push('结果仅供手动记录和出行前估算，实际价格以租车平台和门店合同为准。');
-  lines.push('来自 pYuY 租车自驾工具箱');
+  lines.push('来自 pYuY 租车自驾决策工具箱');
   return lines.join('\n');
 }
 

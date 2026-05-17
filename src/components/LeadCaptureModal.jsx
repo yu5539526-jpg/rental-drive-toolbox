@@ -1,15 +1,20 @@
-import { Check, X } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BottomActionButton } from './BottomActionBar.jsx';
 import { submitUserData } from '../services/submitUserData.js';
 
 const concernOptions = [
   '不知道租什么车',
-  '怕验车被坑',
-  '怕预算超支',
-  '怕新能源补能不方便',
-  '怕路线安排不合理',
-  '怕保险看不懂',
+  '不同平台价格看不懂',
+  '不知道保险买哪档',
+  '担心还车被扣钱',
+  '不知道整趟要花多少钱',
+  '担心新能源补能',
+  '担心行程太赶',
+  '担心同行人预算谈不拢',
+  '担心押金和违章押金',
+  '其他',
 ];
 
 const budgetOptions = ['2000 以下', '2000-5000', '5000-8000', '8000 以上', '还没确定'];
@@ -25,6 +30,7 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
     people: '',
     budgetRange: '',
     concerns: [],
+    customPainPoint: '',
     contact: '',
     caseAnalysis: '是',
     privacyAccepted: false,
@@ -76,6 +82,8 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
           people: Number(form.people) || form.people,
           budgetRange: form.budgetRange,
           concerns: form.concerns,
+          selectedPainPoints: form.concerns,
+          customPainPoint: form.concerns.includes('其他') ? form.customPainPoint.trim() : '',
           contact: form.contact.trim(),
           caseAnalysis: form.caseAnalysis,
         },
@@ -99,29 +107,30 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 px-4 sm:items-center">
-      <form
-        onSubmit={handleSubmit}
-        className="safe-bottom max-h-[92vh] w-full max-w-[430px] overflow-y-auto rounded-t-[28px] bg-card p-5 shadow-soft sm:rounded-[28px]"
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold text-coral">保存结果 · pYuY</p>
-            <h2 className="mt-1 text-xl font-bold text-ink">保存结果并提交出行计划</h2>
-            <p className="mt-1 text-sm text-muted">
-              提交后会保存你的本次验车、预算或风险自测结果，方便后续整理自驾需求和优化工具。
-            </p>
-          </div>
+      <form onSubmit={handleSubmit} className="flex max-h-[92vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-[28px] bg-card shadow-soft sm:rounded-[28px]">
+        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center border-b border-[rgba(47,107,95,0.08)] bg-card/95 px-3 backdrop-blur">
           <button
             type="button"
             onClick={onClose}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-mint text-ink"
-            aria-label="关闭弹窗"
+            className="grid h-11 w-11 place-items-center rounded-full text-pine"
+            aria-label="返回"
           >
-            <X size={19} />
+            <ArrowLeft size={20} />
           </button>
+          <h2 className="truncate px-2 text-center text-[17px] font-bold leading-tight text-ink">保存出行计划</h2>
+          <span className="h-11 w-11" aria-hidden="true" />
         </div>
 
-        <div className="grid gap-3">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-4">
+          <div className="mb-4">
+            <p className="text-xs font-bold text-coral">保存结果 · pYuY</p>
+            <h3 className="mt-1 text-xl font-bold text-ink">提交并保存出行计划</h3>
+            <p className="mt-1 text-sm text-muted">
+              提交后会保存你的本次留证、预算或省心自测结果，方便后续整理自驾需求和优化工具。
+            </p>
+          </div>
+
+          <div className="grid gap-3">
           <Field label="小红书昵称" required>
             <input
               value={form.nickname}
@@ -198,6 +207,19 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
                 );
               })}
             </div>
+            {!form.concerns.length ? (
+              <p className="mt-2 rounded-2xl bg-cream px-3 py-2 text-xs font-bold leading-relaxed text-muted">
+                选择你最担心的问题，我后续可以优先整理类似案例。
+              </p>
+            ) : null}
+            {form.concerns.includes('其他') ? (
+              <input
+                value={form.customPainPoint}
+                onChange={(event) => update('customPainPoint', event.target.value)}
+                className="mt-3 h-12 w-full rounded-[14px] border border-pine/20 bg-card px-3.5 outline-none shadow-sm focus:border-pine focus:ring-2 focus:ring-pine/10"
+                placeholder="可以补充你的具体担心，比如路线、保险、预算分摊等"
+              />
+            ) : null}
           </Field>
 
           <Field label="联系方式（选填）">
@@ -231,7 +253,7 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
         <div className="mt-4 rounded-2xl bg-mint px-3 py-3 text-xs font-medium leading-relaxed text-muted">
           <p className="font-bold text-ink">隐私提示</p>
           <p className="mt-1">
-            你填写的昵称、目的地、出行月份、人数、预算区间、担心事项和联系方式，仅用于生成并保存本次出行计划、后续自驾需求分析和工具优化。
+            你填写的昵称、目的地、出行月份、人数、预算区间、担心事项和联系方式，仅用于生成并保存本次出行计划、后续自驾需求分析、小红书匿名案例整理和工具优化。
           </p>
           <p className="mt-1">请不要填写身份证、银行卡、精确住址、驾驶证号等敏感信息。</p>
           <label className="mt-3 flex items-start gap-2 rounded-2xl bg-card px-3 py-3 text-ink">
@@ -251,13 +273,13 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
           </p>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={!canSubmit || submitting}
-          className="mt-5 min-h-12 w-full rounded-2xl bg-pine px-5 text-base font-bold text-white shadow-lg shadow-pine/20 disabled:cursor-not-allowed disabled:bg-muted/40"
-        >
+        </div>
+
+        <div className="modal-bottom-action shrink-0 px-5 pt-3">
+          <BottomActionButton type="submit" disabled={!canSubmit || submitting} className="text-base disabled:cursor-not-allowed">
           {submitting ? '提交中...' : '提交并保存我的出行计划'}
-        </button>
+          </BottomActionButton>
+        </div>
       </form>
     </div>
   );
