@@ -2,8 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import ChecklistPage from './pages/ChecklistPage.jsx';
 import BudgetPage from './pages/BudgetPage.jsx';
-import RiskQuizPage from './pages/RiskQuizPage.jsx';
 import PriceComparePage from './pages/PriceComparePage.jsx';
+import CarRecommendPage from './pages/CarRecommendPage.jsx';
 import SuccessPage from './pages/SuccessPage.jsx';
 import SiteFooter from './components/SiteFooter.jsx';
 
@@ -15,8 +15,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/checklist" element={<ChecklistPage />} />
           <Route path="/budget" element={<BudgetPage />} />
-          <Route path="/risk-check" element={<RiskQuizPage />} />
           <Route path="/price-compare" element={<PriceComparePage />} />
+          <Route path="/car-recommend" element={<CarRecommendPage />} />
           <Route path="/success" element={<SuccessPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

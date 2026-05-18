@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calculator, Camera, ChevronDown, ChevronRight, Scale, ShieldAlert, ShieldCheck, Sparkles } from 'lucide-react';
+import { Calculator, Camera, ChevronDown, ChevronRight, MapPin, Scale, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const whyItems = [
@@ -26,7 +26,7 @@ export default function Home() {
           <p className="text-xs font-bold tracking-[0.08em] text-white/65">租车自驾先理清，再出发</p>
           <h1 className="mt-2 text-[28px] font-bold leading-tight tracking-normal">租车自驾工具箱</h1>
           <p className="mt-2 max-w-[19rem] text-[15px] font-medium leading-relaxed text-white/90">
-            出发前 3 分钟，把租车方案和预算理清楚。
+            出发前 3 分钟，把预算、车型和方案先算清楚。
           </p>
         </div>
       </section>
@@ -34,11 +34,11 @@ export default function Home() {
       <section className="-mt-5 rounded-t-[26px] bg-gradient-to-b from-cream via-cream to-mint px-5 pb-7 pt-6">
         <div className="grid gap-4">
           <ToolEntry
-            to="/budget"
-            icon={Calculator}
-            title="算整趟预算"
-            text="租车、油电、住宿、门票和押金一次算清"
-            button="开始预算计算"
+            to="/car-recommend"
+            icon={MapPin}
+            title="目的地车型推荐"
+            text="根据目的地、人数和行李，判断这趟更适合租什么车"
+            button="开始选车建议"
             priority="primary"
           />
           <ToolEntry
@@ -50,19 +50,19 @@ export default function Home() {
             priority="primary"
           />
           <ToolEntry
+            to="/budget"
+            icon={Calculator}
+            title="算整趟预算"
+            text="租车、油电、住宿、门票和押金一次算清"
+            button="开始预算计算"
+            priority="primary"
+          />
+          <ToolEntry
             to="/checklist"
             icon={ShieldCheck}
             title="取车留证清单"
-            text="买了保险也建议拍一遍，关键照片别漏掉"
+            text="取车前该拍哪里、核对什么，一次看清"
             button="开始留证"
-            priority="secondary"
-          />
-          <ToolEntry
-            to="/risk-check"
-            icon={ShieldAlert}
-            title="省心程度自测"
-            text="看看这趟适合买高档保险，还是关键留证更省心"
-            button="开始自测"
             priority="secondary"
           />
         </div>
@@ -100,7 +100,7 @@ export default function Home() {
         </section>
 
         <p className="mt-4 rounded-[20px] bg-amberSoft/45 px-4 py-3 text-center text-sm font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
-          收藏后可随时回来比方案、算预算和核对留证步骤
+          收藏后可随时回来算预算、选车型和对比方案
         </p>
       </section>
     </main>

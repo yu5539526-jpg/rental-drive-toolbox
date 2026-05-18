@@ -7,7 +7,6 @@ export default function SuccessPage() {
   const resultLabelMap = {
     budget: '预算结果',
     checklist: '留证结果',
-    risk: '省心自测结果',
   };
   const resultType = resultLabelMap[location.state?.resultType] || '出行结果';
 

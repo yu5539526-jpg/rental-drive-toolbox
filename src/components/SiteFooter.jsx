@@ -2,7 +2,7 @@ import { useLocation } from 'react-router-dom';
 
 export default function SiteFooter() {
   const location = useLocation();
-  const hasFixedActions = ['/budget', '/checklist', '/risk-check', '/price-compare'].includes(location.pathname);
+  const hasFixedActions = ['/budget', '/checklist', '/price-compare', '/car-recommend'].includes(location.pathname);
 
   return (
     <footer
