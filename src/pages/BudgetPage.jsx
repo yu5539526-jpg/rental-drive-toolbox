@@ -16,7 +16,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
-import LeadCaptureModal from '../components/LeadCaptureModal.jsx';
+import { submitBudgetSnapshotToBackend } from '../services/submitBudgetSnapshotToBackend.js';
+import { loadBudgetSnapshot, saveBudgetSnapshot } from '../utils/budgetSnapshot.js';
 import ProgressBar from '../components/ProgressBar.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { ENERGY_DEFAULTS, ENERGY_NOTE } from '../constants/energyDefaults.js';
@@ -49,12 +50,20 @@ export default function BudgetPage() {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState(loadBudgetDraft);
   const [selectedPlan, setSelectedPlan] = useState(loadSelectedRentalPlan);
-  const [leadOpen, setLeadOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('idle');
   const [cardOpen, setCardOpen] = useState(false);
   const [cardStatus, setCardStatus] = useState('');
   const [feedback, setFeedback] = useState('填写任意费用后，预算结果会立刻同步刷新。');
   const prefillAppliedRef = useRef(false);
+  const lastSavedRef = useRef(null);
   const result = useMemo(() => calculateBudget(draft), [draft]);
+  const hasUnsavedChanges = useMemo(() => {
+    const current = JSON.stringify({ draft, selectedPlan });
+    if (lastSavedRef.current === null) {
+      return current !== JSON.stringify({ draft: defaultBudgetDraft, selectedPlan: null });
+    }
+    return lastSavedRef.current !== current;
+  }, [draft, selectedPlan]);
   const currentStep = budgetSteps[step];
   const progress = Math.round(((step + 1) / budgetSteps.length) * 100);
 
@@ -85,6 +94,28 @@ export default function BudgetPage() {
       : formatMoney(prefillTotal);
     setFeedback(`已带入租车方案：${planText}，可继续补充其他预算信息。`);
   }, [location.state]);
+
+  useEffect(() => {
+    if (prefillAppliedRef.current) return;
+    const snapshot = loadBudgetSnapshot();
+    if (!snapshot) return;
+    prefillAppliedRef.current = true;
+
+    lastSavedRef.current = JSON.stringify({ draft: snapshot.draft, selectedPlan: snapshot.selectedPlan });
+
+    setDraft({
+      ...defaultBudgetDraft,
+      ...snapshot.draft,
+      energyType: snapshot.draft.energyType === 'hybrid' ? 'extended' : snapshot.draft.energyType || defaultBudgetDraft.energyType,
+    });
+
+    if (snapshot.selectedPlan) {
+      setSelectedPlan(snapshot.selectedPlan);
+      localStorage.setItem(SELECTED_PLAN_STORAGE_KEY, JSON.stringify(snapshot.selectedPlan));
+    }
+
+    setFeedback('已恢复上次保存的预算数据，可继续修改或查看结果。');
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
@@ -125,9 +156,13 @@ export default function BudgetPage() {
     setFeedback('已清除租车方案信息，已填写的预算金额和其他信息会保留。');
   };
 
-  const openLead = () => {
-    setFeedback('请确认隐私提示后提交，提交成功后会显示已保存。');
-    setLeadOpen(true);
+  const handleSave = () => {
+    saveBudgetSnapshot(draft, result, selectedPlan);
+    submitBudgetSnapshotToBackend({ draft, result, selectedPlan, updatedAt: new Date().toISOString() });
+    lastSavedRef.current = JSON.stringify({ draft, selectedPlan });
+    setSaveStatus('saved');
+    setFeedback('已保存，下次打开网页可以继续查看。');
+    setTimeout(() => setSaveStatus('idle'), 1500);
   };
 
   const openBudgetCard = () => {
@@ -138,12 +173,6 @@ export default function BudgetPage() {
 
     setCardStatus('');
     setCardOpen(true);
-  };
-
-  const resultSnapshot = {
-    input: draft,
-    result,
-    selectedRentalPlan: selectedPlan,
   };
 
   return (
@@ -180,8 +209,8 @@ export default function BudgetPage() {
       <BottomActionBar layout="double">
         {step === budgetSteps.length - 1 ? (
           <>
-            <BottomActionButton type="button" variant="secondary" className="text-xs" onClick={openLead}>
-              保存到出行计划
+            <BottomActionButton type="button" variant="secondary" className={`text-xs ${hasUnsavedChanges ? 'bg-aquaCard ring-pine/25' : 'text-pine/70'}`} onClick={handleSave} disabled={saveStatus === 'saved'}>
+              {saveStatus === 'saved' ? '已保存' : '保存，下次继续看'}
             </BottomActionButton>
             <BottomActionButton type="button" onClick={openBudgetCard}>
               <Image size={18} />
@@ -204,13 +233,11 @@ export default function BudgetPage() {
 
       <BudgetCardModal open={cardOpen} onClose={() => setCardOpen(false)} result={result} draft={draft} selectedPlan={selectedPlan} />
 
-      <LeadCaptureModal
-        open={leadOpen}
-        onClose={() => setLeadOpen(false)}
-        resultType="budget"
-        resultSnapshot={resultSnapshot}
-        defaultDestination={draft.destination}
-      />
+      {step === budgetSteps.length - 1 ? (
+        <p className="mx-4 mb-28 mt-3 text-center text-[11px] font-medium leading-relaxed text-muted/55 sm:mb-6">
+          点击保存即表示你了解：本次预算信息会保存到本机，并提交给 pyUY 用于工具优化和需求分析，不收集手机号、身份证等敏感信息。
+        </p>
+      ) : null}
     </main>
   );
 }
