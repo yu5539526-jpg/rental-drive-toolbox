@@ -16,7 +16,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-[linear-gradient(135deg,#123B52_0%,#1E5A6E_55%,#DFF3F8_160%)] px-5 pb-7 pt-5 text-white">
         <div className="flex items-center justify-between gap-3">
           <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/15 px-3 text-xs font-bold">
-            <Sparkles size={14} />
+            <Sparkles size={14} className="text-red" />
             pYuY
           </div>
           <div className="rounded-full bg-[rgba(229,57,53,0.12)] px-3 py-1.5 text-xs font-bold text-[#C91F1F]">小红书收藏版</div>
@@ -54,6 +54,7 @@ export default function Home() {
             text="根据目的地、人数和行李，判断这趟更适合租什么车"
             button="开始选车建议"
             priority="primary"
+            accentDot
           />
           <ToolEntry
             to="/price-compare"
@@ -94,7 +95,7 @@ export default function Home() {
             <div className="min-w-0 flex-1">
               <h2 className="text-base font-bold leading-tight text-ink">为什么出发前建议先理一遍</h2>
               <p className="mt-1 text-xs leading-relaxed text-muted">几分钟把租车方案、预算和关键留证顺一遍。</p>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-pine/55">pyUY——一个喜欢自驾、懂车、也爱做旅行规划的创作者</p>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-pine/55"><span className="font-bold text-red">pyUY</span>——一个喜欢自驾、懂车、也爱做旅行规划的创作者</p>
             </div>
             <ChevronDown
               size={18}
@@ -122,7 +123,7 @@ export default function Home() {
   );
 }
 
-function ToolEntry({ to, icon: Icon, title, text, button, priority }) {
+function ToolEntry({ to, icon: Icon, title, text, button, priority, accentDot }) {
   const isPrimary = priority === 'primary';
 
   return (
@@ -140,7 +141,10 @@ function ToolEntry({ to, icon: Icon, title, text, button, priority }) {
           <Icon size={isPrimary ? 27 : 21} />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className={`font-bold leading-tight ${isPrimary ? 'text-[20px]' : 'text-[17px]'}`}>{title}</h2>
+          <h2 className={`font-bold leading-tight ${isPrimary ? 'text-[20px]' : 'text-[17px]'}`}>
+            {accentDot ? <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-red align-middle" /> : null}
+            {title}
+          </h2>
           <p className={`mt-1.5 font-medium leading-relaxed text-muted ${isPrimary ? 'text-sm' : 'text-[13px]'}`}>{text}</p>
         </div>
       </div>
