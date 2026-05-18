@@ -18,7 +18,7 @@ const concernOptions = [
 
 const budgetOptions = ['2000 以下', '2000-5000', '5000-8000', '8000 以上', '还没确定'];
 const inputClass =
-  'h-12 w-full rounded-[16px] border border-[#2F7A6D]/15 bg-[#F2F7F5] px-3.5 text-[15px] font-semibold text-[#18322D] outline-none transition placeholder:text-[#667B75]/55 focus:border-[#2F7A6D] focus:bg-white focus:ring-2 focus:ring-[#2F7A6D]/12';
+  'h-12 w-full rounded-[16px] border border-pine/15 bg-aquaCard px-3.5 text-[15px] font-semibold text-ink outline-none transition placeholder:text-muted/55 focus:border-pine focus:bg-card focus:ring-2 focus:ring-pine/12';
 
 export default function LeadCaptureModal({ open, onClose, resultType, resultSnapshot, defaultDestination = '' }) {
   const navigate = useNavigate();
@@ -107,30 +107,30 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#18322D]/45 px-3 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/45 px-3 sm:items-center">
       <form
         onSubmit={handleSubmit}
-        className="flex max-h-[94vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-[24px] bg-[#F6F8F5] shadow-soft sm:rounded-[24px]"
+        className="flex max-h-[94vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-[24px] bg-cream shadow-soft sm:rounded-[24px]"
       >
-        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center bg-white px-3">
+        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center bg-card px-3">
           <button
             type="button"
             onClick={onClose}
-            className="grid h-11 w-11 place-items-center rounded-full text-[#2F7A6D]"
+            className="grid h-11 w-11 place-items-center rounded-full text-pine"
             aria-label="返回"
           >
             <ArrowLeft size={20} />
           </button>
-          <h2 className="truncate px-2 text-center text-[17px] font-bold leading-tight text-[#18322D]">保存出行计划</h2>
+          <h2 className="truncate px-2 text-center text-[17px] font-bold leading-tight text-ink">保存出行计划</h2>
           <span className="h-11 w-11" aria-hidden="true" />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-5 pt-4">
-          <section className="rounded-[24px] bg-white p-4 shadow-card ring-1 ring-[#2F7A6D]/10">
+          <section className="rounded-[24px] bg-card p-4 shadow-card ring-1 ring-pine/10">
             <div className="mb-5">
-              <p className="text-xs font-bold text-[#2F7A6D]">pYuY 出行计划</p>
-              <h3 className="mt-1 text-xl font-bold leading-tight text-[#18322D]">保存出行计划</h3>
-              <p className="mt-2 text-sm font-medium leading-relaxed text-[#667B75]">
+              <p className="text-xs font-bold text-pine">pYuY 出行计划</p>
+              <h3 className="mt-1 text-xl font-bold leading-tight text-ink">保存出行计划</h3>
+              <p className="mt-2 text-sm font-medium leading-relaxed text-muted">
                 留下你的目的地和担心的问题，后续可以整理成匿名案例参考。
               </p>
             </div>
@@ -199,7 +199,7 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
                   })}
                 </div>
                 {!form.concerns.length ? (
-                  <p className="mt-2 rounded-[18px] bg-[#F2F7F5] px-3 py-2 text-xs font-bold leading-relaxed text-[#667B75]">
+                  <p className="mt-2 rounded-[18px] bg-aquaCard px-3 py-2 text-xs font-bold leading-relaxed text-muted">
                     选几项最关心的内容，后续整理计划会更贴近你的需求。
                   </p>
                 ) : null}
@@ -220,7 +220,7 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
                   className={inputClass}
                   placeholder="微信 / 手机号 / 邮箱"
                 />
-                <span className="mt-1.5 block text-xs leading-relaxed text-[#667B75]">联系方式仍然选填，用于后续与你确认案例细节。</span>
+                <span className="mt-1.5 block text-xs leading-relaxed text-muted">联系方式仍然选填，用于后续与你确认案例细节。</span>
               </Field>
 
               <Field label="是否愿意被选为免费案例分析">
@@ -231,7 +231,7 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
                       type="button"
                       onClick={() => update('caseAnalysis', option)}
                       className={`min-h-11 rounded-[16px] px-4 text-sm font-bold ${
-                        form.caseAnalysis === option ? 'bg-[#2F7A6D] text-white shadow-sm' : 'bg-[#F2F7F5] text-[#2F7A6D]'
+                        form.caseAnalysis === option ? 'bg-pine text-white shadow-sm' : 'bg-aquaCard text-pine'
                       }`}
                     >
                       {option}
@@ -241,35 +241,35 @@ export default function LeadCaptureModal({ open, onClose, resultType, resultSnap
               </Field>
             </div>
 
-            <div className="mt-5 rounded-[20px] bg-[#F2F7F5] px-3 py-3 text-xs font-medium leading-relaxed text-[#667B75]">
-              <p className="font-bold text-[#18322D]">隐私提示</p>
+            <div className="mt-5 rounded-[20px] bg-aquaCard px-3 py-3 text-xs font-medium leading-relaxed text-muted">
+              <p className="font-bold text-ink">隐私提示</p>
               <p className="mt-1">
                 仅用于整理你的出行计划和后续案例分析参考，不会公开你的联系方式。若用于内容案例，会默认匿名处理。
               </p>
-              <label className="mt-3 flex items-start gap-2 rounded-[18px] bg-white px-3 py-3 text-[#18322D] ring-1 ring-[#2F7A6D]/10">
+              <label className="mt-3 flex items-start gap-2 rounded-[18px] bg-card px-3 py-3 text-ink ring-1 ring-pine/10">
                 <input
                   type="checkbox"
                   checked={form.privacyAccepted}
                   onChange={(event) => update('privacyAccepted', event.target.checked)}
-                  className="mt-0.5 h-5 w-5 shrink-0 accent-[#2F7A6D]"
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-pine"
                 />
                 <span>我已了解并同意保存本次出行计划信息。</span>
               </label>
             </div>
 
             {submitMessage ? (
-              <p className="mt-3 rounded-[18px] bg-[#F9EDC6] px-3 py-2 text-xs font-bold leading-relaxed text-[#735B16]" role="status" aria-live="polite">
+              <p className="mt-3 rounded-[18px] bg-amberSoft px-3 py-2 text-xs font-bold leading-relaxed text-amberDark" role="status" aria-live="polite">
                 {submitMessage}
               </p>
             ) : null}
           </section>
         </div>
 
-        <div className="modal-bottom-action shrink-0 bg-[#F6F8F5]/95 px-4 pt-3">
+        <div className="modal-bottom-action shrink-0 bg-cream/95 px-4 pt-3">
           <button
             type="submit"
             disabled={!canSubmit || submitting}
-            className="inline-flex h-12 min-h-12 w-full items-center justify-center rounded-[18px] bg-gradient-to-r from-[#2F7A6D] to-[#245F55] px-4 text-base font-bold text-white shadow-lg shadow-[#2F7A6D]/20 disabled:cursor-not-allowed disabled:from-[#9CAAA6] disabled:to-[#9CAAA6]"
+            className="inline-flex h-12 min-h-12 w-full items-center justify-center rounded-[18px] bg-gradient-to-r from-[#174B63] to-[#0D2B3D] px-4 text-base font-bold text-white shadow-lg shadow-pine/20 disabled:cursor-not-allowed disabled:from-muted/50 disabled:to-muted/50"
           >
             {submitting ? '正在保存...' : '提交并保存'}
           </button>
@@ -285,7 +285,7 @@ function PillButton({ active, onClick, children }) {
       type="button"
       onClick={onClick}
       className={`inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold leading-tight transition ${
-        active ? 'bg-[#2F7A6D] text-white shadow-sm' : 'bg-[#F2F7F5] text-[#2F7A6D] ring-1 ring-[#2F7A6D]/8'
+        active ? 'bg-pine text-white shadow-sm' : 'bg-aquaCard text-pine ring-1 ring-pine/8'
       }`}
     >
       {children}
@@ -296,9 +296,9 @@ function PillButton({ active, onClick, children }) {
 function Field({ label, required, children }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-bold text-[#18322D]">
+      <span className="mb-1.5 block text-sm font-bold text-ink">
         {label}
-        {required ? <span className="text-[#2F7A6D]"> *</span> : null}
+        {required ? <span className="text-red"> *</span> : null}
       </span>
       {children}
     </label>

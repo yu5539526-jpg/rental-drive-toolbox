@@ -13,7 +13,7 @@ export default function TopBar({ title, showBack = true, onBack }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 h-14 border-b border-[rgba(47,122,109,0.08)] bg-cream/92 px-3 backdrop-blur">
+    <header className="sticky top-0 z-20 h-14 border-b border-pine/10 bg-cream/92 px-3 backdrop-blur">
       <div className="grid h-full grid-cols-[44px_minmax(0,1fr)_44px] items-center">
         {showBack ? (
           <button

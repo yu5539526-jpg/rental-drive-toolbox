@@ -362,7 +362,7 @@ function EnergyTypeCards({ choice, value, onChange }) {
               onClick={() => onChange(option.value)}
               className={`flex min-h-[76px] items-center gap-3 rounded-[20px] border px-3.5 py-3 text-left transition hover:-translate-y-0.5 active:scale-[0.99] ${
                 active
-                  ? 'border-pine bg-gradient-to-r from-[#356F67] to-[#4A8F83] text-lightText shadow-lg shadow-pine/15'
+                  ? 'border-pine bg-gradient-to-r from-[#174B63] to-[#1E6B8A] text-lightText shadow-lg shadow-pine/15'
                   : 'border-pine/10 bg-card text-ink shadow-sm hover:border-pine/25 hover:bg-aquaCard'
               }`}
             >
@@ -415,7 +415,7 @@ function StandardBudgetFields({ step, draft, update }) {
             </FieldGroup>
           );
         })}
-        <p className="rounded-2xl bg-amberSoft/45 px-3 py-2.5 text-xs font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
+        <p className="rounded-2xl bg-amberSoft/45 px-3 py-2.5 text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
           没填的费用会按 0 计算，结果适合作为粗略估算。
         </p>
       </div>
@@ -503,7 +503,7 @@ function BudgetPreview({ result, draft }) {
 
 function PreviewMetric({ label, value, strong, muted }) {
   return (
-    <div className={`rounded-2xl px-3 py-2.5 ${strong ? 'bg-gradient-to-r from-[#356F67] to-[#4A8F83] text-lightText' : muted ? 'bg-amberSoft/45 text-ink' : 'bg-aquaCard text-ink'}`}>
+    <div className={`rounded-2xl px-3 py-2.5 ${strong ? 'bg-gradient-to-r from-[#174B63] to-[#1E6B8A] text-lightText' : muted ? 'bg-amberSoft/45 text-ink' : 'bg-aquaCard text-ink'}`}>
       <p className={`text-[11px] font-bold ${strong ? 'text-white/75' : 'text-muted'}`}>{label}</p>
       <p className={`mt-0.5 text-base font-bold ${strong ? 'text-lightText' : 'text-ink'}`}>{value}</p>
     </div>
@@ -571,7 +571,7 @@ function BudgetResult({ result, draft, selectedPlan, cardStatus, onReset, onEdit
       <ResultRentalPlanCard selectedPlan={selectedPlan} currentTotal={draft.rentalPlatformTotal || selectedPlan?.totalPrice} />
 
       {result.isRoughEstimate ? (
-        <p className="rounded-[18px] bg-amberSoft/45 px-4 py-3 text-sm font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
+        <p className="rounded-[18px] bg-amberSoft/45 px-4 py-3 text-sm font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
           部分费用未填写，当前结果为粗略估算。
         </p>
       ) : null}
@@ -612,7 +612,7 @@ function BudgetResult({ result, draft, selectedPlan, cardStatus, onReset, onEdit
           </ResultActionButton>
         </div>
         {copyStatus ? <p className="mt-2 text-center text-xs font-bold text-muted">{copyStatus}</p> : null}
-        {cardStatus ? <p className="mt-2 text-center text-xs font-bold text-[#735B16]">{cardStatus}</p> : null}
+        {cardStatus ? <p className="mt-2 text-center text-xs font-bold text-amberDark">{cardStatus}</p> : null}
       </section>
 
       <p className="rounded-2xl bg-aquaCard px-4 py-3 text-xs font-medium leading-relaxed text-muted">
@@ -624,7 +624,7 @@ function BudgetResult({ result, draft, selectedPlan, cardStatus, onReset, onEdit
 
 function ResultHeroCard({ result, draft }) {
   return (
-    <section className="rounded-[24px] bg-gradient-to-b from-[#356F67] to-[#4A8F83] p-5 text-lightText shadow-[0_12px_32px_rgba(34,82,71,0.12)]">
+    <section className="rounded-[24px] bg-gradient-to-b from-[#174B63] to-[#1E6B8A] p-5 text-lightText shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
       <p className="text-sm font-bold text-white/70">{draft.destination || '本次自驾'}</p>
       <h2 className="mt-1 text-xl font-bold">本次自驾预算结果</h2>
       <div className="mt-5">
@@ -689,7 +689,7 @@ function BudgetLevelPanel({ report, result }) {
           <p className="text-xs font-bold text-muted">预算等级</p>
           <h2 className="mt-1 text-lg font-bold text-ink">人均日预算判断</h2>
         </div>
-        <span className="shrink-0 rounded-full bg-amberSoft/45 px-3 py-1.5 text-xs font-bold text-[#735B16] ring-1 ring-warning/20">{report.level}</span>
+        <span className="shrink-0 rounded-full bg-amberSoft/45 px-3 py-1.5 text-xs font-bold text-amberDark ring-1 ring-warning/20">{report.level}</span>
       </div>
       <p className="mt-3 text-sm font-medium leading-relaxed text-muted">{report.message}</p>
       <div className="mt-4 rounded-2xl bg-aquaCard p-4">
@@ -760,7 +760,7 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 px-4 sm:items-center">
       <div className="flex max-h-[94vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-[28px] bg-card shadow-soft sm:rounded-[28px]">
-        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center border-b border-[rgba(47,122,109,0.08)] bg-card/95 px-3 backdrop-blur">
+        <div className="grid h-14 shrink-0 grid-cols-[44px_minmax(0,1fr)_44px] items-center border-b border-pine/10 bg-card/95 px-3 backdrop-blur">
           <button
             type="button"
             onClick={onClose}
@@ -778,8 +778,8 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
             适合截图保存或发给同行人。
           </div>
 
-          <div className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-[390px] overflow-hidden rounded-[24px] border border-pine/10 bg-gradient-to-br from-cream via-aquaCard to-amberSoft/45 shadow-[0_12px_32px_rgba(34,82,71,0.12)]">
-            <div className="bg-gradient-to-b from-[#356F67] to-[#4A8F83] px-5 pb-5 pt-4 text-lightText">
+          <div className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-[390px] overflow-hidden rounded-[24px] border border-pine/10 bg-gradient-to-br from-cream via-aquaCard to-amberSoft/45 shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
+            <div className="bg-gradient-to-b from-[#174B63] to-[#1E6B8A] px-5 pb-5 pt-4 text-lightText">
               <p className="text-xs font-bold text-white/70">pYuY 租车自驾工具箱</p>
               <h3 className="mt-2 text-2xl font-bold leading-tight">我的自驾预算卡</h3>
               <div className="mt-5 rounded-[20px] bg-white/12 px-4 py-3">
@@ -838,7 +838,7 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
               <section className="rounded-[20px] bg-white/88 p-3 ring-1 ring-pine/10">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs font-bold text-muted">预算等级</p>
-                  <span className="shrink-0 rounded-full bg-amberSoft/45 px-3 py-1.5 text-xs font-bold text-[#735B16] ring-1 ring-warning/20">{cardData.level}</span>
+                  <span className="shrink-0 rounded-full bg-amberSoft/45 px-3 py-1.5 text-xs font-bold text-amberDark ring-1 ring-warning/20">{cardData.level}</span>
                 </div>
                 <p className="mt-2 text-sm font-medium leading-relaxed text-muted">{cardData.judgment}</p>
               </section>
@@ -985,10 +985,10 @@ function HighlightRow({ label, value, note }) {
     <div className="rounded-2xl bg-amberSoft/45 p-4 ring-1 ring-warning/20">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-[#735B16]">{label}</p>
-          <p className="mt-1 text-xs font-medium text-[#735B16]/75">{note}</p>
+          <p className="text-sm font-bold text-amberDark">{label}</p>
+          <p className="mt-1 text-xs font-medium text-amberDark/75">{note}</p>
         </div>
-        <p className="shrink-0 text-xl font-bold text-[#735B16]">{value}</p>
+        <p className="shrink-0 text-xl font-bold text-amberDark">{value}</p>
       </div>
     </div>
   );

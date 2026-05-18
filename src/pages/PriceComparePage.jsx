@@ -172,7 +172,7 @@ export default function PriceComparePage() {
 
           <button
             type="submit"
-            className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#356F67] to-[#4A8F83] px-4 font-bold text-lightText shadow-lg shadow-pine/20"
+            className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-4 font-bold text-lightText shadow-lg shadow-pine/20"
           >
             <Plus size={18} />
             {editingId ? '更新方案' : '添加到对比'}
@@ -256,7 +256,7 @@ function IntroCard() {
           <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted">
             把不同平台、车型和保险方案放一起看，先算清含保险总价。
           </p>
-          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
+          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
             先添加 2 个方案，对比结果会更有参考价值。
           </p>
         </div>
@@ -324,7 +324,7 @@ function PlanCard({ plan, stats, onEdit, onDelete, onUse }) {
         </div>
       </div>
 
-      <div className={`mt-3 rounded-2xl px-3 py-2 text-xs font-bold ${isLowest ? 'bg-mint text-pine' : 'bg-amberSoft/45 text-[#735B16]'}`}>
+      <div className={`mt-3 rounded-2xl px-3 py-2 text-xs font-bold ${isLowest ? 'bg-mint text-pine' : 'bg-amberSoft/45 text-amberDark'}`}>
         {isLowest ? '当前最低价，可作为预算计算参考。' : `比最低价高 ${formatMoney(diff)}`}
       </div>
 
@@ -349,7 +349,7 @@ function PlanCard({ plan, stats, onEdit, onDelete, onUse }) {
       <button
         type="button"
         onClick={() => onUse(plan)}
-        className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#356F67] to-[#4A8F83] px-3 text-center text-sm font-bold leading-tight text-lightText shadow-lg shadow-pine/20"
+        className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-3 text-center text-sm font-bold leading-tight text-lightText shadow-lg shadow-pine/20"
       >
         <Send size={16} />
         使用该方案算预算
@@ -384,7 +384,7 @@ function EmptyPlanCard() {
         </div>
       </div>
 
-      <p className="mt-3 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
+      <p className="mt-3 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
         先添加 2 个方案，对比结果会更有参考价值。
       </p>
     </article>
@@ -447,7 +447,7 @@ function CompareMetric({ label, value, tone = 'default' }) {
     tone === 'low'
       ? 'bg-aquaCard text-pine'
       : tone === 'warm'
-        ? 'bg-amberSoft/45 text-[#735B16]'
+        ? 'bg-amberSoft/45 text-amberDark'
         : tone === 'muted'
           ? 'bg-aquaCard/70 text-ink'
           : 'bg-aquaCard text-ink';
@@ -455,7 +455,7 @@ function CompareMetric({ label, value, tone = 'default' }) {
   return (
     <div className={`rounded-2xl px-3 py-3 ${toneClass}`}>
       <p className="text-xs font-bold text-muted">{label}</p>
-      <p className={`mt-1 break-words text-base font-bold leading-snug ${tone === 'low' ? 'text-pine' : tone === 'warm' ? 'text-[#735B16]' : 'text-ink'}`}>
+      <p className={`mt-1 break-words text-base font-bold leading-snug ${tone === 'low' ? 'text-pine' : tone === 'warm' ? 'text-amberDark' : 'text-ink'}`}>
         {value}
       </p>
     </div>
@@ -604,7 +604,7 @@ function getInsuranceCategory(value) {
 }
 
 function getInsuranceBadgeMeta(category) {
-  if (category === 'premium') return { label: '高保障', className: 'bg-amberSoft/40 text-[#735B16]' };
+  if (category === 'premium') return { label: '高保障', className: 'bg-amberSoft/40 text-amberDark' };
   if (category === 'basic') return { label: '基础保障', className: 'bg-aquaCard text-muted' };
   if (category === 'standard') return { label: '中等保障', className: 'bg-mint text-pine' };
   return { label: '其他保障', className: 'bg-aquaCard/70 text-muted' };
@@ -614,7 +614,7 @@ function getBudgetLinkInsuranceHint(category) {
   if (category === 'premium') {
     return {
       text: '已包含较高保险费用，预算会更接近省心出行方案。',
-      className: 'bg-amberSoft/35 text-[#735B16]',
+      className: 'bg-amberSoft/35 text-amberDark',
     };
   }
 

@@ -602,7 +602,7 @@ function getEvLevel(score) {
     return {
       level: '纯电谨慎，增程 / 混动更稳',
       score,
-      badge: 'bg-amberSoft/45 text-[#735B16]',
+      badge: 'bg-amberSoft/45 text-amberDark',
       summary: '这类行程对续航和补能容错率要求更高。',
       detail: '这个行程在路线距离、路况或补能便利性上存在一些对纯电不太友好的因素。如果不想为充电操心，建议优先考虑油车、混动或增程。如果确实想选新能源，增程是更稳妥的方向——既有电驱的静谧和低成本，又不需要完全依赖充电网络。',
       choices: [
@@ -684,7 +684,7 @@ export default function CarRecommendPage() {
         <IntroCard />
 
         {feedback ? (
-          <p className="mt-3 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-[#735B16]" role="status">
+          <p className="mt-3 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark" role="status">
             {feedback}
           </p>
         ) : null}
@@ -756,7 +756,7 @@ export default function CarRecommendPage() {
             <button
               type="button"
               onClick={handleGenerate}
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#356F67] to-[#4A8F83] px-4 text-sm font-bold text-white shadow-lg shadow-pine/20 active:scale-[0.99]"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-4 text-sm font-bold text-white shadow-lg shadow-pine/20 active:scale-[0.99]"
             >
               <Sparkles size={18} />
               生成车型建议
@@ -796,7 +796,7 @@ function IntroCard() {
           <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted">
             不用纠结轿车、SUV、MPV 还是新能源，先根据这趟行程判断大方向。
           </p>
-          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
+          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
             免费轻量建议，帮你判断车型和能源大方向，不做具体车型排行榜和平台比价。
           </p>
         </div>
@@ -949,7 +949,7 @@ function ResultView({ result, form }) {
   return (
     <div className="grid gap-4">
       {/* 卡片 1：本次行程画像 */}
-      <section className="rounded-[24px] bg-gradient-to-b from-[#356F67] to-[#4A8F83] p-5 text-white shadow-[0_12px_32px_rgba(34,82,71,0.12)]">
+      <section className="rounded-[24px] bg-gradient-to-b from-[#174B63] to-[#1E6B8A] p-5 text-white shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs font-bold text-white/65">本次行程画像</p>
           {tags.length > 0 ? (
@@ -989,7 +989,7 @@ function ResultView({ result, form }) {
           {energyAdvice.level === 'ev-friendly' || energyAdvice.level === 'recommend-extended' ? (
             <BatteryCharging size={16} className="mt-0.5 shrink-0 text-pine" />
           ) : (
-            <Fuel size={16} className="mt-0.5 shrink-0 text-[#735B16]" />
+            <Fuel size={16} className="mt-0.5 shrink-0 text-amberDark" />
           )}
           <div>
             <p className="text-xs font-bold text-muted">能源方向</p>
@@ -1096,7 +1096,7 @@ function ResultView({ result, form }) {
         <div className="mt-4 grid gap-2.5">
           <Link
             to="/budget"
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#356F67] to-[#4A8F83] px-4 text-sm font-bold text-white shadow-lg shadow-pine/20"
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-4 text-sm font-bold text-white shadow-lg shadow-pine/20"
           >
             去算这趟预算
             <ArrowRight size={16} />
@@ -1124,7 +1124,7 @@ function ResultView({ result, form }) {
             已复制建议摘要，内容包含目的地、推荐车型、新能源适配等级和核心建议。
           </p>
         ) : copyState === 'fail' ? (
-          <p className="mt-2 text-center text-xs font-bold text-[#735B16]">
+          <p className="mt-2 text-center text-xs font-bold text-amberDark">
             复制未成功，可以长按屏幕选中文字后手动复制，或截图保存这份建议。
           </p>
         ) : null}

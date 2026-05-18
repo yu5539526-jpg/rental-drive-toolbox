@@ -42,12 +42,12 @@ const statusStyles = {
 
 const riskStyles = {
   建议补拍: {
-    badge: 'bg-amberSoft/45 text-[#735B16] ring-1 ring-warning/20',
+    badge: 'bg-amberSoft/45 text-amberDark ring-1 ring-warning/20',
     tone: 'amber',
     label: '建议补拍',
   },
   继续补齐: {
-    badge: 'bg-amberSoft/45 text-[#735B16] ring-1 ring-warning/20',
+    badge: 'bg-amberSoft/45 text-amberDark ring-1 ring-warning/20',
     tone: 'amber',
     label: '继续补齐',
   },
@@ -210,7 +210,7 @@ function IntroCard() {
         <div className="min-w-0">
           <h1 className="text-xl font-bold leading-tight text-ink">取车留证清单</h1>
           <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted">买了保险也建议拍一遍，关键照片别漏掉。</p>
-          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
+          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
             高保障方案通常会更省心，但取车时保留关键照片和视频，仍然能减少还车沟通成本。
           </p>
         </div>
@@ -340,7 +340,7 @@ function RiskPill({ item }) {
   const label = getRiskTag(item);
   const className =
     label === '容易遗漏'
-      ? 'bg-amberSoft/45 text-[#735B16] ring-warning/20'
+      ? 'bg-amberSoft/45 text-amberDark ring-warning/20'
       : label === '建议确认'
         ? 'bg-aquaCard text-pine ring-pine/10'
         : label === '关键留证'
@@ -387,8 +387,8 @@ function SummaryCard({ summary }) {
           <p className="mt-1 text-2xl font-bold text-pine">{summary.completion}</p>
         </div>
         <div className="rounded-2xl bg-amberSoft/45 p-3 ring-1 ring-warning/20">
-          <p className="text-xs font-bold text-[#735B16]/75">留证提醒</p>
-          <p className="mt-1 text-lg font-bold text-[#735B16]">{riskStyles[summary.riskLevel].label}</p>
+          <p className="text-xs font-bold text-amberDark/75">留证提醒</p>
+          <p className="mt-1 text-lg font-bold text-amberDark">{riskStyles[summary.riskLevel].label}</p>
         </div>
       </div>
       <SummaryList title="建议补拍项目" empty="暂无建议补拍项目" items={summary.unfinishedHighRisk} tone="warm" />
@@ -414,7 +414,7 @@ function SummaryList({ title, empty, items, tone = 'default' }) {
     tone === 'danger' && hasItems
       ? 'bg-coral/10 text-coral'
       : tone === 'warm' && hasItems
-        ? 'bg-amberSoft/45 text-[#735B16]'
+        ? 'bg-amberSoft/45 text-amberDark'
         : 'bg-aquaCard text-ink';
 
   return (

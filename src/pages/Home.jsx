@@ -13,21 +13,35 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-cream">
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#356F67] to-[#4A8F83] px-5 pb-7 pt-5 text-white">
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#123B52_0%,#1E5A6E_55%,#DFF3F8_160%)] px-5 pb-7 pt-5 text-white">
         <div className="flex items-center justify-between gap-3">
           <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/15 px-3 text-xs font-bold">
             <Sparkles size={14} />
             pYuY
           </div>
-          <div className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/90">小红书收藏版</div>
+          <div className="rounded-full bg-[rgba(229,57,53,0.12)] px-3 py-1.5 text-xs font-bold text-[#C91F1F]">小红书收藏版</div>
         </div>
 
-        <div className="mt-5">
-          <p className="text-xs font-bold tracking-[0.08em] text-white/65">租车自驾先理清，再出发</p>
-          <h1 className="mt-2 text-[28px] font-bold leading-tight tracking-normal">租车自驾工具箱</h1>
-          <p className="mt-2 max-w-[19rem] text-[15px] font-medium leading-relaxed text-white/90">
-            出发前 3 分钟，把预算、车型和方案先算清楚。
-          </p>
+        <div className="mt-5 flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold tracking-[0.08em] text-white/65">租车自驾先理清，再出发</p>
+            <h1 className="mt-2 text-[24px] font-bold leading-tight">租车自驾工具箱</h1>
+            <p className="mt-2 text-[14px] font-medium leading-relaxed text-white/90">
+              出发前 3 分钟，把预算、车型和方案先算清楚。
+            </p>
+          </div>
+          <div className="shrink-0">
+            <div className="rounded-full bg-[#A5D0DC]/25 p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.15)]">
+              <img
+                src="/images/pyuy-lighthouse-hero.png"
+                alt="pyUY 租车自驾工具箱品牌插画"
+                width="115"
+                height="115"
+                fetchPriority="high"
+                className="h-[115px] w-[115px] rounded-full object-cover sm:h-[145px] sm:w-[145px]"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -80,6 +94,7 @@ export default function Home() {
             <div className="min-w-0 flex-1">
               <h2 className="text-base font-bold leading-tight text-ink">为什么出发前建议先理一遍</h2>
               <p className="mt-1 text-xs leading-relaxed text-muted">几分钟把租车方案、预算和关键留证顺一遍。</p>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-pine/55">pyUY——一个喜欢自驾、懂车、也爱做旅行规划的创作者</p>
             </div>
             <ChevronDown
               size={18}
@@ -99,7 +114,7 @@ export default function Home() {
           ) : null}
         </section>
 
-        <p className="mt-4 rounded-[20px] bg-amberSoft/45 px-4 py-3 text-center text-sm font-bold leading-relaxed text-[#735B16] ring-1 ring-warning/20">
+        <p className="mt-4 rounded-[20px] bg-amberSoft/45 px-4 py-3 text-center text-sm font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
           收藏后可随时回来算预算、选车型和对比方案
         </p>
       </section>
@@ -133,8 +148,8 @@ function ToolEntry({ to, icon: Icon, title, text, button, priority }) {
         to={to}
         className={`inline-flex w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-center font-bold leading-tight ${
           isPrimary
-            ? 'mt-4 min-h-12 bg-gradient-to-r from-[#356F67] to-[#4A8F83] text-sm text-white shadow-lg shadow-pine/20'
-            : 'mt-3 min-h-11 border border-pine/15 bg-aquaCard text-[13px] text-pine'
+            ? 'mt-4 min-h-12 bg-gradient-to-r from-[#174B63] to-[#1E6B8A] text-sm text-white shadow-md shadow-pine/15 hover:from-[#123B52] hover:to-[#174B63] active:from-[#123B52] active:to-[#174B63]'
+            : 'mt-3 min-h-11 border border-pine/15 bg-aquaCard text-[13px] text-pine hover:border-pine/25 hover:bg-mint/60'
         }`}
       >
         {button}
