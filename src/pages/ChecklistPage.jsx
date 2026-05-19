@@ -1,5 +1,6 @@
-import { Armchair, Camera, Car, CircleDot, Gauge, Lightbulb, Sparkles, Video, WalletCards } from 'lucide-react';
+import { Armchair, Camera, Car, ChevronRight, CircleDot, Gauge, Lightbulb, Sparkles, Video, WalletCards } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import LeadCaptureModal from '../components/LeadCaptureModal.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
@@ -130,6 +131,27 @@ export default function ChecklistPage() {
   return (
     <main className="min-h-screen bg-cream">
       <TopBar title="取车留证清单" />
+
+      <section className="mx-4 mt-3 rounded-2xl bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-4 py-3.5 text-white shadow-md shadow-pine/15">
+        <div className="flex items-start gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/20">
+            <Sparkles size={17} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold leading-snug">本功能已升级为「车身验车避坑图」</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-white/80">
+              全新的互动式车身验车工具，点击车身部位即可查看检查重点和避坑提醒。
+            </p>
+            <Link
+              to="/car-inspection-map"
+              className="mt-2.5 inline-flex items-center gap-1.5 rounded-2xl bg-white/20 px-3.5 py-2 text-xs font-bold text-white hover:bg-white/30 transition-colors"
+            >
+              去体验新版
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section className="page-pad px-4 pt-4">
         <IntroCard />

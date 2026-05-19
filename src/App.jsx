@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import ChecklistPage from './pages/ChecklistPage.jsx';
+import CarInspectionMap from './pages/CarInspectionMap.jsx';
 import BudgetPage from './pages/BudgetPage.jsx';
 import PriceComparePage from './pages/PriceComparePage.jsx';
 import CarRecommendPage from './pages/CarRecommendPage.jsx';
@@ -14,6 +15,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/checklist" element={<ChecklistPage />} />
+          <Route path="/car-inspection-map" element={<CarInspectionMap />} />
           <Route path="/budget" element={<BudgetPage />} />
           <Route path="/price-compare" element={<PriceComparePage />} />
           <Route path="/car-recommend" element={<CarRecommendPage />} />

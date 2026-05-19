@@ -72,11 +72,11 @@ export default function Home() {
             priority="primary"
           />
           <ToolEntry
-            to="/checklist"
+            to="/car-inspection-map"
             icon={ShieldCheck}
-            title="取车留证清单"
-            text="取车前该拍哪里、核对什么，一次看清"
-            button="开始留证"
+            title="车身验车避坑图"
+            text="点车身部位，看取车时哪里要重点拍"
+            button="开始验车"
             priority="secondary"
           />
         </div>
