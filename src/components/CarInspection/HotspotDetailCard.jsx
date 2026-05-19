@@ -1,5 +1,5 @@
 import { AlertTriangle, Camera, Check, Search, ShieldAlert } from 'lucide-react';
-import { riskLevelStyles } from '../../data/carInspectionHotspots.js';
+import { riskLevelStyles } from '../../data/carInspectionImageHotspots.js';
 
 /* ---- 信息块 ---- */
 

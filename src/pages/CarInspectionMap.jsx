@@ -2,12 +2,12 @@ import { Camera, Car, ChevronRight, Lightbulb, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar.jsx';
-import { CarSvgMap, CarViewTabs, HotspotDetailCard } from '../components/CarInspection/index.js';
-import { hotspotsByView } from '../data/carInspectionHotspots.js';
+import { CarInspectionImageMap, CarViewTabs, HotspotDetailCard } from '../components/CarInspection/index.js';
+import { imageHotspotsByView } from '../data/carInspectionImageHotspots.js';
 
 /* ---- 常量 ---- */
 
-const allHotspotIds = Object.values(hotspotsByView).flat().map((p) => p.id);
+const allHotspotIds = Object.values(imageHotspotsByView).flat().map((p) => p.id);
 const totalCount = allHotspotIds.length;
 
 const tips = [
@@ -20,7 +20,7 @@ const tips = [
 export default function CarInspectionMap() {
   const [view, setView] = useState('side');
   const [selected, setSelected] = useState(() => {
-    const pts = hotspotsByView.side;
+    const pts = imageHotspotsByView.side;
     const highRisk = pts.filter((p) => p.riskLevel === '高频争议');
     return highRisk.length > 0 ? highRisk[0] : pts[0];
   });
@@ -39,7 +39,7 @@ export default function CarInspectionMap() {
 
   const switchView = (nextView) => {
     setView(nextView);
-    const pts = hotspotsByView[nextView];
+    const pts = imageHotspotsByView[nextView];
     const highRisk = pts.filter((p) => p.riskLevel === '高频争议');
     setSelected(highRisk.length > 0 ? highRisk[0] : pts[0]);
   };
@@ -84,7 +84,7 @@ export default function CarInspectionMap() {
 
         {/* SVG */}
         <div className="mt-3">
-          <CarSvgMap view={view} selected={selected} checkedSet={checkedSet} onSelect={setSelected} />
+          <CarInspectionImageMap view={view} selected={selected} checkedSet={checkedSet} onSelect={setSelected} />
         </div>
 
         {/* 详情卡片 */}

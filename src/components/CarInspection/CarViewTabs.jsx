@@ -1,4 +1,4 @@
-import { viewMeta } from '../../data/carInspectionHotspots.js';
+import { viewMeta } from '../../data/carInspectionImageHotspots.js';
 
 export default function CarViewTabs({ view, onChange }) {
   return (
