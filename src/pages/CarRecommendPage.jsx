@@ -2,9 +2,7 @@ import {
   AlertTriangle,
   ArrowRight,
   BatteryCharging,
-  Car,
   CarFront,
-  CheckCircle2,
   Compass,
   Copy,
   Fuel,
@@ -17,12 +15,12 @@ import {
   UserCheck,
   Users,
   Waves,
-  Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import TopBar from '../components/TopBar.jsx';
+import { findDestinationProfile, buildDestinationContext, getTopVehicleExamples, buildOneLinerSummary, buildSearchKeywords, buildWhyNotAdvice, buildTradeOffAdvice, buildDataNotice } from '../utils/carRecommendationDataHelpers.js';
 
 /* ========================================================================
    表单选项定义
@@ -73,9 +71,14 @@ function generateRecommendation(form) {
   const destAdjust = applyDestination(form.destinationType, profile);
   const intensityResult = applyIntensity(form.tripIntensity, destAdjust);
   const prefResult = applyPreference(form.preference, intensityResult);
+
+  // 尝试从 JSON 数据中匹配用户输入的目的地
+  const destProfile = findDestinationProfile(form.destination);
+  const destContext = destProfile ? buildDestinationContext(form.destination) : null;
+
   const directions = buildDirections(prefResult, form);
-  const reasons = buildReasons(prefResult, form);
-  const notRecommended = buildNotRecommended(prefResult, form);
+  const reasons = buildReasons(prefResult, form, destContext);
+  const notRecommended = buildNotRecommended(prefResult, form, destContext);
   const evScore = calculateEvScore(form);
   const evLevel = getEvLevel(evScore);
 
@@ -98,6 +101,7 @@ function generateRecommendation(form) {
     extraNotes: prefResult.extraNotes || [],
     evScore: evLevel,
     evRawScore: evScore,
+    destContext,
   };
 }
 
@@ -359,7 +363,7 @@ function sizeLabel(size) {
 
 /* —— 第六步：推荐理由（按目的地模板 + 动态调整） —— */
 
-function buildReasons(profile, form) {
+function buildReasons(profile, form, destContext) {
   const reasons = [];
   const dest = form.destinationType;
   const people = form.peopleCount;
@@ -368,26 +372,56 @@ function buildReasons(profile, form) {
   const pref = form.preference;
 
   // 主线：目的地场景描述 + 车型大方向
-  reasons.push(mainAdvice(dest, people, luggage, profile));
+  reasons.push(mainAdvice(dest, people, luggage, profile, destContext));
 
   // 副线 1：人数和行李的具体建议
   const sizeNote = peopleLuggageNote(people, luggage, profile);
   if (sizeNote) reasons.push(sizeNote);
 
   // 副线 2：行程强度的补充提醒
-  const intensityNote = intensityTip(intensity, dest);
+  const intensityNote = intensityTip(intensity, dest, destContext);
   if (intensityNote) reasons.push(intensityNote);
 
   // 副线 3：偏好对选择的影响
-  const prefNote = preferenceTip(pref, dest, profile);
+  const prefNote = preferenceTip(pref, dest, profile, destContext);
   if (prefNote) reasons.push(prefNote);
 
   return reasons;
 }
 
-function mainAdvice(dest, people, luggage, profile) {
+function mainAdvice(dest, people, luggage, profile, destContext) {
   const category = profile.category;
+  const destName = destContext ? destContext.name : '';
+  const peopleLabel = people === '1-2' ? '1-2 人' : people === '3-4' ? '3-4 人' : people === '5' ? '5 人' : '6 人及以上';
+  const heavySuffix = luggage === 'heavy' ? '；行李较多的话建议往上选一个尺寸级别，确保每人都有舒服的乘坐空间' : '';
 
+  // —— 有真实目的地数据时，用目的地特征写文案 ——
+  if (destContext) {
+    if (people === '1-2') {
+      if (dest === 'island-leisure' || destContext.altitudeRisk === '低') {
+        return `${destName}路况轻松、补能便利，对车型硬性要求不高。${peopleLabel}出行，${category}完全够用，不用盲目租大车——把预算留给路上的体验和美食更划算。`;
+      }
+      if (dest === 'grassland-long' || dest === 'loop-long') {
+        return `${destName}距离长、景点分散，路上时间比逛景点的时间可能还长。${peopleLabel}出行，${category}在空间和灵活性上比较均衡；如果预算允许，优先看舒适性更好的车型，长途下来差别很明显。`;
+      }
+      return `${destContext.highlights || `${destName}对车辆有一定要求`}。${peopleLabel}出行，${category}够用，但别只盯着最低租金——动力和可靠性比省几十块更重要。`;
+    }
+
+    if (people === '3-4') {
+      if (dest === 'island-leisure' || destContext.altitudeRisk === '低') {
+        return `${destName}路况整体友好，对车型硬性要求不高。${peopleLabel}出行，${category}在空间和舒适性上刚好${heavySuffix}。这个场景下新能源车型的使用成本优势也比较明显。`;
+      }
+      return `${destContext.highlights || `${destName}对车辆有一定要求`}。${peopleLabel}出行，${category}在空间和通过性上比较均衡${heavySuffix}。`;
+    }
+
+    // 5 人及以上
+    if (dest === 'island-leisure' || destContext.altitudeRisk === '低') {
+      return `${destName}路况轻松，${peopleLabel}出行，${category}在空间和舒适性上更合适——每个人都有舒服的位置比挤小车好很多。`;
+    }
+    return `${destName}这条路线，${peopleLabel}满员出行时车辆负载较大，${category}在动力和空间上更有余量，不建议选小排量或小型车。`;
+  }
+
+  // —— 兜底：无目的地数据时沿用原有的类型模板 ——
   switch (dest) {
     case 'grassland-long':
       if (people === '1-2') {
@@ -453,13 +487,15 @@ function peopleLuggageNote(people, luggage, profile) {
   return null;
 }
 
-function intensityTip(intensity, dest) {
+function intensityTip(intensity, dest, destContext) {
+  const destName = destContext ? destContext.name : '';
+
   switch (intensity) {
     case 'high':
       if (dest === 'loop-long' || dest === 'grassland-long') {
-        return '行程强度较高，又是长距离路线，建议优先考虑带辅助驾驶、座椅支撑好、隔音到位的车型。长途下来，这些配置的体验差异比想象中大。';
+        return `行程强度较高${destName ? `，${destName}又是长距离路线` : '，又是长距离路线'}，建议优先考虑带辅助驾驶、座椅支撑好、隔音到位的车型。长途下来，这些配置的体验差异比想象中大。`;
       }
-      return '行程强度较高，每天驾驶时间不短。座椅舒适性、隔音和辅助驾驶值得多花一点预算——省下的疲劳比省下的租金更值。';
+      return `行程强度较高${destName ? `，${destName}每天驾驶时间不短` : '，每天驾驶时间不短'}。座椅舒适性、隔音和辅助驾驶值得多花一点预算——省下的疲劳比省下的租金更值。`;
     case 'medium':
       return '中等强度的行程，舒适性和经济性可以兼顾，不需要为了"万一"而过度升级车型。';
     default:
@@ -467,33 +503,47 @@ function intensityTip(intensity, dest) {
   }
 }
 
-function preferenceTip(pref, dest, profile) {
+function preferenceTip(pref, dest, profile, destContext) {
+  const destName = destContext ? destContext.name : '';
+
   switch (pref) {
     case 'budget':
       return '你偏好省钱，这个思路在车型选择上完全可以成立——先满足空间和行程强度的下限，再在同级别里找价格更友好的平台和方案，不必盲目追高。';
     case 'comfort':
       if (dest === 'loop-long' || dest === 'grassland-long') {
-        return '你偏好舒适，在这类长距离路线上正好匹配——建议在基础推荐上提升一个车型级别，长途体验会明显更好。';
+        return `你偏好舒适${destName ? `，在${destName}这类长距离路线上正好匹配` : '，在这类长距离路线上正好匹配'}——建议在基础推荐上提升一个车型级别，长途体验会明显更好。`;
       }
       return '你偏好舒适，建议在预算可接受的范围内优先看空间更大、隔音更好、座椅更舒服的车型。短途可能感觉不出差别，但一整趟下来体验差异很明显。';
     case 'photo':
       if (dest === 'island-leisure' || dest === 'city-short') {
-        return '拍照和体验优先的话，海岛或城市周边的敞篷、个性车型确实是加分项，出片率很高。不过建议先确认行李能不能装下，别为了造型牺牲实用性。';
+        return `拍照和体验优先的话${destName ? `，${destName}的敞篷、个性车型确实是加分项` : '，海岛或城市周边的敞篷、个性车型确实是加分项'}，出片率很高。不过建议先确认行李能不能装下，别为了造型牺牲实用性。`;
       }
       if (dest === 'mountain-plateau' || dest === 'grassland-long') {
-        return '拍照和体验优先，硬派越野的造型本身就是很好的拍摄元素。但注意不要为了外观牺牲空间和续航容错率——毕竟这趟路线本身对车辆的要求就不低。';
+        return `拍照和体验优先${destName ? `，${destName}沿途硬派越野的造型本身就是很好的拍摄元素` : '，硬派越野的造型本身就是很好的拍摄元素'}。但注意不要为了外观牺牲空间和续航容错率——毕竟这趟路线本身对车辆的要求就不低。`;
       }
       return '你偏好拍照和体验，可以在满足基本空间和续航要求的前提下，优先看造型更有辨识度的车型。';
     case 'ev':
       if (dest === 'grassland-long' || dest === 'loop-long') {
+        if (destContext && destContext.energyHint) {
+          return `你偏好新能源，但${destName}补能条件需要提前确认。${destContext.energyHint}`;
+        }
         return '你偏好新能源，但这类长距离路线补能条件需要提前确认。增程车型是兼顾电驱体验和长途补能安全的折中选择——既有新能源的静谧和低成本，又不需要完全依赖充电站。';
       }
       if (dest === 'mountain-plateau') {
+        if (destContext && destContext.energyHint) {
+          return `你偏好新能源，${destName}对续航管理要求更高。${destContext.energyHint}`;
+        }
         return '你偏好新能源，山路和高原路线对续航管理要求更高。建议优先看增程或混动，纯电的话需要提前确认沿途充电站的覆盖情况。';
+      }
+      if (destContext && destContext.energyHint) {
+        return `你偏好新能源，${destName}整体对新能源比较友好。${destContext.energyHint}`;
       }
       return '你偏好新能源，在这个目的地场景下是比较匹配的。重点关注车辆续航、住宿地充电条件和还车电量要求即可。';
     case 'reliable':
       if (dest === 'grassland-long' || dest === 'loop-long' || dest === 'mountain-plateau') {
+        if (destName) {
+          return `你偏好稳定省心，在${destName}这条路上这个思路很务实——油车或混动的补能确定性最高，把精力留给风景而不是充电规划。`;
+        }
         return '你偏好稳定省心，在这类路线上这个思路很务实——油车或混动的补能确定性最高，把精力留给风景而不是充电规划。';
       }
       return '你偏好稳定省心，建议优先看保有量大、维修网络完善的车型。油车或混动在这个场景下是最不用操心的选择。';
@@ -504,24 +554,25 @@ function preferenceTip(pref, dest, profile) {
 
 /* —— 第七步：不太建议的车型方向 —— */
 
-function buildNotRecommended(profile, form) {
+function buildNotRecommended(profile, form, destContext) {
   const items = [];
   const dest = form.destinationType;
+  const destName = destContext ? destContext.name : '';
 
   if (['mountain-plateau', 'grassland-long', 'loop-long'].includes(dest)) {
     if (profile.size === 'compact' || profile.size === 'compact-mid') {
       items.push(dest === 'mountain-plateau'
-        ? '低底盘轿车跑山路 — 通过性不足，遇到非铺装路面或陡坡会比较吃力'
-        : '低底盘轿车跑长距离 — 非铺装路面和烂路的通过性不够，长途舒适性也有限');
+        ? `低底盘轿车跑${destName || '山路'} — 通过性不足，遇到非铺装路面或陡坡会比较吃力`
+        : `低底盘轿车跑${destName || '长距离'} — 非铺装路面和烂路的通过性不够，长途舒适性也有限`);
     }
   }
 
   if (dest === 'grassland-long' || dest === 'loop-long') {
-    items.push('纯电车型（非增程）— 偏远路段的充电站覆盖还不能完全放心，补能便利性需要出发前仔细确认');
+    items.push(`纯电车型（非增程）— ${destName ? `${destName}偏远路段` : '偏远路段'}的充电站覆盖还不能完全放心，补能便利性需要出发前仔细确认`);
   }
 
   if (dest === 'mountain-plateau') {
-    items.push('小排量自然吸气车型 — 高海拔含氧量低，动力衰减会比平原明显，超车和爬坡时可能不够从容');
+    items.push(`小排量自然吸气车型 — ${destName ? `${destName}高海拔含氧量低` : '高海拔含氧量低'}，动力衰减会比平原明显，超车和爬坡时可能不够从容`);
   }
 
   if (form.peopleCount === '6+' && !profile.category.includes('MPV')) {
@@ -850,36 +901,12 @@ function OptionField({ label, icon: Icon, options, value, onChange, cols }) {
   );
 }
 
-/* —— 标签生成 —— */
-
-function buildTags(form, evRawScore) {
-  const tags = [];
-  const destTagMap = {
-    'city-short': '城市短途',
-    'island-leisure': '海岛轻松',
-    'mountain-plateau': '山路高原',
-    'grassland-long': '长距离',
-    'loop-long': '长距离',
-    unsure: '待确认',
-  };
-  const tag = destTagMap[form.destinationType];
-  if (tag) tags.push(tag);
-
-  if (form.luggage === 'heavy') tags.push('行李较多');
-  if (form.tripIntensity === 'high') tags.push('行程较赶');
-  if (form.peopleCount === '5' || form.peopleCount === '6+') tags.push('多人出行');
-  if (evRawScore < 60) tags.push('补能需谨慎');
-  if (form.preference === 'ev') tags.push('新能源优先');
-  if (form.preference === 'comfort') tags.push('舒适优先');
-  if (form.preference === 'reliable') tags.push('稳定优先');
-
-  return tags.slice(0, 4);
-}
-
 function buildResultCopyText(result, form) {
+  const dc = result.destContext;
   const lines = [
     '【我的车型建议】',
     `目的地：${form.destination || '未填写'}`,
+    dc ? `路线概况：${dc.intro}` : null,
     `目的地类型：${result.tripProfile.type}`,
     `出行人数：${result.tripProfile.people}`,
     `行李：${result.tripProfile.luggage}`,
@@ -890,7 +917,7 @@ function buildResultCopyText(result, form) {
     `参考车型：${result.primary.models}`,
     `新能源适配：${result.evScore.level}（${result.evRawScore} 分）`,
     '',
-  ];
+  ].filter(Boolean);
 
   if (result.reasons.length) {
     lines.push('推荐理由：');
@@ -935,8 +962,7 @@ async function copyToClipboard(text) {
    ======================================================================== */
 
 function ResultView({ result, form }) {
-  const { tripProfile, primary, reasons, notRecommended, directions, energyAdvice, evScore } = result;
-  const tags = buildTags(form, result.evRawScore);
+  const { tripProfile, primary, reasons, notRecommended, energyAdvice, evScore, destContext } = result;
   const [copyState, setCopyState] = useState('idle'); // idle | ok | fail
 
   const handleCopy = async () => {
@@ -946,164 +972,295 @@ function ResultView({ result, form }) {
     setTimeout(() => setCopyState('idle'), 3000);
   };
 
+  // 获取车型示例 + 生成一句话总结 + 关键词 + 不建议理由
+  const topVehicles = getTopVehicleExamples(form.destination, {
+    peopleCount: form.peopleCount,
+    luggageLevel: form.luggage,
+    budgetPreference: form.preference,
+    energyPreference: form.preference,
+  });
+  const oneLiner = buildOneLinerSummary(destContext, result, topVehicles, form);
+  const keywords = buildSearchKeywords(topVehicles);
+  const whyNotAdvices = buildWhyNotAdvice(topVehicles, form.destination, {
+    budgetPreference: form.preference,
+    peopleCount: form.peopleCount,
+  });
+  const tradeOff = buildTradeOffAdvice(destContext, form);
+  const dataNotice = buildDataNotice(destContext, topVehicles, form);
+
   return (
     <div className="grid gap-4">
-      {/* 卡片 1：本次行程画像 */}
-      <section className="rounded-[24px] bg-gradient-to-b from-[#174B63] to-[#1E6B8A] p-5 text-white shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-bold text-white/65">本次行程画像</p>
-          {tags.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {tags.map((t) => (
-                <span key={t} className="rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-bold">{t}</span>
+      {/* === 一句话口语总结 === */}
+      {oneLiner ? (
+        <section className="rounded-[20px] bg-gradient-to-r from-mint/70 via-aquaCard to-mint/40 px-4 py-3.5 shadow-sm ring-1 ring-pine/10">
+          <p className="text-sm font-bold leading-relaxed text-pine">
+            <span className="mr-1.5 inline-block rounded-full bg-pine/10 px-1.5 py-0.5 text-[11px] align-middle">一句话总结</span>
+            {oneLiner}
+          </p>
+        </section>
+      ) : null}
+
+      {/* === 数据提示横幅 === */}
+      {dataNotice.message ? (
+        <div className={`rounded-2xl px-4 py-3 text-sm font-bold leading-relaxed ${
+          dataNotice.level === 'tip'
+            ? 'bg-aquaCard/70 text-pine ring-1 ring-pine/10'
+            : 'bg-amberSoft/30 text-amberDark'
+        }`}>
+          {dataNotice.message}
+        </div>
+      ) : null}
+
+      {/* === 卡片 1：推荐方向 === */}
+      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+        <div className="flex items-center gap-2">
+          <Sparkles size={18} className="text-pine" />
+          <h2 className="text-lg font-bold text-ink">推荐方向</h2>
+        </div>
+
+        {/* 优先推荐车型 */}
+        <div className="mt-3 rounded-2xl bg-gradient-to-r from-mint/70 to-mint/30 px-4 py-3 ring-1 ring-pine/10">
+          <p className="text-[11px] font-bold text-muted">优先推荐</p>
+          <p className="mt-0.5 text-xl font-bold text-pine">{primary.category}</p>
+          <p className="mt-0.5 text-sm font-medium text-ink">{primary.models}</p>
+        </div>
+
+        {/* 能源方向 */}
+        <div className="mt-2.5 flex items-center gap-2 rounded-2xl bg-aquaCard px-3 py-2.5">
+          {energyAdvice.level === 'ev-friendly' || energyAdvice.level === 'recommend-extended'
+            ? <BatteryCharging size={15} className="shrink-0 text-pine" />
+            : <Fuel size={15} className="shrink-0 text-amberDark" />
+          }
+          <p className="text-sm font-bold text-ink">{energyAdvice.recommended}</p>
+        </div>
+
+        {/* 具体车型示例 */}
+        <div className="mt-3">
+          <p className="text-xs font-bold text-muted">具体车型参考</p>
+          {topVehicles.length > 0 ? (
+            <div className="mt-2 grid gap-2">
+              {topVehicles.slice(0, 3).map((v) => (
+                <div key={v.vehicleId} className="flex items-start gap-2.5 rounded-2xl bg-aquaCard/70 px-3 py-2.5">
+                  <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    v.recommendationLevel === '强烈推荐' ? 'bg-pine text-white' : 'bg-mint text-pine'
+                  }`}>
+                    {v.overallScore || '-'}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-ink">{v.brand || ''}{v.model || ''} <span className="text-xs font-medium text-muted">{v.energyType || ''}</span></p>
+                    {v.summarySentence ? (
+                      <p className="mt-0.5 text-xs leading-relaxed text-muted">{v.summarySentence}</p>
+                    ) : null}
+                  </div>
+                </div>
               ))}
             </div>
-          ) : null}
-        </div>
-        <h2 className="mt-2 text-xl font-bold">{tripProfile.destination}</h2>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <ProfileTag label="目的地类型" value={tripProfile.type} />
-          <ProfileTag label="出行人数" value={tripProfile.people} />
-          <ProfileTag label="行李" value={tripProfile.luggage} />
-          <ProfileTag label="行程强度" value={tripProfile.intensity} />
-        </div>
-        <div className="mt-2">
-          <ProfileTag label="用车偏好" value={tripProfile.preference} wide />
+          ) : (
+            <p className="mt-2 rounded-2xl bg-aquaCard/50 px-3 py-2.5 text-sm font-medium text-muted">
+              可在租车平台按"{primary.category}"筛选更多车源。
+            </p>
+          )}
         </div>
       </section>
 
-      {/* 卡片 2：推荐车型类型 */}
+      {/* === 卡片 2：为什么适合 === */}
       <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
         <div className="flex items-center gap-2">
-          <CheckCircle2 size={20} className="text-pine" />
-          <h2 className="text-lg font-bold text-ink">推荐车型类型</h2>
+          <Info size={18} className="text-pine" />
+          <h2 className="text-lg font-bold text-ink">为什么适合</h2>
+        </div>
+        <div className="mt-3 grid gap-2">
+          {/* 目的地路况 */}
+          {destContext ? (
+            <FitRow icon={<MapPin size={14} />} label="路况特征">
+              {destContext.highlights || destContext.routeSummary}
+            </FitRow>
+          ) : null}
+          {/* 人数行李 */}
+          <FitRow icon={<Users size={14} />} label="人数行李">
+            {tripProfile.people}出行{tripProfile.luggage !== '少：背包 / 登机箱为主' ? `，${tripProfile.luggage}` : ''}
+            {primary.category ? `，${primary.category}刚好` : ''}
+          </FitRow>
+          {/* 补能 */}
+          {destContext ? (
+            <FitRow icon={destContext.chargingCondition === '好' ? <BatteryCharging size={14} /> : <Fuel size={14} />} label="补能条件">
+              {destContext.chargingCondition === '好'
+                ? '充电设施完善，纯电和增程都很方便'
+                : destContext.chargingCondition === '一般'
+                  ? '充电设施一般，增程或混动更稳妥'
+                  : '充电设施不足，油车或增程更省心'}
+            </FitRow>
+          ) : null}
+          {/* 难度因素 */}
+          {destContext && (destContext.altitudeRisk !== '低' || destContext.beginnerDifficulty !== '简单') ? (
+            <FitRow icon={<Mountain size={14} />} label="路况难度">
+              {[
+                destContext.altitudeRisk !== '低' ? `海拔风险${destContext.altitudeRisk}` : '',
+                destContext.beginnerDifficulty !== '简单' ? `新手难度${destContext.beginnerDifficulty}` : '',
+                destContext.comfortImportance === '高' ? '长途舒适性要求高' : '',
+              ].filter(Boolean).join('，')}
+            </FitRow>
+          ) : null}
+          {/* 行程强度 */}
+          {form.tripIntensity === 'high' ? (
+            <FitRow icon={<CarFront size={14} />} label="行程强度">
+              行程较赶，座椅和隔音值得多花预算
+            </FitRow>
+          ) : null}
+        </div>
+      </section>
+
+      {/* === 卡片 3：能源怎么选 === */}
+      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+        <div className="flex items-center gap-2">
+          <BatteryCharging size={18} className="text-pine" />
+          <h2 className="text-lg font-bold text-ink">能源怎么选</h2>
+        </div>
+        <div className="mt-3 grid gap-2.5">
+          <EnergyRow
+            label="油车"
+            tag={energyAdvice.level === 'recommend-oil-strong' || energyAdvice.level === 'recommend-oil' ? '推荐' : '可选'}
+            tagTone={energyAdvice.level === 'recommend-oil-strong' || energyAdvice.level === 'recommend-oil' ? 'primary' : 'neutral'}
+          >
+            最稳，适合补能不确定的路线，加油站覆盖率高、补能速度快。
+          </EnergyRow>
+          <EnergyRow
+            label="插混 / 增程"
+            tag={energyAdvice.level === 'recommend-extended' ? '推荐' : '可选'}
+            tagTone={energyAdvice.level === 'recommend-extended' ? 'primary' : 'neutral'}
+          >
+            兼顾电驱静谧和加油补能的便利，长途路线的稳妥折中。
+          </EnergyRow>
+          <EnergyRow
+            label="纯电"
+            tag={energyAdvice.level === 'ev-friendly' ? '适合' : energyAdvice.level === 'recommend-oil-strong' ? '需充分准备' : '谨慎'}
+            tagTone={energyAdvice.level === 'ev-friendly' ? 'primary' : 'cautious'}
+          >
+            补能便利的路线使用成本低、体验好；长途、高原或偏远路线需提前确认沿途充电站。
+          </EnergyRow>
+        </div>
+        <p className="mt-3 text-xs font-medium leading-relaxed text-muted">
+          以上为经验参考，建议结合实际车源和当地充电站分布判断。
+        </p>
+      </section>
+
+      {/* === 卡片 4：去平台怎么搜 === */}
+      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+        <div className="flex items-center gap-2">
+          <ArrowRight size={18} className="text-pine" />
+          <h2 className="text-lg font-bold text-ink">去平台上可以这样搜</h2>
         </div>
 
-        <div className="mt-3 rounded-2xl bg-mint/60 px-3 py-3 ring-1 ring-pine/10">
-          <p className="text-xs font-bold text-muted">优先推荐</p>
-          <p className="mt-1 text-[20px] font-bold leading-tight text-pine">{primary.category}</p>
-          <p className="mt-1 text-sm font-medium text-ink">{primary.models}</p>
-        </div>
-
-        <div className="mt-3 flex items-start gap-2 rounded-2xl bg-aquaCard px-3 py-2.5">
-          {energyAdvice.level === 'ev-friendly' || energyAdvice.level === 'recommend-extended' ? (
-            <BatteryCharging size={16} className="mt-0.5 shrink-0 text-pine" />
-          ) : (
-            <Fuel size={16} className="mt-0.5 shrink-0 text-amberDark" />
-          )}
-          <div>
-            <p className="text-xs font-bold text-muted">能源方向</p>
-            <p className="text-sm font-bold text-ink">{energyAdvice.recommended}</p>
-          </div>
-        </div>
-
-        <div className="mt-3">
-          <p className="text-xs font-bold text-muted">推荐理由</p>
-          <ul className="mt-2 grid gap-1.5">
-            {reasons.map((reason, i) => (
-              <li key={i} className="flex gap-2 rounded-2xl bg-aquaCard/70 px-3 py-2 text-sm font-medium leading-relaxed text-ink">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-pine" />
-                <span>{reason}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {notRecommended.length > 0 ? (
-          <div className="mt-3 rounded-2xl bg-coral/5 px-3 py-3 ring-1 ring-coral/10">
-            <p className="text-xs font-bold text-coral">不太建议的车型方向</p>
-            <ul className="mt-1.5 grid gap-1">
-              {notRecommended.map((item) => (
-                <li key={item} className="flex gap-1.5 text-sm font-medium leading-relaxed text-ink">
-                  <AlertTriangle size={14} className="mt-0.5 shrink-0 text-coral" />
-                  <span>{item}</span>
-                </li>
+        {/* 搜索关键词标签 */}
+        {keywords.length > 0 ? (
+          <div className="mt-3">
+            <p className="text-xs font-bold text-muted">搜索关键词</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {keywords.map((kw) => (
+                <span key={kw} className="rounded-full bg-aquaCard px-2.5 py-1 text-xs font-bold text-pine ring-1 ring-pine/10">{kw}</span>
               ))}
-            </ul>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-3">
+            <p className="text-xs font-bold text-muted">搜索关键词</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="rounded-full bg-aquaCard px-2.5 py-1 text-xs font-bold text-pine ring-1 ring-pine/10">{primary.category}</span>
+              <span className="rounded-full bg-aquaCard px-2.5 py-1 text-xs font-bold text-pine ring-1 ring-pine/10">自动挡</span>
+            </div>
+          </div>
+        )}
+
+        {/* 同级车型参考 */}
+        <div className="mt-3">
+          <p className="text-xs font-bold text-muted">可重点看的同级车型</p>
+          {topVehicles.length > 0 ? (
+            <div className="mt-2 grid gap-1.5">
+              {topVehicles.slice(0, 4).map((v) => (
+                <div key={v.vehicleId} className="flex items-center justify-between rounded-xl bg-aquaCard/50 px-3 py-2">
+                  <span className="text-sm font-bold text-ink">{(v.brand || '') + (v.model || '')} 同级</span>
+                  <span className="text-xs font-medium text-muted">{v.vehicleLevel || ''} {v.energyType ? '· ' + v.energyType : ''}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 rounded-2xl bg-aquaCard/50 px-3 py-2.5 text-sm font-medium text-muted">
+              可在平台按"{primary.category}"筛选，再对比车型级别和能源类型。
+            </p>
+          )}
+        </div>
+
+        {/* 平台筛选建议 */}
+        <div className="mt-3 rounded-2xl bg-aquaCard/50 px-3 py-2.5">
+          <p className="text-xs font-bold text-muted">平台筛选建议</p>
+          <p className="mt-1 text-sm font-medium leading-relaxed text-ink">
+            在神州租车、一嗨租车、哈啰租车、携程租车等平台搜索以上关键词，再按取车城市、车型级别、保险方案和日租价排序筛选。
+          </p>
+        </div>
+
+        {/* 价格提醒 */}
+        <p className="mt-2.5 rounded-2xl bg-mint/50 px-3 py-2 text-xs font-medium leading-relaxed text-pine">
+          价格以平台实时显示为准，旺季建议提前 3-7 天看车源、对比 2-3 个平台再下单。
+        </p>
+
+        {/* 目的地轻量提醒 */}
+        {destContext ? (
+          <DestinationSearchTip destContext={destContext} />
+        ) : null}
+      </section>
+
+      {/* === 卡片 5：为什么不建议这样选 === */}
+      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+        <div className="flex items-center gap-2">
+          <Info size={18} className="text-amberDark" />
+          <h2 className="text-lg font-bold text-ink">{tradeOff ? tradeOff.title : '不建议什么'}</h2>
+        </div>
+
+        {/* A. 权衡解释（条件化动态模块） */}
+        {tradeOff ? (
+          <div className="mt-3 rounded-2xl bg-gradient-to-r from-amberSoft/30 to-mint/30 px-4 py-3 ring-1 ring-amberSoft/40">
+            <p className="text-sm font-bold leading-relaxed text-ink">{tradeOff.body}</p>
+          </div>
+        ) : null}
+
+        {/* B. 不推荐的车型/能源方向 */}
+        {notRecommended.length > 0 ? (
+          <div className="mt-3 grid gap-1.5">
+            <p className="text-xs font-bold text-muted">具体不建议的方向</p>
+            {notRecommended.map((item) => (
+              <div key={item} className="flex items-start gap-2 rounded-xl bg-coral/5 px-3 py-2.5">
+                <AlertTriangle size={14} className="mt-0.5 shrink-0 text-coral" />
+                <span className="text-sm font-medium text-ink">{item}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {/* C. 补充解释 */}
+        {whyNotAdvices.length > 0 ? (
+          <div className="mt-2.5 grid gap-1.5">
+            {whyNotAdvices.map((advice, i) => (
+              <div key={i} className="rounded-xl bg-aquaCard/50 px-3 py-2.5">
+                <p className="text-xs font-medium leading-relaxed text-ink">{advice}</p>
+              </div>
+            ))}
           </div>
         ) : null}
       </section>
 
-      {/* 卡片 3：能源类型建议 */}
-      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <BatteryCharging size={20} className="text-pine" />
-            <h2 className="text-lg font-bold text-ink">能源类型建议</h2>
-          </div>
-          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${evScore.badge}`}>
-            {evScore.level}
-          </span>
-        </div>
-
-        <p className="mt-3 rounded-2xl bg-aquaCard px-3 py-2.5 text-sm font-medium leading-relaxed text-ink">
-          {evScore.detail}
-        </p>
-
-        <div className="mt-3">
-          <p className="text-xs font-bold text-muted">油车 / 纯电 / 增程 怎么选</p>
-          <div className="mt-2 grid gap-2">
-            {evScore.choices.map((choice) => (
-              <div key={choice.type} className="flex gap-2 rounded-2xl bg-aquaCard/70 px-3 py-2.5">
-                <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                  choice.weight === '首选' || choice.weight === '推荐'
-                    ? 'bg-mint text-pine'
-                    : choice.weight === '可选'
-                      ? 'bg-aquaCard text-pine ring-1 ring-pine/10'
-                      : 'bg-coral/10 text-coral'
-                }`}>{choice.weight}</span>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-ink">{choice.type}</p>
-                  <p className="mt-0.5 text-xs font-medium leading-relaxed text-muted">{choice.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <p className="mt-3 text-xs font-medium leading-relaxed text-muted">
-          以上为经验性参考，不保证某地一定能或不能充电。建议结合租车时看到的实际车型和当地充电站分布判断。
-        </p>
-      </section>
-
-      {/* 卡片 4：适合租的车型方向 */}
-      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-        <div className="flex items-center gap-2">
-          <Car size={18} className="text-pine" />
-          <h2 className="text-lg font-bold text-ink">适合租的车型方向</h2>
-        </div>
-        <p className="mt-1 text-xs font-medium leading-relaxed text-muted">
-          只给大类方向，不做具体车型排行榜和平台推荐。
-        </p>
-        <div className="mt-3 grid gap-3">
-          <DirectionBlock label="首选" tone="primary" items={directions.firstChoice} />
-          {directions.alternatives.length > 0 ? (
-            <DirectionBlock label="可选" tone="secondary" items={directions.alternatives} />
-          ) : null}
-          {directions.cautious.length > 0 ? (
-            <DirectionBlock label="谨慎" tone="cautious" items={directions.cautious} />
-          ) : null}
-        </div>
-      </section>
-
-      {/* 卡片 5：下一步建议 */}
+      {/* === 底部操作 === */}
       <section className="rounded-[24px] border border-pine/10 bg-aquaCard p-4 shadow-card">
-        <div className="flex items-center gap-2">
-          <ArrowRight size={18} className="text-pine" />
-          <h2 className="text-lg font-bold text-ink">下一步建议</h2>
-        </div>
-
-        <div className="mt-4 grid gap-2.5">
+        <div className="grid gap-2.5">
           <Link
             to="/budget"
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-4 text-sm font-bold text-white shadow-lg shadow-pine/20"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-4 text-sm font-bold text-white shadow-lg shadow-pine/20"
           >
             去算这趟预算
             <ArrowRight size={16} />
           </Link>
           <Link
             to="/price-compare"
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-card px-4 text-sm font-bold text-pine ring-1 ring-pine/15"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] bg-card px-4 text-sm font-bold text-pine ring-1 ring-pine/15"
           >
             对比两个租车方案
             <ArrowRight size={16} />
@@ -1112,25 +1269,18 @@ function ResultView({ result, form }) {
             type="button"
             onClick={handleCopy}
             disabled={copyState !== 'idle'}
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-card px-4 text-sm font-bold text-pine ring-1 ring-pine/15 disabled:opacity-70"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] bg-card px-4 text-sm font-bold text-pine ring-1 ring-pine/15 disabled:opacity-70"
           >
-            {copyState === 'ok' ? '已复制，也可以截图保存' : copyState === 'fail' ? '复制失败，可以长按或截图保存' : '保存这份建议'}
+            {copyState === 'ok' ? '已复制' : copyState === 'fail' ? '复制失败，可截图保存' : '保存这份建议'}
             <Copy size={16} />
           </button>
         </div>
-
         {copyState === 'ok' ? (
-          <p className="mt-2 text-center text-xs font-bold text-pine">
-            已复制建议摘要，内容包含目的地、推荐车型、新能源适配等级和核心建议。
-          </p>
-        ) : copyState === 'fail' ? (
-          <p className="mt-2 text-center text-xs font-bold text-amberDark">
-            复制未成功，可以长按屏幕选中文字后手动复制，或截图保存这份建议。
-          </p>
+          <p className="mt-2 text-center text-xs font-bold text-pine">已复制，也可以截图保存</p>
         ) : null}
       </section>
 
-      {/* 轻量版边界说明 */}
+      {/* 轻量说明 */}
       <div className="rounded-2xl bg-mint/50 px-4 py-3 text-center ring-1 ring-pine/10">
         <p className="text-xs font-bold leading-relaxed text-pine">
           当前为免费轻量建议，主要帮你判断车型和能源大方向。
@@ -1143,38 +1293,69 @@ function ResultView({ result, form }) {
   );
 }
 
-function ProfileTag({ label, value, wide }) {
+function FitRow({ icon, label, children }) {
   return (
-    <div className={`rounded-2xl bg-white/12 px-3 py-2.5 ${wide ? 'col-span-2' : ''}`}>
-      <p className="text-[11px] font-bold text-white/60">{label}</p>
-      <p className="mt-0.5 text-sm font-bold leading-snug">{value}</p>
+    <div className="flex items-start gap-2.5 rounded-2xl bg-aquaCard/50 px-3 py-2.5">
+      <span className="mt-0.5 shrink-0 text-pine">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-bold text-muted">{label}</p>
+        <p className="mt-0.5 text-sm font-medium leading-relaxed text-ink">{children}</p>
+      </div>
     </div>
   );
 }
 
-function DirectionBlock({ label, tone, items }) {
-  const toneClass = {
-    primary: 'border-pine/20 bg-mint/60',
-    secondary: 'border-pine/10 bg-aquaCard',
-    cautious: 'border-coral/15 bg-coral/5',
-  }[tone] || 'bg-aquaCard';
-
-  const labelClass = {
-    primary: 'bg-pine text-white',
-    secondary: 'bg-aquaCard text-pine ring-1 ring-pine/10',
-    cautious: 'bg-coral/10 text-coral',
-  }[tone] || 'bg-aquaCard text-pine';
+function EnergyRow({ label, tag, tagTone, children }) {
+  const tagClass = tagTone === 'primary'
+    ? 'bg-pine text-white'
+    : tagTone === 'cautious'
+      ? 'bg-coral/10 text-coral'
+      : 'bg-aquaCard text-pine ring-1 ring-pine/10';
 
   return (
-    <div className={`rounded-2xl border px-3 py-3 ${toneClass}`}>
-      <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${labelClass}`}>{label}</span>
-      <ul className="mt-2 grid gap-1.5">
-        {items.map((item) => (
-          <li key={item} className="text-sm font-medium leading-relaxed text-ink">
-            {item}
-          </li>
-        ))}
-      </ul>
+    <div className="flex items-start gap-2.5 rounded-2xl bg-aquaCard/50 px-3 py-2.5">
+      <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${tagClass}`}>{tag}</span>
+      <div className="min-w-0">
+        <p className="text-sm font-bold text-ink">{label}</p>
+        <p className="mt-0.5 text-xs font-medium leading-relaxed text-muted">{children}</p>
+      </div>
+    </div>
+  );
+}
+
+const BUSY_DESTINATIONS = ['伊犁环线', '川西小环线', '青甘大环线', '昆大丽香线'];
+const EV_FRIENDLY_DESTINATIONS = ['海南环岛自驾'];
+
+function DestinationSearchTip({ destContext }) {
+  if (!destContext) return null;
+
+  const name = destContext.name;
+
+  if (EV_FRIENDLY_DESTINATIONS.includes(name)) {
+    return (
+      <div className="mt-2.5 rounded-2xl bg-aquaCard px-3 py-2.5 ring-1 ring-pine/10">
+        <p className="text-xs font-medium leading-relaxed text-ink">
+          海南补能相对方便，可以把纯电车也纳入搜索范围，但节假日价格波动会比较明显，建议尽早锁定车源。
+        </p>
+      </div>
+    );
+  }
+
+  if (BUSY_DESTINATIONS.includes(name)) {
+    return (
+      <div className="mt-2.5 rounded-2xl bg-amberSoft/30 px-3 py-2.5">
+        <p className="text-xs font-medium leading-relaxed text-amberDark">
+          热门自驾目的地旺季车源紧张，建议先锁定 SUV 或混动 SUV，再比较保险方案和异地还车费用。
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2.5 rounded-2xl bg-aquaCard/50 px-3 py-2.5">
+      <p className="text-xs font-medium leading-relaxed text-ink">
+        建议结合目的地实际情况，提前确认取还车地点和保险方案。
+      </p>
     </div>
   );
 }
