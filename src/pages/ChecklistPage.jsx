@@ -1,4 +1,4 @@
-import { Armchair, Camera, Car, ChevronRight, CircleDot, Gauge, Lightbulb, Sparkles, Video, WalletCards } from 'lucide-react';
+import { Armchair, Camera, Car, ChevronDown, ChevronRight, ChevronUp, CircleDot, Gauge, Lightbulb, ShieldCheck, Sparkles, Video, WalletCards } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
@@ -14,6 +14,12 @@ import {
   flatQuickChecklistItems,
   quickChecklistModules,
 } from '../data/checklist.js';
+import { INSURANCE_PLATFORMS } from '../data/insurancePlans.js';
+import {
+  getPlatformInsurancePlans,
+  getChecklistInsuranceTips,
+  INSURANCE_DISCLAIMER,
+} from '../utils/insuranceUtils.js';
 
 const STORAGE_KEY = 'rentalDrive.checklistState';
 const MODE_STORAGE_KEY = 'rentalDrive.checklistMode';
@@ -83,6 +89,28 @@ export default function ChecklistPage() {
   const [leadOpen, setLeadOpen] = useState(false);
   const [feedback, setFeedback] = useState('点选状态后，完成度和提醒会实时更新。');
   const summaryRef = useRef(null);
+
+  // 保险差异化提醒：平台/方案选择
+  const [insurancePlatform, setInsurancePlatform] = useState(() => loadLastInsurancePlatform());
+  const [insurancePlanName, setInsurancePlanName] = useState(() => loadLastInsurancePlanName());
+  const [insuranceTipsOpen, setInsuranceTipsOpen] = useState(false);
+  const platformPlans = useMemo(
+    () => (insurancePlatform ? getPlatformInsurancePlans(insurancePlatform) : null),
+    [insurancePlatform],
+  );
+  const insuranceTips = useMemo(
+    () => (insurancePlatform ? getChecklistInsuranceTips(insurancePlatform, insurancePlanName) : null),
+    [insurancePlatform, insurancePlanName],
+  );
+
+  const handleSelectPlatform = (platformName) => {
+    setInsurancePlatform(platformName === insurancePlatform ? '' : platformName);
+    setInsurancePlanName('');
+  };
+
+  const handleSelectPlan = (planName) => {
+    setInsurancePlanName(planName === insurancePlanName ? '' : planName);
+  };
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -155,6 +183,16 @@ export default function ChecklistPage() {
 
       <section className="page-pad px-4 pt-4">
         <IntroCard />
+        <InsuranceChecklistSection
+          platform={insurancePlatform}
+          planName={insurancePlanName}
+          platformPlans={platformPlans}
+          tips={insuranceTips}
+          tipsOpen={insuranceTipsOpen}
+          onToggleTips={() => setInsuranceTipsOpen((v) => !v)}
+          onSelectPlatform={handleSelectPlatform}
+          onSelectPlan={handleSelectPlan}
+        />
         <ModeSwitch mode={mode} setMode={updateMode} />
         <RealtimeFeedback stats={stats} riskStyle={riskStyle} />
         <p className="mb-4 mt-3 rounded-2xl bg-aquaCard px-3 py-2 text-xs font-bold leading-relaxed text-pine" role="status" aria-live="polite">
@@ -444,6 +482,166 @@ function SummaryList({ title, empty, items, tone = 'default' }) {
       <p className="text-xs font-bold opacity-75">{title}</p>
       <p className="mt-2 text-sm font-medium leading-relaxed">{hasItems ? items.join('、') : empty}</p>
     </div>
+  );
+}
+
+/* ========================================================================
+   保险差异化拍摄提醒
+   ======================================================================== */
+
+/** 从比价页 localStorage 读取最近一次选择的平台 */
+function loadLastInsurancePlatform() {
+  try {
+    const plans = JSON.parse(localStorage.getItem('rentalDrive.priceComparePlans') || '[]');
+    if (!Array.isArray(plans) || !plans.length) return '';
+    const last = plans[plans.length - 1];
+    const result = getPlatformInsurancePlans(last.platform);
+    return result ? result.platform.name : '';
+  } catch {
+    return '';
+  }
+}
+
+/** 从比价页 localStorage 读取最近一次选择的保险方案 */
+function loadLastInsurancePlanName() {
+  try {
+    const plans = JSON.parse(localStorage.getItem('rentalDrive.priceComparePlans') || '[]');
+    if (!Array.isArray(plans) || !plans.length) return '';
+    const last = plans[plans.length - 1];
+    return last.insurancePlan || '';
+  } catch {
+    return '';
+  }
+}
+
+function InsuranceChecklistSection({
+  platform,
+  planName,
+  platformPlans,
+  tips,
+  tipsOpen,
+  onToggleTips,
+  onSelectPlatform,
+  onSelectPlan,
+}) {
+  return (
+    <section className="mt-4 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <button
+        type="button"
+        onClick={onToggleTips}
+        className="flex w-full items-center gap-3 text-left"
+      >
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-mint text-pine">
+          <ShieldCheck size={20} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-bold leading-tight text-ink">根据保险方案补充拍摄重点</h2>
+          <p className="mt-1 text-xs leading-relaxed text-muted">
+            {platform ? `${platform}${planName ? ` · ${planName}` : ''}` : '选择平台和保险方案后，显示差异化拍摄提醒'}
+          </p>
+        </div>
+        {tipsOpen ? (
+          <ChevronUp size={18} className="shrink-0 text-pine" />
+        ) : (
+          <ChevronDown size={18} className="shrink-0 text-pine" />
+        )}
+      </button>
+
+      {tipsOpen ? (
+        <div className="mt-4 border-t border-pine/10 pt-4">
+          {/* 平台选择 */}
+          <p className="text-[11px] font-bold text-muted">选择平台</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {INSURANCE_PLATFORMS.map((p) => {
+              const active = platform === p.name;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => onSelectPlatform(p.name)}
+                  className={`min-h-8 rounded-full px-3 py-1 text-[11px] font-bold leading-tight transition active:scale-[0.97] ${
+                    active
+                      ? 'bg-pine text-lightText shadow-sm shadow-pine/15'
+                      : 'bg-aquaCard text-pine ring-1 ring-pine/10 hover:bg-mint/60'
+                  }`}
+                >
+                  {p.name}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 保险方案选择 */}
+          {platformPlans ? (
+            <div className="mt-3">
+              <p className="text-[11px] font-bold text-muted">{platform}保险方案</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {platformPlans.plans.map((plan) => {
+                  const active = planName === plan.name;
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => onSelectPlan(plan.name)}
+                      className={`min-h-8 rounded-full px-2.5 py-1 text-[11px] font-bold leading-tight transition active:scale-[0.97] ${
+                        active
+                          ? 'bg-pine text-lightText shadow-sm shadow-pine/15'
+                          : 'bg-card text-ink ring-1 ring-pine/10 hover:bg-mint/60'
+                      }`}
+                    >
+                      {plan.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          {/* 差异化拍摄提醒 */}
+          {tips ? (
+            <div className="mt-3 rounded-2xl bg-aquaCard/60 px-3 py-3">
+              <p className="text-[11px] font-bold text-pine">建议重点拍</p>
+              <div className="mt-2 grid gap-2">
+                {tips.items.map((item, i) => (
+                  <div key={i} className="flex items-start gap-2 rounded-xl bg-card/80 px-2.5 py-2">
+                    <Camera size={13} className="mt-0.5 shrink-0 text-pine" />
+                    <p className="text-xs font-medium leading-relaxed text-ink">{item}</p>
+                  </div>
+                ))}
+              </div>
+
+              {tips.notice ? (
+                <div className="mt-2.5 rounded-xl bg-amberSoft/35 px-2.5 py-2">
+                  <p className="text-[11px] font-bold text-amberDark">特别提醒</p>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-ink">{tips.notice}</p>
+                </div>
+              ) : null}
+
+              {tips.planSpecific?.keyWarnings?.length ? (
+                <div className="mt-2 rounded-xl bg-coral/5 px-2.5 py-2">
+                  <p className="text-[10px] font-bold text-coral">该方案风险提示</p>
+                  <ul className="mt-1 space-y-0.5">
+                    {tips.planSpecific.keyWarnings.slice(0, 3).map((w, i) => (
+                      <li key={i} className="text-[10px] leading-relaxed text-muted">{w}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          ) : platform ? (
+            <div className="mt-3 rounded-2xl bg-aquaCard/40 px-3 py-2.5">
+              <p className="text-xs font-medium leading-relaxed text-muted">
+                请选择一个保险方案，查看针对该方案的差异化拍摄提醒。
+              </p>
+            </div>
+          ) : null}
+
+          <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted/70">
+            {INSURANCE_DISCLAIMER}
+          </p>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

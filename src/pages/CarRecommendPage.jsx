@@ -10,17 +10,19 @@ import {
   Luggage,
   MapPin,
   Mountain,
+  ShieldCheck,
   Ship,
   Sparkles,
   UserCheck,
   Users,
   Waves,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { findDestinationProfile, buildDestinationContext, getTopVehicleExamples, buildOneLinerSummary, buildSearchKeywords, buildWhyNotAdvice, buildTradeOffAdvice, buildDataNotice } from '../utils/carRecommendationDataHelpers.js';
+import { getInsuranceAdviceByScenario, getPlatformInsurancePlans, INSURANCE_DISCLAIMER } from '../utils/insuranceUtils.js';
 
 /* ========================================================================
    表单选项定义
@@ -901,7 +903,7 @@ function OptionField({ label, icon: Icon, options, value, onChange, cols }) {
   );
 }
 
-function buildResultCopyText(result, form) {
+function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions) {
   const dc = result.destContext;
   const lines = [
     '【我的车型建议】',
@@ -931,7 +933,23 @@ function buildResultCopyText(result, form) {
     lines.push('');
   }
 
+  // 保险建议
+  if (insuranceAdvice?.matched && insuranceSuggestions) {
+    lines.push('【保险建议】');
+    lines.push(`建议优先关注${insuranceSuggestions.tierLabel}`);
+    lines.push(insuranceSuggestions.reason);
+    lines.push(`重点核对：${insuranceSuggestions.priorityTagsDisplay}`);
+    if (insuranceSuggestions.byPlatform && Object.keys(insuranceSuggestions.byPlatform).length > 0) {
+      lines.push('可优先核对的方案：');
+      Object.entries(insuranceSuggestions.byPlatform).forEach(([, info]) => {
+        lines.push(`  ${info.platformName}: ${info.planNames.join('、')}`);
+      });
+    }
+    lines.push('');
+  }
+
   lines.push('当前为免费轻量建议，主要帮你判断车型和能源大方向。具体车型、平台价格和补能路线，建议结合实际车源再确认。');
+  lines.push(INSURANCE_DISCLAIMER);
   lines.push('来自 pYuY 租车自驾工具箱。');
   return lines.join('\n');
 }
@@ -966,7 +984,7 @@ function ResultView({ result, form }) {
   const [copyState, setCopyState] = useState('idle'); // idle | ok | fail
 
   const handleCopy = async () => {
-    const text = buildResultCopyText(result, form);
+    const text = buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions);
     const ok = await copyToClipboard(text);
     setCopyState(ok ? 'ok' : 'fail');
     setTimeout(() => setCopyState('idle'), 3000);
@@ -987,6 +1005,14 @@ function ResultView({ result, form }) {
   });
   const tradeOff = buildTradeOffAdvice(destContext, form);
   const dataNotice = buildDataNotice(destContext, topVehicles, form);
+
+  // 保险场景化建议
+  const insuranceContext = useMemo(() => buildInsuranceContext(form, result), [form, result]);
+  const insuranceAdvice = useMemo(() => getInsuranceAdviceByScenario(insuranceContext), [insuranceContext]);
+  const insuranceSuggestions = useMemo(
+    () => (insuranceAdvice.matched ? buildInsuranceSuggestions(insuranceAdvice) : null),
+    [insuranceAdvice],
+  );
 
   return (
     <div className="grid gap-4">
@@ -1248,6 +1274,13 @@ function ResultView({ result, form }) {
         ) : null}
       </section>
 
+      {/* === 卡片 6：保险怎么选 === */}
+      <InsuranceAdviceCard
+        advice={insuranceAdvice}
+        suggestions={insuranceSuggestions}
+        destContext={destContext}
+      />
+
       {/* === 底部操作 === */}
       <section className="rounded-[24px] border border-pine/10 bg-aquaCard p-4 shadow-card">
         <div className="grid gap-2.5">
@@ -1320,6 +1353,177 @@ function EnergyRow({ label, tag, tagTone, children }) {
         <p className="mt-0.5 text-xs font-medium leading-relaxed text-muted">{children}</p>
       </div>
     </div>
+  );
+}
+
+/* ========================================================================
+   保险建议 — 上下文构建 & 方案推荐
+   ======================================================================== */
+
+/** 从用户表单和推荐结果中构建保险建议上下文 */
+function buildInsuranceContext(form, result) {
+  return {
+    destination: form.destination || '',
+    destinationType: form.destinationType || '',
+    tripIntensity: form.tripIntensity || '',
+    peopleCount: form.peopleCount || form.people || '',
+    people: form.peopleCount || form.people || '',
+    tripDays: result?.tripProfile ? form.tripDays : '',
+    preference: form.preference || '',
+    isBeginner: false,
+    experience: '',
+    budgetConscious: form.preference === 'budget',
+  };
+}
+
+/** 根据匹配到的场景规则，从 INSURANCE_PLANS 中查找对应平台/方案名称 */
+function buildInsuranceSuggestions(insuranceAdvice) {
+  if (!insuranceAdvice || !insuranceAdvice.matched) return null;
+
+  const { advices, suggestedTier } = insuranceAdvice;
+  const primaryRule = advices[0];
+  if (!primaryRule) return null;
+
+  // 收集所有高保障/中等保障方案中匹配优先标签的方案
+  const allPlatforms = ['ctrip', '1hai', 'shenzhou'];
+  const byPlatform = {};
+
+  allPlatforms.forEach((pid) => {
+    const result = getPlatformInsurancePlans(pid);
+    if (!result) return;
+
+    const { platform, plans } = result;
+
+    // 优先选匹配建议等级的方案
+    let matchedPlans = plans.filter((p) => p.tier === suggestedTier || p.tier === 'premium');
+
+    // 如果不够，补充中等保障方案
+    if (matchedPlans.length < 2) {
+      matchedPlans = plans.filter((p) => p.tier === suggestedTier || p.tier === 'premium' || p.tier === 'standard');
+    }
+
+    if (matchedPlans.length) {
+      byPlatform[pid] = {
+        platformName: platform.name,
+        planNames: matchedPlans.slice(0, 3).map((p) => p.name),
+      };
+    }
+  });
+
+  return {
+    tierLabel: suggestedTier === 'premium' ? '高保障' : suggestedTier === 'standard' ? '中等保障' : '基础保障',
+    priorityTagsDisplay: primaryRule.priorityTags
+      .map((tag) => {
+        const map = {
+          tireWheel: '轮胎/轮毂',
+          thirdParty: '三者额度',
+          vehicleDamage: '车损自付',
+          driverPassenger: '司乘保障',
+          downtime: '停运费',
+          depreciation: '折旧费',
+          advancePayment: '费用垫付',
+          glass: '玻璃破损',
+          medicalOutsideInsurance: '医保外费用',
+        };
+        return map[tag] || tag;
+      })
+      .join('、'),
+    reason: primaryRule.reason,
+    riskTags: primaryRule.riskTags || [],
+    byPlatform,
+  };
+}
+
+function InsuranceAdviceCard({ advice, suggestions, destContext }) {
+  if (!advice) return null;
+
+  return (
+    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <div className="flex items-center gap-2">
+        <ShieldCheck size={18} className="text-pine" />
+        <h2 className="text-lg font-bold text-ink">保险怎么选</h2>
+      </div>
+
+      {advice.matched && suggestions ? (
+        <>
+          {/* 场景化建议 */}
+          <div className="mt-3 rounded-2xl bg-gradient-to-r from-mint/70 to-mint/30 px-4 py-3 ring-1 ring-pine/10">
+            <p className="text-[11px] font-bold text-muted">
+              根据你的路线，建议优先关注{suggestions.tierLabel}
+            </p>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-ink">
+              {suggestions.reason}
+            </p>
+          </div>
+
+          {/* 建议重点关注的保障维度 */}
+          <div className="mt-2.5 rounded-2xl bg-aquaCard/60 px-3 py-2.5">
+            <p className="text-[11px] font-bold text-muted">重点核对</p>
+            <p className="mt-0.5 text-xs font-medium leading-relaxed text-ink">
+              {suggestions.priorityTagsDisplay}
+            </p>
+          </div>
+
+          {/* 风险提示 */}
+          {suggestions.riskTags.length > 0 ? (
+            <div className="mt-2 grid gap-1">
+              {suggestions.riskTags.slice(0, 2).map((tag, i) => (
+                <div key={i} className="flex items-start gap-1.5 rounded-xl bg-amberSoft/25 px-2.5 py-2">
+                  <AlertTriangle size={12} className="mt-0.5 shrink-0 text-amberDark" />
+                  <p className="text-[11px] leading-relaxed text-ink">{tag}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {/* 可参考的平台方案 */}
+          {suggestions.byPlatform && Object.keys(suggestions.byPlatform).length > 0 ? (
+            <div className="mt-2.5 rounded-2xl bg-aquaCard/40 px-3 py-2.5">
+              <p className="text-[11px] font-bold text-muted">可优先核对的方案</p>
+              <div className="mt-1.5 grid gap-1.5">
+                {Object.entries(suggestions.byPlatform).map(([pid, info]) => (
+                  <div key={pid} className="flex items-baseline gap-1.5 text-xs leading-relaxed">
+                    <span className="shrink-0 font-bold text-pine">{info.platformName}</span>
+                    <span className="text-muted">{info.planNames.join('、')}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[10px] font-medium leading-relaxed text-muted/70">
+                方案名称来自平台公开页面和用户截图，实际以下单页为准
+              </p>
+            </div>
+          ) : null}
+
+          {/* 新手特别提示 */}
+          {advice.advices.some((a) => a.ruleId === 'beginner') ? (
+            <div className="mt-2 rounded-xl bg-mint/50 px-3 py-2">
+              <p className="text-xs font-bold text-pine">新手小贴士</p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-ink">
+                即使买了高保障，取车时仍要拍清楚外观、轮胎、轮毂、玻璃、内饰和仪表盘。出发前可以去「车身验车避坑图」先看一遍重点位置。
+              </p>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        /* 兜底：未匹配到特定场景规则时，给通用建议 */
+        <div className="mt-3 grid gap-2.5">
+          <div className="rounded-2xl bg-aquaCard/60 px-3 py-3">
+            <p className="text-sm font-medium leading-relaxed text-ink">
+              不同路线和出行方式对保险保障的要求不同。一般建议至少核对车损自付额、三者额度、轮胎轮毂和停运费。长途、山路或多人出行建议往高保障靠。
+            </p>
+          </div>
+          <div className="rounded-2xl bg-mint/50 px-3 py-2.5">
+            <p className="text-xs font-medium leading-relaxed text-pine">
+              去「比租车方案」页面，把不同平台的保险方案放在一起对比，会更清楚。
+            </p>
+          </div>
+        </div>
+      )}
+
+      <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted/70">
+        {INSURANCE_DISCLAIMER}
+      </p>
+    </section>
   );
 }
 

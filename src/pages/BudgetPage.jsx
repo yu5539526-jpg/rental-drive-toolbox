@@ -11,6 +11,7 @@ import {
   Image,
   Info,
   RotateCcw,
+  ShieldAlert,
   Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -23,6 +24,7 @@ import TopBar from '../components/TopBar.jsx';
 import { ENERGY_DEFAULTS, ENERGY_NOTE } from '../constants/energyDefaults.js';
 import { budgetSteps, defaultBudgetDraft } from '../data/budgetFields.js';
 import { calculateBudget, formatMoney, formatPercent } from '../utils/budget.js';
+import { findInsurancePlan, getTierLabel, isBasicPlan, INSURANCE_DISCLAIMER } from '../utils/insuranceUtils.js';
 
 const STORAGE_KEY = 'rentalDrive.budgetDraft';
 const SELECTED_PLAN_STORAGE_KEY = 'rentalDrive.selectedRentalPlan';
@@ -596,6 +598,8 @@ function BudgetResult({ result, draft, selectedPlan, cardStatus, onReset, onEdit
       <EnergyInfoCard selectedType={draft.energyType} result={result} />
 
       <BudgetTipsCard suggestions={result.suggestions} />
+
+      <InsuranceRiskCard selectedPlan={selectedPlan} />
 
       <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
         <h2 className="text-lg font-bold text-ink">分享和保存</h2>
@@ -1180,6 +1184,106 @@ function loadBudgetDraft() {
   } catch {
     return defaultBudgetDraft;
   }
+}
+
+/* ========================================================================
+   保险风险提示卡片
+   ======================================================================== */
+
+function InsuranceRiskCard({ selectedPlan }) {
+  const matched = useMemo(() => {
+    if (!selectedPlan || !selectedPlan.platform || !selectedPlan.insurancePlan) return null;
+    return findInsurancePlan(selectedPlan.platform, selectedPlan.insurancePlan);
+  }, [selectedPlan]);
+
+  const isBasic = matched ? isBasicPlan(matched) : null;
+
+  return (
+    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <div className="flex items-center gap-2">
+        <ShieldAlert size={18} className="text-amberDark" />
+        <h2 className="text-lg font-bold text-ink">保险与意外支出提醒</h2>
+      </div>
+
+      {matched ? (
+        <div className="mt-3 grid gap-2.5">
+          {/* 基础保障提示 */}
+          {isBasic ? (
+            <>
+              <div className="rounded-2xl bg-amberSoft/35 px-3 py-2.5 ring-1 ring-warning/15">
+                <p className="text-xs font-bold text-amberDark">基础保障 · 建议预留意外备用金</p>
+                <p className="mt-1 text-xs leading-relaxed text-ink">
+                  如果选择{matched.platform}「{matched.name}」，建议额外预留一笔小额车损自付备用金（该方案车损{matched.vehicleDamage?.customerPay || '请以下单页为准'}）。如果路线包含山路、碎石路或长途，建议重点核对轮胎/轮毂、停运费和折旧/贬值。
+                </p>
+              </div>
+              {/* 关键缺口 */}
+              <div className="flex flex-wrap gap-1">
+                {matched.tireWheel?.covered === false ? (
+                  <span className="rounded-full bg-coral/10 px-2 py-0.5 text-[10px] font-bold text-coral">车轮不覆盖</span>
+                ) : null}
+                {matched.downtime?.covered === false ? (
+                  <span className="rounded-full bg-coral/10 px-2 py-0.5 text-[10px] font-bold text-coral">停运费不覆盖</span>
+                ) : null}
+                {matched.depreciation?.covered === false ? (
+                  <span className="rounded-full bg-coral/10 px-2 py-0.5 text-[10px] font-bold text-coral">可能承担折旧费</span>
+                ) : null}
+                {matched.advancePayment?.required === true ? (
+                  <span className="rounded-full bg-amberSoft/35 px-2 py-0.5 text-[10px] font-bold text-amberDark">需垫付费用</span>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            /* 中高保障提示 */
+            <div className="rounded-2xl bg-mint/50 px-3 py-2.5 ring-1 ring-pine/10">
+              <p className="text-xs font-bold text-pine">
+                {getTierLabel(matched)} · 降低意外支出，但不等于所有情况都赔
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-ink">
+                {matched.platform}「{matched.name}」通常能降低车损自付和停运/贬值风险，但仍需核对免责条款、报案流程和材料要求。酒驾、涉水后二次启动、未及时报案、无证驾驶、非约定用途等通常不赔。
+              </p>
+            </div>
+          )}
+
+          {/* 方案关键风险 */}
+          {matched.keyWarnings?.length ? (
+            <div className="rounded-xl bg-coral/5 px-2.5 py-2">
+              <p className="text-[10px] font-bold text-coral">该方案风险提示</p>
+              <ul className="mt-0.5 space-y-0.5">
+                {matched.keyWarnings.slice(0, 3).map((w, i) => (
+                  <li key={i} className="text-[10px] leading-relaxed text-muted">{w}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : selectedPlan ? (
+        /* 已选择方案但未识别 */
+        <div className="mt-3 rounded-2xl bg-aquaCard/60 px-3 py-2.5">
+          <p className="text-xs leading-relaxed text-ink">
+            当前预算已包含「{selectedPlan.insurancePlan}」方案。下单前建议至少核对：车损自付额、三者额度、轮胎轮毂、停运费、折旧/贬值、司乘保障。
+          </p>
+        </div>
+      ) : (
+        /* 未选择任何方案 */
+        <div className="mt-3 rounded-2xl bg-aquaCard/60 px-3 py-2.5">
+          <p className="text-xs leading-relaxed text-ink">
+            当前预算未拆分保险费用。下单前建议至少核对：车损自付额、三者额度、轮胎轮毂、停运费、折旧/贬值、司乘保障。
+          </p>
+          <Link
+            to="/price-compare"
+            className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 rounded-2xl bg-pine px-3 py-1.5 text-[11px] font-bold text-white"
+          >
+            去比租车方案
+            <ChevronRight size={13} />
+          </Link>
+        </div>
+      )}
+
+      <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted/70">
+        保险价格会随城市、车型、供应商、渠道和下单页变化，本工具不估算保险价格，具体费用以下单页为准。
+      </p>
+    </section>
+  );
 }
 
 function legacyRentalTotal(parsed) {
