@@ -173,17 +173,16 @@ export default function PriceComparePage() {
               />
             </Field>
             <Field label="保险方案">
-              <input
-                value={form.insurancePlan}
-                onChange={(event) => update('insurancePlan', event.target.value)}
-                className={inputClass}
-                placeholder="例如：基础保障 / 最高档保险 / 尊享保障"
-              />
               <InsurancePlanSelector
                 platformValue={form.platform}
                 value={form.insurancePlan}
                 onChange={(value) => update('insurancePlan', value)}
               />
+              {!form.platform || !getPlatformInsurancePlans(form.platform.trim()) ? (
+                <p className="mt-1.5 text-[11px] font-medium leading-relaxed text-muted">
+                  请先在上方选择平台，再选择保险方案
+                </p>
+              ) : null}
             </Field>
             <Field label="租期内租车总价，含保险">
               <div className="relative">
