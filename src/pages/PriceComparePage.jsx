@@ -61,6 +61,14 @@ export default function PriceComparePage() {
       setFeedback('已添加到对比。');
     }
 
+    // 保存最近一次保险选择，供验车页面联动使用
+    try {
+      localStorage.setItem('rentalTool:lastInsuranceSelection', JSON.stringify({
+        platform: normalized.platform,
+        planName: normalized.insurancePlan,
+      }));
+    } catch { /* ignore */ }
+
     setForm(emptyForm);
     setEditingId('');
   };

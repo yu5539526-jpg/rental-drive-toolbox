@@ -1,4 +1,4 @@
-import { viewMeta } from '../../data/carInspectionImageHotspots.js';
+import { viewMeta } from '../../data/vehicleInspectionZones.js';
 
 const VIEW_ICONS = {
   front: (
