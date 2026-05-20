@@ -2,40 +2,42 @@ import { imageHotspotsByView, viewMeta } from '../../data/carInspectionImageHots
 import HotspotOverlay from './HotspotOverlay.jsx';
 
 /**
- * 图片版车身验车地图
+ * 图片版车身验车地图 — 精密光学检测仪器风格
  *
- * - 白色卡片容纳车身图片和叠加标记点
- * - 正面 / 背面使用较小最大宽度，侧面使用较宽容器
- * - 图片保持原比例不变形
- * - 标记点层精确叠加在图片上方
- * - 底部图例帮助用户快速识别风险等级
+ * - 深色图片容器（模拟灯箱效果），让车身图更突出
+ * - 标记点叠加层保持精确对齐
+ * - 底部图例使用新配色
  */
 
+const RISK_HEX = {
+  '高频争议': '#CB5A4F',
+  '容易忽略': '#C4873C',
+  '重点留证': '#3E6B7C',
+};
+
 function RiskLegend({ hotspots }) {
-  const highRisk = hotspots.filter((p) => p.riskLevel === '高频争议').length;
-  const easyMiss = hotspots.filter((p) => p.riskLevel === '容易忽略').length;
-  const important = hotspots.filter((p) => p.riskLevel === '重点留证').length;
+  const counts = {};
+  hotspots.forEach((p) => {
+    counts[p.riskLevel] = (counts[p.riskLevel] || 0) + 1;
+  });
 
   return (
-    <div className="flex items-center justify-center gap-4 px-4 pb-3">
-      {highRisk > 0 && (
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-muted">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#E54B4B]" />
-          高频争议
-        </span>
-      )}
-      {easyMiss > 0 && (
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-muted">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#D97706]" />
-          容易忽略
-        </span>
-      )}
-      {important > 0 && (
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-muted">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#174B63]" />
-          重点留证
-        </span>
-      )}
+    <div className="flex items-center justify-center gap-5 px-4 pb-3.5 pt-1">
+      {Object.entries(RISK_HEX).map(([level, hex]) => {
+        if (!counts[level]) return null;
+        return (
+          <span key={level} className="inline-flex items-center gap-1.5 text-[10px] font-bold" style={{ color: '#6B7280' }}>
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: hex,
+                boxShadow: `0 0 0 2px ${hex}22`,
+              }}
+            />
+            {level}
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -52,10 +54,13 @@ export default function CarInspectionImageMap({ view, selected, checkedSet, onSe
         点击标记点查看检查重点
       </p>
 
-      {/* 图片区域 */}
+      {/* 图片区域 — 深色灯箱底 */}
       <div
-        className="car-image-map relative mx-auto bg-[#F8FCFE]"
-        style={{ maxWidth: isSide ? 720 : 480 }}
+        className="car-image-map relative mx-auto rounded-2xl overflow-hidden"
+        style={{
+          maxWidth: isSide ? 720 : 480,
+          background: 'linear-gradient(180deg, #1E2328 0%, #1A1E23 100%)',
+        }}
       >
         <img
           src={meta.src}

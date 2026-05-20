@@ -401,9 +401,9 @@ export const imageDefaultSelections = {
 /* ==================== 风险等级 → 样式映射 ==================== */
 
 export const riskLevelStyles = {
-  '高频争议': 'bg-coral/10 text-coral ring-coral/20',
-  '容易忽略': 'bg-amberSoft/45 text-amberDark ring-warning/20',
-  '重点留证': 'bg-mint text-pine ring-pine/20',
+  '高频争议': { bg: 'rgba(203,90,79,0.08)', text: '#CB5A4F', ring: 'rgba(203,90,79,0.18)', dot: '#CB5A4F' },
+  '容易忽略': { bg: 'rgba(196,135,60,0.08)', text: '#C4873C', ring: 'rgba(196,135,60,0.18)', dot: '#C4873C' },
+  '重点留证': { bg: 'rgba(62,107,124,0.08)', text: '#3E6B7C', ring: 'rgba(62,107,124,0.18)', dot: '#3E6B7C' },
 };
 
 /* ==================== 视角元信息 ==================== */
