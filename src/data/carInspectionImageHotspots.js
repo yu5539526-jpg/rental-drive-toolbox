@@ -274,7 +274,7 @@ const imageHotspots = [
     checkPoints: ['是否有凹陷、划痕、色差', '开合是否顺畅'],
     photoTips: ['拍车尾整体', '对后备箱门边缘补拍'],
     warning: '尾门边缘和牌照上方位置容易被忽略。',
-    position: { left: 50, top: 49, width: 52, height: 22 },
+    position: { left: 50, top: 45, width: 52, height: 22 },
   },
 
   {
@@ -287,7 +287,7 @@ const imageHotspots = [
     checkPoints: ['灯罩是否开裂、破损、进水', '灯组边缘是否松动'],
     photoTips: ['左右尾灯分别拍近照', '有裂纹时补细节'],
     warning: '贯穿式尾灯或大尺寸尾灯维修成本可能较高。',
-    position: { left: 28, top: 47, width: 24, height: 10 },
+    position: { left: 28, top: 45, width: 24, height: 10 },
   },
 
   {
@@ -300,33 +300,7 @@ const imageHotspots = [
     checkPoints: ['灯罩是否开裂、破损、进水', '灯组边缘是否松动'],
     photoTips: ['左右尾灯分别拍近照', '有裂纹时补细节'],
     warning: '左右尾灯都要单独检查，不能只看一侧。',
-    position: { left: 72, top: 47, width: 24, height: 10 },
-  },
-
-  {
-    id: 'rear-bumper',
-    view: 'rear',
-    name: '后保险杠',
-    label: '后杠',
-    shortLabel: '后保险杠',
-    riskLevel: '高频争议',
-    checkPoints: ['是否有划痕、裂纹、掉漆', '下沿是否有剐蹭'],
-    photoTips: ['拍车尾完整照片', '对后杠边角和下沿补拍'],
-    warning: '倒车剐蹭常见，后杠一定要重点留证。',
-    position: { left: 50, top: 73, width: 62, height: 18 },
-  },
-
-  {
-    id: 'rear-license',
-    view: 'rear',
-    name: '牌照框周边',
-    label: '牌照',
-    shortLabel: '牌照框',
-    riskLevel: '容易忽略',
-    checkPoints: ['牌照框是否松动', '周边是否有划痕或凹陷'],
-    photoTips: ['拍车尾中部区域', '对牌照框边缘补拍'],
-    warning: '牌照周围容易有装卸或轻微碰撞痕迹。',
-    position: { left: 50, top: 65, width: 26, height: 12 },
+    position: { left: 72, top: 45, width: 24, height: 10 },
   },
 
   {
@@ -339,7 +313,33 @@ const imageHotspots = [
     checkPoints: ['摄像头是否破损、松动', '周围饰板是否有划痕'],
     photoTips: ['近距离拍摄摄像头区域', '有脏污时先不要自行判断为损坏'],
     warning: '倒车影像相关部件，取车前建议确认是否正常。',
-    position: { left: 50, top: 59, width: 18, height: 8 },
+    position: { left: 50, top: 54, width: 18, height: 8 },
+  },
+
+  {
+    id: 'rear-license',
+    view: 'rear',
+    name: '牌照框周边',
+    label: '牌照',
+    shortLabel: '牌照框',
+    riskLevel: '容易忽略',
+    checkPoints: ['牌照框是否松动', '周边是否有划痕或凹陷'],
+    photoTips: ['拍车尾中部区域', '对牌照框边缘补拍'],
+    warning: '牌照周围容易有装卸或轻微碰撞痕迹。',
+    position: { left: 50, top: 62, width: 26, height: 12 },
+  },
+
+  {
+    id: 'rear-bumper',
+    view: 'rear',
+    name: '后保险杠',
+    label: '后杠',
+    shortLabel: '后保险杠',
+    riskLevel: '高频争议',
+    checkPoints: ['是否有划痕、裂纹、掉漆', '下沿是否有剐蹭'],
+    photoTips: ['拍车尾完整照片', '对后杠边角和下沿补拍'],
+    warning: '倒车剐蹭常见，后杠一定要重点留证。',
+    position: { left: 50, top: 71, width: 62, height: 18 },
   },
 
   {
@@ -352,7 +352,7 @@ const imageHotspots = [
     checkPoints: ['是否有托底、剐蹭、裂纹', '底部饰板是否松动'],
     photoTips: ['蹲低拍后杠下沿', '有剐蹭时补细节'],
     warning: '底部剐蹭不容易第一眼看到，还车时可能被重点检查。',
-    position: { left: 50, top: 84, width: 56, height: 12 },
+    position: { left: 50, top: 80, width: 56, height: 12 },
   },
 
   {
@@ -401,9 +401,9 @@ export const imageDefaultSelections = {
 /* ==================== 风险等级 → 样式映射 ==================== */
 
 export const riskLevelStyles = {
-  '高频争议': { bg: 'rgba(203,90,79,0.08)', text: '#CB5A4F', ring: 'rgba(203,90,79,0.18)', dot: '#CB5A4F' },
-  '容易忽略': { bg: 'rgba(196,135,60,0.08)', text: '#C4873C', ring: 'rgba(196,135,60,0.18)', dot: '#C4873C' },
-  '重点留证': { bg: 'rgba(62,107,124,0.08)', text: '#3E6B7C', ring: 'rgba(62,107,124,0.18)', dot: '#3E6B7C' },
+  '高频争议': { bg: 'rgba(226,136,128,0.08)', text: '#E28880', ring: 'rgba(226,136,128,0.16)', dot: '#E28880' },
+  '容易忽略': { bg: 'rgba(205,159,76,0.08)', text: '#CD9F4C', ring: 'rgba(205,159,76,0.16)', dot: '#CD9F4C' },
+  '重点留证': { bg: 'rgba(75,132,147,0.08)', text: '#4B8493', ring: 'rgba(75,132,147,0.16)', dot: '#4B8493' },
 };
 
 /* ==================== 视角元信息 ==================== */

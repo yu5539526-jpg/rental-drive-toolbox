@@ -40,7 +40,7 @@ export default function HotspotDetailCard({ point, isChecked, onToggleCheck }) {
       {/* 顶部色条 */}
       <div
         className="h-1"
-        style={{ background: isChecked ? '#7BAF8C' : `linear-gradient(90deg, ${accentColor}, ${accentColor}cc)` }}
+        style={{ background: isChecked ? '#6DAF8B' : `linear-gradient(90deg, ${accentColor}, ${accentColor}cc)` }}
       />
 
       <div className="p-4">
@@ -89,7 +89,7 @@ export default function HotspotDetailCard({ point, isChecked, onToggleCheck }) {
             onClick={() => onToggleCheck(point.id)}
             className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-all duration-200 active:scale-[0.98] ${
               isChecked
-                ? 'bg-[#7BAF8C]/10 text-[#7BAF8C] ring-1 ring-[#7BAF8C]/25'
+                ? 'bg-[#6DAF8B]/10 text-[#6DAF8B] ring-1 ring-[#6DAF8B]/25'
                 : 'bg-aquaCard text-pine hover:bg-mint/60'
             }`}
           >

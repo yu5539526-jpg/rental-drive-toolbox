@@ -10,9 +10,9 @@ import HotspotOverlay from './HotspotOverlay.jsx';
  */
 
 const RISK_HEX = {
-  '高频争议': '#CB5A4F',
-  '容易忽略': '#C4873C',
-  '重点留证': '#3E6B7C',
+  '高频争议': '#E28880',
+  '容易忽略': '#CD9F4C',
+  '重点留证': '#4B8493',
 };
 
 function RiskLegend({ hotspots }) {

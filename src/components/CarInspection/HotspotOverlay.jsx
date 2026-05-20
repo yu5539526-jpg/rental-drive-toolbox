@@ -1,38 +1,37 @@
 /**
- * 车身检测标记点 — 精密光学检测仪器风格
+ * 车身检测标记点
  *
- * - 低饱和度专业配色，告别红/黄/蓝"红绿灯"感
- * - 圆形标记点 + 风险等级色环 + 白色内核（暗底上清晰可见）
- * - 边界感知弹泡：靠近边缘时自动调整方向，不超出容器
- * - 选中态呼吸光环 + 微动效
+ * - 珊瑚/麦金/空青 年轻化配色，与站点奶油+松绿主题协调
+ * - 缩小标记点 + 降低选中放大比例，消除紧凑视图中的重叠
+ * - 边界感知弹泡
  */
 
 const RISK = {
   '高频争议': {
-    hex: '#CB5A4F',
-    ring: 'rgba(203,90,79,0.30)',
-    shadow: 'rgba(203,90,79,0.16)',
-    glow: 'rgba(203,90,79,0.10)',
+    hex: '#E28880',
+    ring: 'rgba(226,136,128,0.28)',
+    shadow: 'rgba(226,136,128,0.14)',
+    glow: 'rgba(226,136,128,0.10)',
   },
   '容易忽略': {
-    hex: '#C4873C',
-    ring: 'rgba(196,135,60,0.30)',
-    shadow: 'rgba(196,135,60,0.16)',
-    glow: 'rgba(196,135,60,0.10)',
+    hex: '#CD9F4C',
+    ring: 'rgba(205,159,76,0.28)',
+    shadow: 'rgba(205,159,76,0.14)',
+    glow: 'rgba(205,159,76,0.10)',
   },
   '重点留证': {
-    hex: '#3E6B7C',
-    ring: 'rgba(62,107,124,0.30)',
-    shadow: 'rgba(62,107,124,0.16)',
-    glow: 'rgba(62,107,124,0.10)',
+    hex: '#4B8493',
+    ring: 'rgba(75,132,147,0.28)',
+    shadow: 'rgba(75,132,147,0.14)',
+    glow: 'rgba(75,132,147,0.10)',
   },
 };
 
 const FALLBACK = RISK['重点留证'];
 
 function getTooltipHAlign(leftPct) {
-  if (leftPct <= 13) return 'left';
-  if (leftPct >= 87) return 'right';
+  if (leftPct <= 14) return 'left';
+  if (leftPct >= 86) return 'right';
   return 'center';
 }
 
@@ -43,32 +42,32 @@ export default function HotspotOverlay({ point, isSelected, isChecked, onClick, 
   const { left, top } = point.position;
   const align = getTooltipHAlign(left);
 
-  const pinSize = 'w-[7%] max-w-[34px] min-w-[24px]';
+  const pinSize = 'w-[5.5%] max-w-[28px] min-w-[20px]';
 
-  // ── 计算 pin 内联样式 ──
+  // ── 状态样式 ──
   let pinBg, pinBorder, pinShadow, pinZ, pinScale;
 
   if (selected) {
     pinBg = c.hex;
     pinBorder = `2px solid ${c.hex}`;
-    pinShadow = `0 0 0 6px ${c.glow}, 0 4px 20px ${c.shadow}`;
+    pinShadow = `0 0 0 5px ${c.glow}, 0 4px 16px ${c.shadow}`;
     pinZ = 30;
-    pinScale = 'scale-125';
+    pinScale = 'scale-[1.15]';
   } else if (checked) {
-    pinBg = 'rgba(123,175,140,0.18)';
-    pinBorder = '2px solid rgba(123,175,140,0.45)';
+    pinBg = 'rgba(109,175,139,0.16)';
+    pinBorder = '2px solid rgba(109,175,139,0.40)';
     pinShadow = 'none';
     pinZ = 5;
     pinScale = 'scale-90';
   } else {
     pinBg = 'rgba(255,255,255,0.88)';
     pinBorder = `2px solid ${c.ring}`;
-    pinShadow = `0 2px 8px ${c.shadow}`;
+    pinShadow = `0 1.5px 6px ${c.shadow}`;
     pinZ = 10;
-    pinScale = 'scale-100 hover:scale-115';
+    pinScale = 'scale-100 hover:scale-110';
   }
 
-  // ── 弹泡对齐 class ──
+  // ── 弹泡对齐 ──
   const bubblePosClass =
     align === 'left'
       ? 'left-0 translate-x-0'
@@ -105,14 +104,13 @@ export default function HotspotOverlay({ point, isSelected, isChecked, onClick, 
         WebkitBackdropFilter: selected || checked ? undefined : 'blur(6px)',
       }}
     >
-      {/* 内容 */}
       {checked ? (
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" className="pointer-events-none">
-          <path d="M2 7.5L5.5 11L12 3" stroke="#7BAF8C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" className="pointer-events-none">
+          <path d="M2 7.5L5.5 11L12 3" stroke="#6DAF8B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ) : (
         <span
-          className="text-[10px] font-extrabold leading-none pointer-events-none select-none tracking-tight transition-colors duration-300"
+          className="text-[9px] font-extrabold leading-none pointer-events-none select-none tracking-tight transition-colors duration-300"
           style={{ color: textColor }}
         >
           {point.shortLabel}
@@ -124,7 +122,7 @@ export default function HotspotOverlay({ point, isSelected, isChecked, onClick, 
         <span
           className={`absolute px-2.5 py-1 rounded-full text-white text-[11px] font-bold whitespace-nowrap pointer-events-none z-40 shadow-xl ${bubblePosClass}`}
           style={{
-            bottom: 'calc(100% + 8px)',
+            bottom: 'calc(100% + 7px)',
             background: `linear-gradient(135deg, ${c.hex}, ${c.hex}dd)`,
           }}
         >
@@ -140,7 +138,7 @@ export default function HotspotOverlay({ point, isSelected, isChecked, onClick, 
       {selected && (
         <span
           className="absolute inset-0 rounded-full pointer-events-none animate-ping opacity-20"
-          style={{ border: `2.5px solid ${c.hex}` }}
+          style={{ border: `2px solid ${c.hex}` }}
         />
       )}
     </button>
