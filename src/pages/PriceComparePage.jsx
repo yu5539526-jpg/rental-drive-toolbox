@@ -14,7 +14,6 @@ import {
   getTierBadgeClass,
   getChecklistInsuranceTips,
   INSURANCE_DISCLAIMER,
-  INSURANCE_TERMS,
 } from '../utils/insuranceUtils.js';
 
 const STORAGE_KEY = 'rentalDrive.priceComparePlans';
@@ -126,8 +125,6 @@ export default function PriceComparePage() {
       <TopBar title="租车方案对比" />
 
       <section className="safe-bottom-action px-4 pt-4">
-        <IntroCard />
-
         <form onSubmit={submitPlan} className="mt-4 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
           <div className="mb-4 flex items-center gap-3">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] bg-aquaCard text-pine">
@@ -259,7 +256,6 @@ export default function PriceComparePage() {
 
         <CompareResult stats={stats} />
 
-        <InsuranceKnowledgeModule />
       </section>
 
       <BottomActionBar layout="double">
@@ -273,27 +269,6 @@ export default function PriceComparePage() {
         </BottomActionButton>
       </BottomActionBar>
     </main>
-  );
-}
-
-function IntroCard() {
-  return (
-    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-      <div className="flex items-start gap-3">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[20px] bg-aquaCard text-xl" aria-hidden="true">
-          ⚖️
-        </span>
-        <div className="min-w-0">
-          <h1 className="text-xl font-bold leading-tight text-ink">比租车方案</h1>
-          <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted">
-            把不同平台、车型和保险方案放一起看，先算清含保险总价。
-          </p>
-          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
-            先添加 2 个方案，对比结果会更有参考价值。
-          </p>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -631,8 +606,6 @@ function CompareResult({ stats }) {
       <PriceRanking plans={stats.sorted} />
 
       <InsuranceCompareTips data={stats.insuranceCompare} plans={stats.sorted} />
-
-      <SuggestionCard stats={stats} />
     </section>
   );
 }
@@ -683,33 +656,6 @@ function PriceRanking({ plans }) {
         ))}
       </ol>
     </section>
-  );
-}
-
-function SuggestionCard({ stats }) {
-  return (
-    <section className="rounded-[24px] border border-pine/10 bg-aquaCard p-4 shadow-card">
-      <h2 className="text-lg font-bold text-ink">💡 选择建议</h2>
-      <div className="mt-3 grid gap-2">
-        <p className="rounded-2xl bg-card/75 px-3 py-3 text-sm font-medium leading-relaxed text-muted">{stats.summary}</p>
-        {stats.sameModelHint ? <p className="rounded-2xl bg-card/75 px-3 py-3 text-sm font-bold leading-relaxed text-pine">{stats.sameModelHint}</p> : null}
-        {stats.insuranceHint ? <InsuranceNotice text={stats.insuranceHint} /> : null}
-        {stats.premiumPriceHint ? <InsuranceNotice text={stats.premiumPriceHint} /> : null}
-        {stats.lowestBasicHint ? <p className="rounded-2xl bg-card/75 px-3 py-3 text-sm font-bold leading-relaxed text-ink">{stats.lowestBasicHint}</p> : null}
-        {stats.priceGapHint ? <p className="rounded-2xl bg-coral/10 px-3 py-3 text-sm font-bold leading-relaxed text-coral">{stats.priceGapHint}</p> : null}
-      </div>
-    </section>
-  );
-}
-
-function InsuranceNotice({ text }) {
-  return (
-    <p className="rounded-2xl bg-amberSoft/35 px-3 py-3 text-sm font-bold leading-relaxed text-ink ring-1 ring-warning/15">
-      <span className="mr-1" aria-hidden="true">
-        🛡️
-      </span>
-      {text}
-    </p>
   );
 }
 
@@ -1253,84 +1199,6 @@ async function copyText(text) {
   } catch {
     return false;
   }
-}
-
-/* ========================================================================
-   轻量保险科普模块
-   ======================================================================== */
-
-function InsuranceKnowledgeModule() {
-  const [open, setOpen] = useState(false);
-
-  // 图标映射
-  const iconMap = {
-    '车损自付额': ShieldAlert,
-    '三者险（第三者责任险）': ShieldAlert,
-    '轮胎/轮毂损失': ShieldAlert,
-    '玻璃单独破损': ShieldAlert,
-    '停运费': ShieldAlert,
-    '折旧/贬值损失': ShieldAlert,
-    '司乘保障（车上人员责任险）': ShieldAlert,
-    '医保外医疗费用': ShieldAlert,
-    '免责条款（不予赔偿事项）': ShieldAlert,
-  };
-
-  return (
-    <section className="mt-4 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 text-left"
-      >
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-aquaCard text-pine text-base">
-          🛡️
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-base font-bold leading-tight text-ink">租车保险到底要看什么？</h2>
-          <p className="mt-1 text-xs leading-relaxed text-muted">
-            8 个关键概念，出发前花 1 分钟看一遍
-          </p>
-        </div>
-        {open ? (
-          <ChevronUp size={18} className="shrink-0 text-pine" />
-        ) : (
-          <ChevronDown size={18} className="shrink-0 text-pine" />
-        )}
-      </button>
-
-      {open ? (
-        <div className="mt-4 border-t border-pine/10 pt-4">
-          <div className="grid gap-2">
-            {INSURANCE_TERMS.map((item) => {
-              const Icon = iconMap[item.term] || ShieldAlert;
-              return (
-                <div key={item.term} className="rounded-2xl bg-aquaCard/50 px-3 py-2.5">
-                  <div className="flex items-start gap-2">
-                    <Icon size={14} className="mt-0.5 shrink-0 text-pine" />
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-ink">{item.shortLabel || item.term}</p>
-                      <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
-                        {item.explanation}
-                      </p>
-                      {item.riskNote ? (
-                        <p className="mt-1 rounded-lg bg-amberSoft/25 px-2 py-1 text-[10px] leading-relaxed text-amberDark">
-                          {item.riskNote}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted/70">
-            以上内容只做租车下单前的核对参考，具体权益、费用和免责条件以下单页、合同、保障说明和平台客服解释为准。
-          </p>
-        </div>
-      ) : null}
-    </section>
-  );
 }
 
 function loadPlans() {
