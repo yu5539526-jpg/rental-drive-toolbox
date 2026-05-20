@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { formatMoney } from '../utils/budget.js';
+import { INSURANCE_PLATFORMS } from '../data/insurancePlans.js';
 import {
   getPlatformInsurancePlans,
   findInsurancePlan,
@@ -140,12 +141,28 @@ export default function PriceComparePage() {
 
           <div className="grid gap-4">
             <Field label="平台">
-              <input
-                value={form.platform}
-                onChange={(event) => update('platform', event.target.value)}
-                className={inputClass}
-                placeholder="例如：携程 / 一嗨 / 神州 / 哈啰 / 租租车"
-              />
+              <div className="grid grid-cols-3 gap-2">
+                {INSURANCE_PLATFORMS.map((p) => {
+                  const active = form.platform === p.name;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => update('platform', active ? '' : p.name)}
+                      className={`min-h-12 rounded-[16px] px-2 py-2.5 text-center text-sm font-bold leading-tight transition active:scale-[0.97] ${
+                        active
+                          ? 'bg-pine text-lightText shadow-sm shadow-pine/15'
+                          : 'bg-aquaCard text-pine ring-1 ring-pine/10 hover:bg-mint/60'
+                      }`}
+                    >
+                      {p.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1.5 text-[10px] font-medium leading-relaxed text-muted/70">
+                点击上方选择平台，下方自动展示该平台真实保险方案
+              </p>
             </Field>
             <Field label="车型">
               <input
@@ -168,7 +185,7 @@ export default function PriceComparePage() {
                 onChange={(value) => update('insurancePlan', value)}
               />
             </Field>
-            <Field label="租车总价，含保险">
+            <Field label="租期内租车总价，含保险">
               <div className="relative">
                 <input
                   type="number"
