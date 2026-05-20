@@ -592,69 +592,7 @@ function CompareResult({ stats }) {
 
   return (
     <section className="mt-4 grid gap-4">
-      <div className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-        <h2 className="text-lg font-bold text-ink">本次方案对比结果</h2>
-        <div className="mt-3 grid gap-3">
-          <CompareMetric label="已添加租车方案" value={`${stats.count} 个`} />
-          <CompareMetric label="最低价方案" value={formatPlanLine(stats.lowest)} tone="low" />
-          <CompareMetric label="最高价方案" value={formatPlanLine(stats.highest)} />
-          <CompareMetric label="最高价与最低价相差" value={formatMoney(stats.diff)} tone="warm" />
-          <CompareMetric label="平均价格" value={formatMoney(stats.average)} tone="muted" />
-        </div>
-      </div>
-
-      <PriceRanking plans={stats.sorted} />
-
       <InsuranceCompareTips data={stats.insuranceCompare} plans={stats.sorted} />
-    </section>
-  );
-}
-
-function CompareMetric({ label, value, tone = 'default' }) {
-  const toneClass =
-    tone === 'low'
-      ? 'bg-aquaCard text-pine'
-      : tone === 'warm'
-        ? 'bg-amberSoft/45 text-amberDark'
-        : tone === 'muted'
-          ? 'bg-aquaCard/70 text-ink'
-          : 'bg-aquaCard text-ink';
-
-  return (
-    <div className={`rounded-2xl px-3 py-3 ${toneClass}`}>
-      <p className="text-xs font-bold text-muted">{label}</p>
-      <p className={`mt-1 break-words text-base font-bold leading-snug ${tone === 'low' ? 'text-pine' : tone === 'warm' ? 'text-amberDark' : 'text-ink'}`}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function PriceRanking({ plans }) {
-  return (
-    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold text-muted">从低到高</p>
-          <h2 className="mt-1 text-lg font-bold text-ink">价格排序</h2>
-        </div>
-      </div>
-      <ol className="mt-3 grid gap-2">
-        {plans.map((plan, index) => (
-          <li key={plan.id} className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-2 rounded-2xl bg-aquaCard px-3 py-2.5">
-            <span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${index === 0 ? 'bg-mint text-pine' : 'bg-card text-muted'}`}>
-              {index + 1}
-            </span>
-            <span className="min-w-0">
-              <span className="block break-words text-sm font-bold leading-tight text-ink">
-                {plan.platform}｜{plan.carModel}
-              </span>
-              <span className="mt-1 block break-words text-xs font-medium leading-tight text-muted">{plan.insurancePlan}</span>
-            </span>
-            <span className="shrink-0 text-sm font-bold text-pine">{formatMoney(plan.totalPrice)}</span>
-          </li>
-        ))}
-      </ol>
     </section>
   );
 }
