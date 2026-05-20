@@ -25,6 +25,19 @@ import { findDestinationProfile, buildDestinationContext, getTopVehicleExamples,
 import { getInsuranceAdviceByScenario, getPlatformInsurancePlans, INSURANCE_DISCLAIMER } from '../utils/insuranceUtils.js';
 
 /* ========================================================================
+   目的地类型 → 具体目的地映射（用于获取 JSON 路线数据）
+   ======================================================================== */
+
+const DEST_TYPE_TO_DESTINATION = {
+  'city-short': '',
+  'island-leisure': '海南环岛自驾',
+  'mountain-plateau': '川西小环线',
+  'grassland-long': '伊犁环线',
+  'loop-long': '青甘大环线',
+  unsure: '',
+};
+
+/* ========================================================================
    表单选项定义
    ======================================================================== */
 
@@ -74,9 +87,10 @@ function generateRecommendation(form) {
   const intensityResult = applyIntensity(form.tripIntensity, destAdjust);
   const prefResult = applyPreference(form.preference, intensityResult);
 
-  // 尝试从 JSON 数据中匹配用户输入的目的地
-  const destProfile = findDestinationProfile(form.destination);
-  const destContext = destProfile ? buildDestinationContext(form.destination) : null;
+  // 根据目的地类型自动匹配具体的路线数据
+  const derivedDest = DEST_TYPE_TO_DESTINATION[form.destinationType] || '';
+  const destProfile = derivedDest ? findDestinationProfile(derivedDest) : null;
+  const destContext = derivedDest && destProfile ? buildDestinationContext(derivedDest) : null;
 
   const directions = buildDirections(prefResult, form);
   const reasons = buildReasons(prefResult, form, destContext);
@@ -88,7 +102,7 @@ function generateRecommendation(form) {
 
   return {
     tripProfile: {
-      destination: form.destination || '未填写',
+      destination: destContext ? destContext.name : destTypeLabel,
       type: destTypeLabel,
       people: peopleOptions.find((o) => o.value === form.peopleCount)?.label || '',
       luggage: luggageOptions.find((o) => o.value === form.luggage)?.label || '',
@@ -104,6 +118,7 @@ function generateRecommendation(form) {
     evScore: evLevel,
     evRawScore: evScore,
     destContext,
+    derivedDest,
   };
 }
 
@@ -685,7 +700,6 @@ function getEvLevel(score) {
    ======================================================================== */
 
 const emptyForm = {
-  destination: '',
   destinationType: '',
   peopleCount: '',
   luggage: '',
@@ -707,11 +721,6 @@ export default function CarRecommendPage() {
   const canGenerate = form.destinationType && form.peopleCount && form.luggage && form.tripIntensity && form.preference;
 
   const handleGenerate = () => {
-    if (!form.destination.trim()) {
-      setFeedback('可以先输入一个大致目的地，例如伊犁、川西、海南。');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
     if (!canGenerate) {
       setFeedback('还有选项没选完，补充完整后建议会更准确。');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -755,15 +764,6 @@ export default function CarRecommendPage() {
           </div>
         ) : (
           <div className="mt-4 grid gap-4">
-            <FormField label="你准备去哪自驾？" icon={MapPin}>
-              <input
-                value={form.destination}
-                onChange={(e) => update('destination', e.target.value)}
-                placeholder="例如：伊犁、川西、海南、云南、青甘环线、重庆周边"
-                className="h-12 w-full rounded-[16px] border border-pine/15 bg-aquaCard/70 px-3.5 text-[15px] font-semibold text-ink outline-none transition placeholder:text-muted/55 focus:border-pine focus:bg-card focus:ring-2 focus:ring-pine/10"
-              />
-            </FormField>
-
             <OptionField
               label="目的地类型"
               icon={Compass}
@@ -907,7 +907,7 @@ function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions
   const dc = result.destContext;
   const lines = [
     '【我的车型建议】',
-    `目的地：${form.destination || '未填写'}`,
+    `目的地：${result.tripProfile.destination}`,
     dc ? `路线概况：${dc.intro}` : null,
     `目的地类型：${result.tripProfile.type}`,
     `出行人数：${result.tripProfile.people}`,
@@ -991,7 +991,8 @@ function ResultView({ result, form }) {
   };
 
   // 获取车型示例 + 生成一句话总结 + 关键词 + 不建议理由
-  const topVehicles = getTopVehicleExamples(form.destination, {
+  const derivedDest = result.derivedDest || '';
+  const topVehicles = getTopVehicleExamples(derivedDest, {
     peopleCount: form.peopleCount,
     luggageLevel: form.luggage,
     budgetPreference: form.preference,
@@ -999,7 +1000,7 @@ function ResultView({ result, form }) {
   });
   const oneLiner = buildOneLinerSummary(destContext, result, topVehicles, form);
   const keywords = buildSearchKeywords(topVehicles);
-  const whyNotAdvices = buildWhyNotAdvice(topVehicles, form.destination, {
+  const whyNotAdvices = buildWhyNotAdvice(topVehicles, derivedDest, {
     budgetPreference: form.preference,
     peopleCount: form.peopleCount,
   });
@@ -1363,7 +1364,7 @@ function EnergyRow({ label, tag, tagTone, children }) {
 /** 从用户表单和推荐结果中构建保险建议上下文 */
 function buildInsuranceContext(form, result) {
   return {
-    destination: form.destination || '',
+    destination: result?.tripProfile?.destination || '',
     destinationType: form.destinationType || '',
     tripIntensity: form.tripIntensity || '',
     peopleCount: form.peopleCount || form.people || '',

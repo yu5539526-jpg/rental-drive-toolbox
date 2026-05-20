@@ -396,7 +396,7 @@ const ENERGY_SNIPPETS = {
 };
 
 export function buildOneLinerSummary(destContext, result, topVehicles, form) {
-  const destName = destContext ? destContext.name : (form.destination || '这个目的地');
+  const destName = destContext ? destContext.name : '这个目的地';
   const peopleRaw = form.peopleCount || '';
   const peopleLabel = peopleRaw === '1-2' ? '1-2' : peopleRaw === '3-4' ? '3-4' : peopleRaw === '5' ? '5' : peopleRaw === '6+' ? '6+' : '';
   const luggageRaw = form.luggage || '';
@@ -631,21 +631,14 @@ export function buildTradeOffAdvice(destContext, form) {
 export function buildDataNotice(destContext, topVehicles, form) {
   const notice = { level: null, message: '' };
 
-  // 场景 1：目的地未收录
-  if (!destContext && form.destination && form.destination.trim()) {
-    notice.level = 'info';
-    notice.message = `暂时没有收录"${sanitize(form.destination, '该目的地')}"的详细车型库，会先按路况、人数、预算和能源偏好给你通用建议。`;
-    return notice;
-  }
-
-  // 场景 2：数据不足 — 没有足够车型示例
+  // 场景 1：有路线数据但车型示例不足
   if (destContext && (!topVehicles || topVehicles.length < 2)) {
     notice.level = 'info';
     notice.message = `已匹配到${destContext.name}的路线数据，但当前车型示例较少，可在租车平台按车型级别筛选更多车源。`;
     return notice;
   }
 
-  // 场景 3：能源冲突提示（轻量提醒，不阻断）
+  // 场景 2：能源冲突提示（轻量提醒，不阻断）
   if (destContext && destContext.notRecommendedEnergy.includes('纯电动') && form.preference === 'ev') {
     notice.level = 'tip';
     notice.message = '纯电在这条路线可以选择，但建议提前规划沿途补能点；如果是第一次去，更建议汽油、插混或增程。';
