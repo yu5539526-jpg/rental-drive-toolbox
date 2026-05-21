@@ -1,4 +1,5 @@
 import { ENERGY_DEFAULTS } from '../constants/energyDefaults.js';
+import { findVehicleEnergyProfile } from './vehicleEnergy.js';
 
 const amount = (value) => {
   const parsed = Number(value);
@@ -20,12 +21,13 @@ export const formatPercent = (value) => {
   return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
 };
 
-export function calculateBudget(draft) {
+export function calculateBudget(draft, selectedPlan = null) {
   const tripDays = count(draft.tripDays);
   const people = count(draft.people);
   const mileage = amount(draft.mileage);
-  const energyType = draft.energyType === 'hybrid' ? 'extended' : draft.energyType || 'oil';
-  const energyConfig = ENERGY_DEFAULTS[energyType] || ENERGY_DEFAULTS.oil;
+  const fallbackEnergyType = draft.energyType === 'hybrid' ? 'extended' : draft.energyType || 'oil';
+  const energyConfig = resolveEnergyConfig(fallbackEnergyType, selectedPlan);
+  const energyType = energyConfig.energyType;
   const stayNights = Math.max(tripDays - 1, 0);
   const energyCost = energyConfig.getCost(mileage);
 
@@ -65,6 +67,9 @@ export function calculateBudget(draft) {
     energyType,
     energyLabel: energyConfig.label,
     energyUnitText: energyConfig.unitText,
+    energyFormulaText: energyConfig.formulaText,
+    energySource: energyConfig.source,
+    matchedVehicleName: energyConfig.matchedVehicleName,
     energyCost: roundMoney(energyCost),
     vehicleTransport: roundMoney(vehicleTransport),
     lodging: roundMoney(lodging),
@@ -94,6 +99,52 @@ export function calculateBudget(draft) {
     ...result,
     suggestions: getBudgetSuggestions({ draft, result, rawVehicleCostRatio: vehicleCostRatio, lodging, scenic, baseActual }),
   };
+}
+
+function resolveEnergyConfig(fallbackEnergyType, selectedPlan) {
+  const safeType = ENERGY_DEFAULTS[fallbackEnergyType] ? fallbackEnergyType : 'oil';
+  const fallbackConfig = {
+    ...ENERGY_DEFAULTS[safeType],
+    energyType: safeType,
+    source: 'default',
+    matchedVehicleName: '',
+  };
+  const profile = findVehicleEnergyProfile(selectedPlan?.carModel);
+
+  if (!profile) return fallbackConfig;
+
+  const fuelPrice = ENERGY_DEFAULTS.oil.fuelPrice;
+  const electricPrice = ENERGY_DEFAULTS.electric.electricPrice;
+
+  if (profile.budgetEnergyType === 'electric' && profile.electricConsumption) {
+    return {
+      label: profile.rawEnergyType || ENERGY_DEFAULTS.electric.label,
+      electricConsumption: profile.electricConsumption,
+      electricPrice,
+      unitText: `${profile.electricConsumption}kWh/100km，公共充电 ${electricPrice}元/kWh`,
+      formulaText: `总里程 / 100 * ${profile.electricConsumption} * ${electricPrice}`,
+      getCost: (mileage) => (mileage / 100) * profile.electricConsumption * electricPrice,
+      energyType: 'electric',
+      source: 'vehicle',
+      matchedVehicleName: profile.displayName,
+    };
+  }
+
+  if ((profile.budgetEnergyType === 'oil' || profile.budgetEnergyType === 'extended') && profile.fuelConsumption) {
+    return {
+      label: profile.rawEnergyType || ENERGY_DEFAULTS[profile.budgetEnergyType].label,
+      fuelConsumption: profile.fuelConsumption,
+      fuelPrice,
+      unitText: `${profile.fuelConsumption}L/100km，汽油 ${fuelPrice}元/L`,
+      formulaText: `总里程 / 100 * ${profile.fuelConsumption} * ${fuelPrice}`,
+      getCost: (mileage) => (mileage / 100) * profile.fuelConsumption * fuelPrice,
+      energyType: profile.budgetEnergyType,
+      source: 'vehicle',
+      matchedVehicleName: profile.displayName,
+    };
+  }
+
+  return fallbackConfig;
 }
 
 function getBudgetLevel(perPerson) {

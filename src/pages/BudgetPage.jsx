@@ -58,7 +58,7 @@ export default function BudgetPage() {
   const [feedback, setFeedback] = useState('填写任意费用后，预算结果会立刻同步刷新。');
   const prefillAppliedRef = useRef(false);
   const lastSavedRef = useRef(null);
-  const result = useMemo(() => calculateBudget(draft), [draft]);
+  const result = useMemo(() => calculateBudget(draft, selectedPlan), [draft, selectedPlan]);
   const hasUnsavedChanges = useMemo(() => {
     const current = JSON.stringify({ draft, selectedPlan });
     if (lastSavedRef.current === null) {
@@ -915,9 +915,16 @@ function BudgetCardFeeRow({ label, value, percent }) {
 
 function EnergyInfoCard({ selectedType, result, compact = false }) {
   const [open, setOpen] = useState(false);
-  const safeType = selectedType === 'hybrid' ? 'extended' : selectedType || 'oil';
+  const safeType = result.energyType || (selectedType === 'hybrid' ? 'extended' : selectedType || 'oil');
   const current = ENERGY_DEFAULTS[safeType] || ENERGY_DEFAULTS.oil;
   const rules = ['oil', 'electric', 'extended'].map((type) => ENERGY_DEFAULTS[type]);
+  const usesVehicleEnergy = result.energySource === 'vehicle' && result.matchedVehicleName;
+  const summaryText = usesVehicleEnergy
+    ? `已按${result.matchedVehicleName}的车型能耗估算，点击查看计算规则`
+    : '未匹配到具体车型时按通用经验值估算，点击查看计算规则';
+  const currentLabel = usesVehicleEnergy ? result.energyLabel : current.label;
+  const currentUnitText = usesVehicleEnergy ? result.energyUnitText : current.unitText;
+  const currentFormulaText = usesVehicleEnergy ? result.energyFormulaText : current.formulaText;
 
   return (
     <section className={`rounded-[24px] bg-aquaCard p-4 ring-1 ring-pine/10 ${compact ? '' : 'shadow-sm'}`}>
@@ -927,9 +934,7 @@ function EnergyInfoCard({ selectedType, result, compact = false }) {
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-bold text-ink">能源费用估算说明</h2>
-          <p className="mt-1 text-xs font-medium leading-relaxed text-muted">
-            当前按通用经验值估算，点击查看计算规则
-          </p>
+          <p className="mt-1 text-xs font-medium leading-relaxed text-muted">{summaryText}</p>
         </div>
         <ChevronDown size={18} className={`mt-2 shrink-0 text-pine transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -937,17 +942,27 @@ function EnergyInfoCard({ selectedType, result, compact = false }) {
       {open ? (
         <div className="mt-4 grid gap-2.5">
           <p className="rounded-2xl bg-card px-3 py-2 text-xs font-bold leading-relaxed text-pine">
-            当前选择：{current.label}，预计能源费用 {formatMoney(result.energyCost)}。
+            {usesVehicleEnergy ? `当前匹配：${result.matchedVehicleName}（${currentLabel}）` : `当前选择：${currentLabel}`}，预计能源费用 {formatMoney(result.energyCost)}。
           </p>
-          {rules.map((rule) => (
-            <div key={rule.label} className="rounded-2xl bg-card px-3 py-2.5">
+          {usesVehicleEnergy ? (
+            <div className="rounded-2xl bg-card px-3 py-2.5">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-bold text-ink">{rule.label}</p>
-                <p className="shrink-0 text-xs font-bold text-muted">{rule.unitText}</p>
+                <p className="text-sm font-bold text-ink">具体车型</p>
+                <p className="shrink-0 text-xs font-bold text-muted">{currentUnitText}</p>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-muted">公式：{rule.formulaText}</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted">公式：{currentFormulaText}</p>
             </div>
-          ))}
+          ) : (
+            rules.map((rule) => (
+              <div key={rule.label} className="rounded-2xl bg-card px-3 py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-bold text-ink">{rule.label}</p>
+                  <p className="shrink-0 text-xs font-bold text-muted">{rule.unitText}</p>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-muted">公式：{rule.formulaText}</p>
+              </div>
+            ))
+          )}
           {!compact ? <p className="text-xs leading-relaxed text-muted">{ENERGY_NOTE}</p> : null}
         </div>
       ) : null}
@@ -1026,6 +1041,9 @@ function buildBudgetCardData(result, draft) {
     ['其他费用', result.otherFees],
   ];
   const report = buildBudgetReport(result);
+  const energyLabel = result.matchedVehicleName
+    ? `${result.energyLabel} · ${result.matchedVehicleName}`
+    : result.energyLabel;
 
   return {
     baseInfo: [
@@ -1034,7 +1052,7 @@ function buildBudgetCardData(result, draft) {
       ['出行天数', `${result.tripDays} 天`],
       ['出行人数', `${result.people} 人`],
       ['租车天数', `${Number(draft.rentalDays) || result.tripDays} 天`],
-      ['能源类型', result.energyLabel],
+      ['能源类型', energyLabel],
     ],
     feeCards,
     splitTotal: Math.max(feeCards.reduce((total, [, value]) => total + value, 0), 1),
@@ -1096,6 +1114,9 @@ async function copyText(text) {
 }
 
 function buildBudgetCopyText(result, draft, selectedPlan) {
+  const energyEstimateText = result.matchedVehicleName
+    ? `按${result.matchedVehicleName}估算（${result.energyUnitText}）`
+    : `按通用经验值估算（${result.energyUnitText}）`;
   const lines = [
     '我的自驾预算结果：',
     `目的地：${draft.destination || '未填写'}`,
@@ -1104,6 +1125,7 @@ function buildBudgetCopyText(result, draft, selectedPlan) {
     `出行人数：${result.people} 人`,
     `租车天数：${Number(draft.rentalDays) || result.tripDays} 天`,
     `能源类型：${result.energyLabel || '未填写'}`,
+    `能源估算：${energyEstimateText}`,
     '',
   ];
 

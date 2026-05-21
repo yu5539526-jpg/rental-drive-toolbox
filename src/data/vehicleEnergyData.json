@@ -1,0 +1,978 @@
+﻿[
+    {
+        "vehicleId":  "V001",
+        "brand":  "比亚迪",
+        "model":  "秦PLUS DM-i",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合3.8L/100km",
+        "energyConsumption":  "约14kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V002",
+        "brand":  "丰田",
+        "model":  "卡罗拉",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V003",
+        "brand":  "日产",
+        "model":  "轩逸",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.2L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V004",
+        "brand":  "大众",
+        "model":  "朗逸",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.4L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V005",
+        "brand":  "比亚迪",
+        "model":  "海豚",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约12kWh/100km"
+    },
+    {
+        "vehicleId":  "V006",
+        "brand":  "比亚迪",
+        "model":  "宋PLUS DM-i",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合4.5L/100km",
+        "energyConsumption":  "约16kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V007",
+        "brand":  "特斯拉",
+        "model":  "Model Y",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约15kWh/100km"
+    },
+    {
+        "vehicleId":  "V008",
+        "brand":  "丰田",
+        "model":  "RAV4",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V009",
+        "brand":  "本田",
+        "model":  "CR-V",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V010",
+        "brand":  "哈弗",
+        "model":  "H6",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V011",
+        "brand":  "理想",
+        "model":  "L7",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合7.0L/100km(馈电)",
+        "energyConsumption":  "约18kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V012",
+        "brand":  "理想",
+        "model":  "L8",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合7.2L/100km(馈电)",
+        "energyConsumption":  "约19kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V013",
+        "brand":  "问界",
+        "model":  "M7",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合7.0L/100km(馈电)",
+        "energyConsumption":  "约18kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V014",
+        "brand":  "问界",
+        "model":  "M9",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合6.5L/100km(馈电)",
+        "energyConsumption":  "约20kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V015",
+        "brand":  "腾势",
+        "model":  "D9",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合5.5L/100km",
+        "energyConsumption":  "约20kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V016",
+        "brand":  "别克",
+        "model":  "GL8",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合9.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V017",
+        "brand":  "坦克",
+        "model":  "300",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合11.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V018",
+        "brand":  "哈弗",
+        "model":  "大狗",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V019",
+        "brand":  "丰田",
+        "model":  "汉兰达",
+        "energyType":  "油电混动",
+        "fuelConsumption":  "综合6.0L/100km",
+        "energyConsumption":  "不适用（油电混动无需外部充电）"
+    },
+    {
+        "vehicleId":  "V020",
+        "brand":  "大众",
+        "model":  "途昂",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合9.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V021",
+        "brand":  "丰田",
+        "model":  "普拉多",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合10.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V022",
+        "brand":  "特斯拉",
+        "model":  "Model 3",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约13.5kWh/100km"
+    },
+    {
+        "vehicleId":  "V023",
+        "brand":  "小米",
+        "model":  "SU7",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约15kWh/100km"
+    },
+    {
+        "vehicleId":  "V024",
+        "brand":  "比亚迪",
+        "model":  "汉 DM-i",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合4.2L/100km",
+        "energyConsumption":  "约17kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V025",
+        "brand":  "理想",
+        "model":  "L6",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合6.5L/100km(馈电)",
+        "energyConsumption":  "约17kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V026",
+        "brand":  "理想",
+        "model":  "L9",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合7.0L/100km(馈电)",
+        "energyConsumption":  "约20kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V027",
+        "brand":  "比亚迪",
+        "model":  "唐 DM-i",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合5.5L/100km",
+        "energyConsumption":  "约19kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V028",
+        "brand":  "方程豹",
+        "model":  "豹5",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合8.0L/100km(馈电)",
+        "energyConsumption":  "约22kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V029",
+        "brand":  "捷途",
+        "model":  "旅行者",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V030",
+        "brand":  "丰田",
+        "model":  "卡罗拉锐放",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V031",
+        "brand":  "大众",
+        "model":  "探歌",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V032",
+        "brand":  "哈弗",
+        "model":  "H9",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合11.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V033",
+        "brand":  "丰田",
+        "model":  "赛那",
+        "energyType":  "油电混动",
+        "fuelConsumption":  "综合5.77L/100km",
+        "energyConsumption":  "不适用（油电混动无需外部充电）"
+    },
+    {
+        "vehicleId":  "V034",
+        "brand":  "传祺",
+        "model":  "M8",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V035",
+        "brand":  "大众",
+        "model":  "威然",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V036",
+        "brand":  "极氪",
+        "model":  "009",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约19kWh/100km"
+    },
+    {
+        "vehicleId":  "V037",
+        "brand":  "小鹏",
+        "model":  "X9",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约18kWh/100km"
+    },
+    {
+        "vehicleId":  "V038",
+        "brand":  "小鹏",
+        "model":  "P7",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约15.5kWh/100km"
+    },
+    {
+        "vehicleId":  "V039",
+        "brand":  "蔚来",
+        "model":  "ES6",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约18kWh/100km"
+    },
+    {
+        "vehicleId":  "V040",
+        "brand":  "吉利",
+        "model":  "星越L",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V041",
+        "brand":  "魏牌",
+        "model":  "蓝山",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合6.5L/100km(馈电)",
+        "energyConsumption":  "约19kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V042",
+        "brand":  "比亚迪",
+        "model":  "海鸥",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约10kWh/100km"
+    },
+    {
+        "vehicleId":  "V043",
+        "brand":  "比亚迪",
+        "model":  "海豹06 DM-i",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合3.8L/100km",
+        "energyConsumption":  "约14kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V044",
+        "brand":  "比亚迪",
+        "model":  "宋Pro DM-i",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合4.4L/100km",
+        "energyConsumption":  "约16kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V045",
+        "brand":  "比亚迪",
+        "model":  "元PLUS",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约14kWh/100km"
+    },
+    {
+        "vehicleId":  "V046",
+        "brand":  "比亚迪",
+        "model":  "秦L DM-i",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合3.8L/100km",
+        "energyConsumption":  "约13.5kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V047",
+        "brand":  "比亚迪",
+        "model":  "海豹07 DM-i",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合4.0L/100km",
+        "energyConsumption":  "约15kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V048",
+        "brand":  "吉利",
+        "model":  "星瑞",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.2L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V049",
+        "brand":  "吉利",
+        "model":  "博越L",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.4L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V050",
+        "brand":  "吉利",
+        "model":  "帝豪",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.6L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V051",
+        "brand":  "领克",
+        "model":  "08 EM-P",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合5.5L/100km(馈电)",
+        "energyConsumption":  "约18kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V052",
+        "brand":  "领克",
+        "model":  "900",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合6.5L/100km(馈电)",
+        "energyConsumption":  "约21kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V053",
+        "brand":  "极氪",
+        "model":  "001",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约18kWh/100km"
+    },
+    {
+        "vehicleId":  "V054",
+        "brand":  "极氪",
+        "model":  "7X",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约16kWh/100km"
+    },
+    {
+        "vehicleId":  "V055",
+        "brand":  "长安",
+        "model":  "CS75 PLUS",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V056",
+        "brand":  "长安",
+        "model":  "逸动 PLUS",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V057",
+        "brand":  "深蓝汽车",
+        "model":  "S07",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合5.5L/100km(馈电)",
+        "energyConsumption":  "约17kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V058",
+        "brand":  "深蓝汽车",
+        "model":  "SL03",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合5.0L/100km(馈电)",
+        "energyConsumption":  "约15kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V059",
+        "brand":  "奇瑞",
+        "model":  "瑞虎8 PRO",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V060",
+        "brand":  "奇瑞",
+        "model":  "艾瑞泽8",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V061",
+        "brand":  "捷途",
+        "model":  "X70 PLUS",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V062",
+        "brand":  "iCAR",
+        "model":  "03",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约15kWh/100km"
+    },
+    {
+        "vehicleId":  "V063",
+        "brand":  "哈弗",
+        "model":  "猛龙",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合5.9L/100km(馈电)",
+        "energyConsumption":  "约18kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V064",
+        "brand":  "哈弗",
+        "model":  "枭龙MAX",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合5.5L/100km(馈电)",
+        "energyConsumption":  "约18kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V065",
+        "brand":  "坦克",
+        "model":  "500 Hi4-T",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合9.5L/100km(馈电)",
+        "energyConsumption":  "约24kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V066",
+        "brand":  "坦克",
+        "model":  "400 Hi4-T",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合9.3L/100km(馈电)",
+        "energyConsumption":  "约23kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V067",
+        "brand":  "小鹏",
+        "model":  "G6",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约15kWh/100km"
+    },
+    {
+        "vehicleId":  "V068",
+        "brand":  "小鹏",
+        "model":  "MONA M03",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约12kWh/100km"
+    },
+    {
+        "vehicleId":  "V069",
+        "brand":  "小鹏",
+        "model":  "P7+",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约14kWh/100km"
+    },
+    {
+        "vehicleId":  "V070",
+        "brand":  "蔚来",
+        "model":  "ET5",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约17kWh/100km"
+    },
+    {
+        "vehicleId":  "V071",
+        "brand":  "蔚来",
+        "model":  "ET5T",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约18kWh/100km"
+    },
+    {
+        "vehicleId":  "V072",
+        "brand":  "零跑",
+        "model":  "C11",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合5.5L/100km(馈电)",
+        "energyConsumption":  "约17kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V073",
+        "brand":  "零跑",
+        "model":  "C16",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合6.0L/100km(馈电)",
+        "energyConsumption":  "约19kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V074",
+        "brand":  "小米",
+        "model":  "YU7",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约17kWh/100km(预估)"
+    },
+    {
+        "vehicleId":  "V075",
+        "brand":  "问界",
+        "model":  "M5",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合6.0L/100km(馈电)",
+        "energyConsumption":  "约17kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V076",
+        "brand":  "问界",
+        "model":  "M8",
+        "energyType":  "增程式",
+        "fuelConsumption":  "综合6.5L/100km(馈电)",
+        "energyConsumption":  "约19kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V077",
+        "brand":  "大众",
+        "model":  "速腾",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.7L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V078",
+        "brand":  "大众",
+        "model":  "迈腾",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V079",
+        "brand":  "大众",
+        "model":  "帕萨特",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V080",
+        "brand":  "大众",
+        "model":  "高尔夫",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V081",
+        "brand":  "大众",
+        "model":  "途观L",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V082",
+        "brand":  "大众",
+        "model":  "探岳",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.7L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V083",
+        "brand":  "丰田",
+        "model":  "凯美瑞",
+        "energyType":  "油电混动",
+        "fuelConsumption":  "综合4.8L/100km",
+        "energyConsumption":  "不适用（油电混动无需外部充电）"
+    },
+    {
+        "vehicleId":  "V084",
+        "brand":  "本田",
+        "model":  "雅阁",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V085",
+        "brand":  "本田",
+        "model":  "飞度",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V086",
+        "brand":  "日产",
+        "model":  "逍客",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V087",
+        "brand":  "日产",
+        "model":  "奇骏",
+        "energyType":  "油电混动",
+        "fuelConsumption":  "综合5.8L/100km",
+        "energyConsumption":  "不适用（油电混动无需外部充电）"
+    },
+    {
+        "vehicleId":  "V088",
+        "brand":  "别克",
+        "model":  "君威",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.1L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V089",
+        "brand":  "别克",
+        "model":  "昂科威",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V090",
+        "brand":  "宝马",
+        "model":  "3系",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V091",
+        "brand":  "宝马",
+        "model":  "5系",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V092",
+        "brand":  "宝马",
+        "model":  "X3",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V093",
+        "brand":  "奔驰",
+        "model":  "C级",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.2L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V094",
+        "brand":  "奔驰",
+        "model":  "GLC",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V095",
+        "brand":  "奥迪",
+        "model":  "A4L",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V096",
+        "brand":  "奥迪",
+        "model":  "A6L",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V097",
+        "brand":  "奥迪",
+        "model":  "Q5L",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V098",
+        "brand":  "沃尔沃",
+        "model":  "XC60",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V099",
+        "brand":  "凯迪拉克",
+        "model":  "CT5",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V100",
+        "brand":  "丰田",
+        "model":  "格瑞维亚",
+        "energyType":  "油电混动",
+        "fuelConsumption":  "综合5.8L/100km",
+        "energyConsumption":  "不适用（油电混动无需外部充电）"
+    },
+    {
+        "vehicleId":  "V101",
+        "brand":  "广汽传祺",
+        "model":  "M6 PRO",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V102",
+        "brand":  "广汽传祺",
+        "model":  "E8",
+        "energyType":  "插电混动",
+        "fuelConsumption":  "综合5.5L/100km",
+        "energyConsumption":  "约18kWh/100km（纯电模式）"
+    },
+    {
+        "vehicleId":  "V103",
+        "brand":  "五菱",
+        "model":  "星光",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合6.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V104",
+        "brand":  "五菱",
+        "model":  "缤果",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约10kWh/100km"
+    },
+    {
+        "vehicleId":  "V105",
+        "brand":  "宝骏",
+        "model":  "云朵",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约12kWh/100km"
+    },
+    {
+        "vehicleId":  "V106",
+        "brand":  "福特",
+        "model":  "蒙迪欧",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V107",
+        "brand":  "福特",
+        "model":  "锐界L",
+        "energyType":  "油电混动",
+        "fuelConsumption":  "综合6.5L/100km",
+        "energyConsumption":  "不适用（油电混动无需外部充电）"
+    },
+    {
+        "vehicleId":  "V108",
+        "brand":  "马自达",
+        "model":  "CX-50行也",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.8L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V109",
+        "brand":  "捷尼赛思",
+        "model":  "G80",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合8.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V110",
+        "brand":  "大众",
+        "model":  "宝来",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合5.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V111",
+        "brand":  "大众",
+        "model":  "揽境",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合10.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V112",
+        "brand":  "丰田",
+        "model":  "皇冠陆放",
+        "energyType":  "油电混动",
+        "fuelConsumption":  "综合5.8L/100km",
+        "energyConsumption":  "不适用（油电混动无需外部充电）"
+    },
+    {
+        "vehicleId":  "V113",
+        "brand":  "捷达",
+        "model":  "VS5",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.2L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V114",
+        "brand":  "奥迪",
+        "model":  "Q3",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V115",
+        "brand":  "广汽传祺",
+        "model":  "M6",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V116",
+        "brand":  "奔驰",
+        "model":  "威霆",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合10.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V117",
+        "brand":  "别克",
+        "model":  "微蓝6",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约13kWh/100km"
+    },
+    {
+        "vehicleId":  "V118",
+        "brand":  "大众",
+        "model":  "ID.4 X",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约15kWh/100km"
+    },
+    {
+        "vehicleId":  "V119",
+        "brand":  "领克",
+        "model":  "01",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.5L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V120",
+        "brand":  "宝马",
+        "model":  "2系敞篷",
+        "energyType":  "汽油",
+        "fuelConsumption":  "综合7.0L/100km",
+        "energyConsumption":  "不适用"
+    },
+    {
+        "vehicleId":  "V121",
+        "brand":  "广汽埃安",
+        "model":  "AION Y",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约14kWh/100km"
+    },
+    {
+        "vehicleId":  "V122",
+        "brand":  "广汽埃安",
+        "model":  "AION S",
+        "energyType":  "纯电动",
+        "fuelConsumption":  "不适用",
+        "energyConsumption":  "约13kWh/100km"
+    }
+]
