@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
+  Download,
   Fuel,
   Image,
   Info,
@@ -752,6 +753,8 @@ function ResultActionButton({ children, icon, onClick }) {
 
 function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
   const [copyStatus, setCopyStatus] = useState('');
+  const [saveStatus, setSaveStatus] = useState('idle');
+  const cardRef = useRef(null);
   const cardData = useMemo(() => buildBudgetCardData(result, draft), [result, draft]);
 
   if (!open) return null;
@@ -759,6 +762,41 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
   const copyCardText = async () => {
     const ok = await copyText(buildBudgetCopyText(result, draft, selectedPlan));
     setCopyStatus(ok ? '文字版预算卡已复制。' : '复制失败，可以稍后再试。');
+  };
+
+  const saveBudgetCardImage = async () => {
+    if (!cardRef.current || saveStatus === 'saving') return;
+
+    setSaveStatus('saving');
+    setCopyStatus('');
+
+    try {
+      const blob = await exportElementToPngBlob(cardRef.current, { pixelRatio: 2 });
+      const fileName = buildBudgetCardImageName(draft.destination);
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+        await navigator.share({
+          title: '我的自驾预算卡',
+          text: '我的自驾预算卡',
+          files: [file],
+        });
+      } else {
+        downloadBlob(blob, fileName);
+      }
+
+      setSaveStatus('saved');
+      setCopyStatus('预算卡已生成，可保存或分享。');
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        setSaveStatus('idle');
+        setCopyStatus('已取消保存，可重新点击生成预算卡。');
+        return;
+      }
+
+      setSaveStatus('idle');
+      setCopyStatus('保存失败，可先使用截图或复制文字版。');
+    }
   };
 
   return (
@@ -779,10 +817,10 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
 
         <div className="min-h-0 flex-1 overflow-y-auto pb-4">
           <div className="mx-4 mt-4 rounded-2xl bg-aquaCard px-3 py-2 text-center text-xs font-bold leading-relaxed text-pine">
-            适合截图保存或发给同行人。
+            可保存成长图或发给同行人。
           </div>
 
-          <div className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-[390px] overflow-hidden rounded-[24px] border border-pine/10 bg-gradient-to-br from-cream via-aquaCard to-amberSoft/45 shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
+          <div ref={cardRef} className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-[390px] overflow-hidden rounded-[24px] border border-pine/10 bg-gradient-to-br from-cream via-aquaCard to-amberSoft/45 shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
             <div className="bg-gradient-to-b from-[#174B63] to-[#1E6B8A] px-5 pb-5 pt-4 text-lightText">
               <p className="text-xs font-bold text-white/70">pYuY 租车自驾工具箱</p>
               <h3 className="mt-2 text-2xl font-bold leading-tight">我的自驾预算卡</h3>
@@ -858,7 +896,7 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
           </div>
 
           <p className="mx-4 mt-3 rounded-2xl bg-aquaCard px-3 py-2 text-center text-xs font-bold leading-relaxed text-pine">
-            可以截图保存或复制文字版。
+            可以保存成长图或复制文字版。
           </p>
           {copyStatus ? <p className="mx-4 mt-2 text-center text-xs font-bold text-muted">{copyStatus}</p> : null}
         </div>
@@ -868,9 +906,9 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
             <Copy size={18} />
             复制文字版
           </BottomActionButton>
-          <BottomActionButton type="button" onClick={onClose}>
-            <CheckCircle2 size={17} />
-            我已截图保存
+          <BottomActionButton type="button" onClick={saveBudgetCardImage} disabled={saveStatus === 'saving'}>
+            {saveStatus === 'saved' ? <CheckCircle2 size={17} /> : <Download size={17} />}
+            {saveStatus === 'saving' ? '正在生成' : saveStatus === 'saved' ? '已生成' : '保存预算卡'}
           </BottomActionButton>
         </div>
       </div>
@@ -1111,6 +1149,116 @@ async function copyText(text) {
   } catch {
     return false;
   }
+}
+
+async function exportElementToPngBlob(element, options = {}) {
+  const pixelRatio = options.pixelRatio || 2;
+  const rect = element.getBoundingClientRect();
+  const width = Math.ceil(rect.width);
+  const height = Math.ceil(element.scrollHeight || rect.height);
+
+  if (!width || !height) {
+    throw new Error('budget-card-empty');
+  }
+
+  const clone = element.cloneNode(true);
+  inlineComputedStyles(element, clone);
+  clone.setAttribute(
+    'style',
+    `${clone.getAttribute('style') || ''};width:${width}px;height:${height}px;margin:0;box-sizing:border-box;`,
+  );
+
+  const serializedNode = new XMLSerializer().serializeToString(clone);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <foreignObject width="100%" height="100%" x="0" y="0">
+        <div xmlns="http://www.w3.org/1999/xhtml">${serializedNode}</div>
+      </foreignObject>
+    </svg>
+  `;
+
+  const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+
+  try {
+    const image = new window.Image();
+    await loadImage(image, svgUrl);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width * pixelRatio;
+    canvas.height = height * pixelRatio;
+
+    const context = canvas.getContext('2d');
+    context.scale(pixelRatio, pixelRatio);
+    context.drawImage(image, 0, 0, width, height);
+
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error('budget-card-export-failed'));
+        }
+      }, 'image/png');
+    });
+  } finally {
+    URL.revokeObjectURL(svgUrl);
+  }
+}
+
+function loadImage(image, src) {
+  return new Promise((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error('budget-card-image-load-failed'));
+    image.decoding = 'async';
+    image.src = src;
+
+    if (image.decode) {
+      image.decode().then(resolve).catch(() => {
+        // Some mobile browsers reject decode for SVG but still fire onload.
+      });
+    }
+  });
+}
+
+function inlineComputedStyles(source, target) {
+  if (!(source instanceof Element) || !(target instanceof Element)) return;
+
+  const computedStyle = window.getComputedStyle(source);
+  let styleText = '';
+
+  for (const property of computedStyle) {
+    styleText += `${property}:${computedStyle.getPropertyValue(property)};`;
+  }
+
+  target.setAttribute('style', styleText);
+
+  const sourceChildren = Array.from(source.children);
+  const targetChildren = Array.from(target.children);
+
+  sourceChildren.forEach((child, index) => {
+    inlineComputedStyles(child, targetChildren[index]);
+  });
+}
+
+function buildBudgetCardImageName(destination) {
+  const safeDestination = String(destination || '自驾预算')
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, '')
+    .slice(0, 16) || '自驾预算';
+  const date = new Date().toISOString().slice(0, 10);
+  return `自驾预算卡-${safeDestination}-${date}.png`;
+}
+
+function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function buildBudgetCopyText(result, draft, selectedPlan) {
