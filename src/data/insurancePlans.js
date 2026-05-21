@@ -560,7 +560,7 @@ export const INSURANCE_PLANS = [
     },
     tireWheel: {
       covered: false,
-      note: '轮胎/轮毂破损通常不予豁免，用户额外承担',
+      note: '不赔偿轮胎、轮毂单独损失，相关费用由用户承担',
     },
     glass: {
       covered: true,
@@ -623,8 +623,8 @@ export const INSURANCE_PLANS = [
       note: '从基本保障 20 万提升至 30 万',
     },
     tireWheel: {
-      covered: '下单页待复核',
-      note: '截图未单独列明轮胎/轮毂',
+      covered: '以条款为准',
+      note: '请以下单页保障条款为准',
     },
     glass: {
       covered: '下单页待复核',
@@ -686,8 +686,8 @@ export const INSURANCE_PLANS = [
       note: '从基本保障 20 万提升至 30 万',
     },
     tireWheel: {
-      covered: '下单页待复核',
-      note: '截图未单独列明轮胎/轮毂',
+      covered: '以条款为准',
+      note: '请以下单页保障条款为准',
     },
     glass: {
       covered: '下单页待复核',
@@ -747,8 +747,8 @@ export const INSURANCE_PLANS = [
       note: '从基本保障 20 万提升至 100 万',
     },
     tireWheel: {
-      covered: '下单页待复核',
-      note: '截图未单独列明轮胎/轮毂',
+      covered: '以条款为准',
+      note: '请以下单页保障条款为准',
     },
     glass: {
       covered: '下单页待复核',
@@ -808,8 +808,8 @@ export const INSURANCE_PLANS = [
       note: '从基本保障 20 万提升至 120 万',
     },
     tireWheel: {
-      covered: '下单页待复核',
-      note: '截图未单独列明轮胎/轮毂',
+      covered: '以条款为准',
+      note: '请以下单页保障条款为准',
     },
     glass: {
       covered: '下单页待复核',
@@ -870,7 +870,7 @@ export const INSURANCE_PLANS = [
     },
     tireWheel: {
       covered: false,
-      note: '本车车损仍保留 1500 元内客户承担，轮胎/轮毂未单独列明',
+      note: '不赔偿轮胎、轮毂单独损失，相关费用由用户承担',
     },
     glass: {
       covered: '下单页待复核',
@@ -1442,8 +1442,8 @@ export const INSURANCE_SCENARIO_RULES = [
       const destName = (ctx.destination || '').toLowerCase();
       const keywords = [
         'mountain', 'plateau', '山路', '高原', '川西', '西藏', '新疆', '伊犁',
-        '独库', '赛里木湖', '那拉提', '甘南', '云南山区', '青甘',
-        'mountain-plateau', 'grassland-long',
+        '独库', '赛里木湖', '那拉提', '甘南', '云南山区', '云南', '香格里拉', '昆大丽香', '青甘',
+        'mountain-plateau', 'yunnan-mountain', 'grassland-long',
       ];
       return keywords.some((kw) => dest.includes(kw) || destName.includes(kw));
     },
@@ -1462,6 +1462,7 @@ export const INSURANCE_SCENARIO_RULES = [
       return (
         dest.includes('loop-long') ||
         dest.includes('grassland-long') ||
+        dest.includes('yunnan-mountain') ||
         intensity === 'high' ||
         (Number(ctx.tripDays) > 5)
       );
@@ -1551,8 +1552,8 @@ export const INSURANCE_CHECKLIST_TIPS = {
       premiumNotice: '携程剐蹭无忧/全程无忧已覆盖轮胎和停运费，验车重点可以放在车身已有损伤的清晰留证上。',
     },
     '1hai': {
-      basicNotice: '一嗨基本保障服务费中轮胎/轮毂通常不免、停运费按合同承担、车损达 5000 元另收 20% 贬值费。建议四轮逐一拍清楚，车身已有划痕拍近景。',
-      premiumNotice: '一嗨补充保障（除乘客守护外）车损和停运费客户承担 0，但仍需注意免予赔偿条款。还车时发现新损伤需提供事故证明等材料。',
+      basicNotice: '一嗨基本保障服务费不赔偿轮胎、轮毂单独损失，停运费按合同承担，车损达 5000 元另收 20% 贬值费。建议四轮逐一拍清楚，车身已有划痕拍近景。',
+      premiumNotice: '一嗨乘客守护不赔偿轮胎、轮毂单独损失；其他补充保障请以下单页条款为准。还车时发现新损伤需提供事故证明等材料。',
     },
     shenzhou: {
       basicNotice: '神州基础保障不赔车轮单独损失和无明显碰撞痕迹的车身划痕。但基础保障已含停运费覆盖和全车盗抢险。建议重点拍摄轮胎轮毂。',

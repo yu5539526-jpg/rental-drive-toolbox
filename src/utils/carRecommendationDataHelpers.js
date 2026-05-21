@@ -496,12 +496,14 @@ export function buildDestinationContext(destinationInput) {
    7. buildOneLinerSummary — 生成推荐结论的一句话口语总结
    ======================================================================== */
 
-const ROUTE_SNIPPETS = {
-  伊犁环线: '路线长、景点分散',
-  川西小环线: '高原和山路场景比较多',
-  青甘大环线: '距离超长、戈壁荒漠路段多',
-  海南环岛自驾: '路况轻松、补能方便',
-  昆大丽香线: '海拔逐步升高、山路弯多',
+const DESTINATION_TYPE_SNIPPETS = {
+  'city-short': '路况简单',
+  'island-leisure': '补能友好',
+  'mountain-plateau': '山路和海拔变化多',
+  'yunnan-mountain': '城市和山路混合',
+  'grassland-long': '路线长、景点分散',
+  'loop-long': '长途和补能压力更高',
+  unsure: '先按稳妥方案',
 };
 
 const ENERGY_SNIPPETS = {
@@ -513,29 +515,21 @@ const ENERGY_SNIPPETS = {
 };
 
 export function buildOneLinerSummary(destContext, result, topVehicles, form) {
-  const destName = destContext ? destContext.name : '这个目的地';
+  const destName = result?.tripProfile?.type || '这类路线';
   const peopleRaw = form.peopleCount || '';
   const peopleLabel = peopleRaw === '1-2' ? '1-2' : peopleRaw === '3-4' ? '3-4' : peopleRaw === '5' ? '5' : peopleRaw === '6+' ? '6+' : '';
   const luggageRaw = form.luggage || '';
   const luggageLabel = luggageRaw === 'light' ? '行李不多' : luggageRaw === 'medium' ? '行李适中' : luggageRaw === 'heavy' ? '行李较多' : '';
 
   // 路线特征
-  const routeSnippet = destContext
-    ? (ROUTE_SNIPPETS[destContext.name] || destContext.routeSummary.slice(0, 20))
-    : '';
+  const routeSnippet = DESTINATION_TYPE_SNIPPETS[form.destinationType] || '';
 
   // 车型推荐方向
   const primaryCategory = result.primary ? result.primary.category : '';
-  const energyLevel = result.energyAdvice ? result.energyAdvice.level : '';
   const energyLabel = result.energyAdvice ? result.energyAdvice.recommended : '';
 
-  // 示例车型
-  const exampleNames = topVehicles && topVehicles.length
-    ? topVehicles.slice(0, 3).map((v) => `${v.brand}${v.model}`).join('、')
-    : '';
-
   // 拼接：你这次【目的地】 【人数】人自驾，【路线特征】；【推荐方向】【示例】
-  const parts = [`你这次${destName}`];
+  const parts = [`这次${destName}`];
   if (peopleLabel) parts.push(` ${peopleLabel}人自驾`);
 
   if (routeSnippet) {
@@ -550,23 +544,18 @@ export function buildOneLinerSummary(destContext, result, topVehicles, form) {
   if (primaryCategory) {
     const shortCategory = primaryCategory.replace(/ \/ /g, '/');
     if (energyLabel && energyLabel.length < 20) {
-      parts.push(`，一辆${shortCategory}就比较合适；想省心优先看${energyLabel}`);
+      parts.push(`，优先看${shortCategory}；能源选${energyLabel}`);
     } else {
-      parts.push(`，一辆${shortCategory}就比较合适`);
+      parts.push(`，优先看${shortCategory}`);
     }
   } else if (energyLabel && energyLabel.length < 20) {
     parts.push(`，可以优先看${energyLabel}`);
   }
 
-  // 车型示例
-  if (exampleNames) {
-    parts.push(`，比如${exampleNames}`);
-  }
-
   let summary = parts.join('');
   // 确保以自然结尾
   if (!summary.endsWith('。') && !summary.endsWith('）') && !summary.endsWith(')')) {
-    summary += '这类车源';
+    summary += '。';
   }
 
   return summary;
@@ -629,13 +618,13 @@ export function buildSearchKeywords(result) {
 
 export function buildWhyNotAdvice(result, destinationInput, options = {}) {
   const profile = findDestinationProfile(destinationInput);
-  const destName = profile ? profile.name : (destinationInput || '该目的地');
+  const destName = options.destinationLabel || '这类路线';
   const advices = [];
 
   // 纯电谨慎建议
   if (profile && profile.notRecommendedEnergy && profile.notRecommendedEnergy.includes('纯电动')) {
     advices.push(
-      `${destName}沿途充电设施覆盖还不完善，长距离路段间隔较大，纯电车型需要提前仔细规划补能路线。建议优先看插电混动或增程式，既有电驱静谧和低成本，加油补能又不用完全依赖充电站。`,
+      `${destName}补能不确定性较高，纯电需要提前规划。更省心的方向是插混或增程。`,
     );
   }
 
@@ -666,14 +655,14 @@ export function buildWhyNotAdvice(result, destinationInput, options = {}) {
   // 高海拔/山路动力提醒
   if (profile && (profile.altitudeRisk === '高' || profile.altitudeRisk === '中高')) {
     advices.push(
-      `${destName}海拔变化大、山路较多，小排量自然吸气车型在高原路段动力衰减明显，超车和爬坡时可能吃力。建议选择涡轮增压、混动或动力储备更充足的车型。`,
+      `${destName}有山路或海拔变化，小排量车型可能吃力，建议选择动力更充足的车型。`,
     );
   }
 
   // 长距离舒适性提醒
   if (profile && profile.comfortImportance === '高') {
     advices.push(
-      `${destName}每天在路上的时间不短，座椅支撑、隔音和辅助驾驶配置带来的体验差异比想象中大。建议在预算允许范围内适当提升舒适性配置的优先级。`,
+      `${destName}长途舒适性更重要，座椅、隔音和辅助驾驶可以适当优先。`,
     );
   }
 
@@ -687,7 +676,6 @@ export function buildWhyNotAdvice(result, destinationInput, options = {}) {
 export function buildTradeOffAdvice(destContext, form) {
   if (!form) return null;
 
-  const destName = destContext ? destContext.name : '';
   const pref = form.energyPreference || form.preference || '';
   const peopleRaw = form.peopleCount || '';
   const peopleNum = parseInt(peopleRaw, 10);
@@ -703,7 +691,7 @@ export function buildTradeOffAdvice(destContext, form) {
       : '存在长距离或补能分布不均的问题';
     return {
       title: '为什么纯电要谨慎？',
-      body: `${destName ? `${destName}` : '这条路线'}${reason}，纯电不是不能开，但需要提前规划沿途充电点；如果是第一次走这条路线，更建议汽油、插混或增程。`,
+      body: `这类路线${reason}，纯电需要提前规划充电点；第一次走，更建议汽油、插混或增程。`,
     };
   }
 
@@ -711,7 +699,7 @@ export function buildTradeOffAdvice(destContext, form) {
   if (peopleNum <= 2 && destContext && destContext.altitudeRisk === '低') {
     return {
       title: '为什么不必盲目上大车？',
-      body: `这次${destName ? `${destName}` : ''}路况轻松、人数不多，不必为了安全感盲目租大车；好停车、能耗低、取还方便反而更重要。`,
+      body: '这类路线较轻松、人数不多，不必盲目租大车；好停车、能耗低、取还方便反而更重要。',
     };
   }
 
@@ -732,7 +720,7 @@ export function buildDataNotice(destContext, topVehicles, form) {
   // 场景 1：有路线数据但车型示例不足
   if (destContext && (!topVehicles || topVehicles.length < 2)) {
     notice.level = 'info';
-    notice.message = `已匹配到${destContext.name}的路线数据，但当前车型示例较少，可在租车平台按车型级别筛选更多车源。`;
+    notice.message = '当前车型示例较少，可在租车平台按车型级别筛选更多车源。';
     return notice;
   }
 

@@ -382,7 +382,7 @@ function InsuranceSummaryInline({ plan }) {
         <CoverageTag label="三者" value={`${matched.thirdParty?.amount || '?'}万`} important />
         <CoverageTag
           label="轮胎"
-          value={matched.tireWheel?.covered === true ? '覆盖' : matched.tireWheel?.covered === false ? '不覆盖' : '待确认'}
+          value={matched.tireWheel?.covered === true ? '覆盖' : matched.tireWheel?.covered === false ? '不覆盖' : '看条款'}
           important={matched.tireWheel?.covered === false}
         />
         <CoverageTag
@@ -900,8 +900,8 @@ function buildCoverageHighlights(compareResult) {
   // 轮胎/轮毂差异
   const tw = dims.find((d) => d.icon === 'tireWheel');
   if (tw && tw.difference !== '相同') {
-    const aCover = tw.valueA.includes('覆盖');
-    const bCover = tw.valueB.includes('覆盖');
+    const aCover = tw.valueA.includes('覆盖') && !tw.valueA.includes('不覆盖');
+    const bCover = tw.valueB.includes('覆盖') && !tw.valueB.includes('不覆盖');
     if (aCover && !bCover) {
       highlights.push(`${planBName}不覆盖轮胎/轮毂单独损失，${planAName}覆盖。如有山路或非铺装路面，轮胎保障值得关注。`);
     } else if (bCover && !aCover) {

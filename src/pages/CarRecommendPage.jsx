@@ -21,7 +21,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import TopBar from '../components/TopBar.jsx';
-import { findDestinationProfile, buildDestinationContext, getTopVehicleExamples, getTieredVehicleRecommendations, buildOneLinerSummary, buildSearchKeywords, buildWhyNotAdvice, buildTradeOffAdvice, buildDataNotice } from '../utils/carRecommendationDataHelpers.js';
+import { findDestinationProfile, buildDestinationContext, getTopVehicleExamples, getTieredVehicleRecommendations, buildOneLinerSummary, buildSearchKeywords, buildWhyNotAdvice, buildTradeOffAdvice } from '../utils/carRecommendationDataHelpers.js';
 import { getInsuranceAdviceByScenario, getPlatformInsurancePlans, INSURANCE_DISCLAIMER } from '../utils/insuranceUtils.js';
 
 /* ========================================================================
@@ -32,6 +32,7 @@ const DEST_TYPE_TO_DESTINATION = {
   'city-short': '',
   'island-leisure': '海南环岛自驾',
   'mountain-plateau': '川西小环线',
+  'yunnan-mountain': '昆大丽香线',
   'grassland-long': '伊犁环线',
   'loop-long': '青甘大环线',
   unsure: '',
@@ -42,13 +43,18 @@ const DEST_TYPE_TO_DESTINATION = {
    ======================================================================== */
 
 const destinationTypeOptions = [
-  { value: 'city-short', label: '城市周边短途', icon: MapPin },
-  { value: 'island-leisure', label: '海岛 / 城市轻松游', icon: Waves },
-  { value: 'mountain-plateau', label: '山路 / 高原自驾', icon: Mountain },
-  { value: 'grassland-long', label: '长距离草原 / 新疆', icon: Ship },
-  { value: 'loop-long', label: '大环线 / 跨城长途', icon: Compass },
-  { value: 'unsure', label: '不确定，让系统给建议', icon: Info },
+  { value: 'city-short', label: '市郊短途', hint: '平路为主，停车频繁', icon: MapPin },
+  { value: 'island-leisure', label: '海岛滨海', hint: '路况轻松，补能友好', icon: Waves },
+  { value: 'mountain-plateau', label: '山地高原', hint: '坡多弯多，海拔变化', icon: Mountain },
+  { value: 'yunnan-mountain', label: '云贵山地', hint: '城市+山路，海拔递增', icon: Mountain },
+  { value: 'grassland-long', label: '草原边疆', hint: '景点分散，距离很长', icon: Ship },
+  { value: 'loop-long', label: '戈壁大环线', hint: '荒漠长途，补能稀疏', icon: Compass },
+  { value: 'unsure', label: '还不确定', hint: '先按通用稳妥方案', icon: Info },
 ];
+
+function getDestinationTypeLabel(value) {
+  return destinationTypeOptions.find((o) => o.value === value)?.label || '这类路线';
+}
 
 const peopleOptions = [
   { value: '1-2', label: '1-2 人', icon: UserCheck },
@@ -107,7 +113,7 @@ function generateRecommendation(form) {
 
   return {
     tripProfile: {
-      destination: destContext ? destContext.name : destTypeLabel,
+      destination: destTypeLabel,
       type: destTypeLabel,
       people: peopleOptions.find((o) => o.value === form.peopleCount)?.label || '',
       luggage: luggageOptions.find((o) => o.value === form.luggage)?.label || '',
@@ -157,7 +163,7 @@ function applyDestination(destType, base) {
 
   switch (destType) {
     case 'city-short':
-      energy.destNotes.push('城市周边路况好、充电方便，可以偏经济车型，不必盲目租大车。');
+      energy.destNotes.push('市郊短途以铺装路和平路为主，停车和掉头频率更高，可以偏经济、好开好停的车型。');
       energy.energyType = 'both';
       energy.energyLabel = '油车 / 新能源均可';
       energy.energyLevel = 'both';
@@ -165,8 +171,8 @@ function applyDestination(destType, base) {
       break;
 
     case 'island-leisure':
-      energy.destNotes.push('海岛和城市轻松游路况整体较好，经济轿车和紧凑型 SUV 完全够用。');
-      energy.destNotes.push('新能源车型在这个场景下优势明显：使用成本低、充电设施完善。');
+      energy.destNotes.push('海岛滨海路线通常路况轻松、海拔低，经济轿车和紧凑型 SUV 完全够用。');
+      energy.destNotes.push('补能条件明确的海岛/滨海城市对新能源更友好，纯电、插混和增程都可以纳入选择。');
       energy.energyType = 'electric';
       energy.energyLabel = '新能源友好';
       energy.energyLevel = 'ev-friendly';
@@ -174,17 +180,26 @@ function applyDestination(destType, base) {
       break;
 
     case 'mountain-plateau':
-      energy.destNotes.push('山路多弯、海拔变化大，SUV 视野和通过性明显优于轿车。');
-      energy.destNotes.push('低动力车型在高原和连续爬坡路段可能吃力，建议选择动力储备充足的车型。');
+      energy.destNotes.push('山地高原坡多弯多、海拔变化明显，SUV 的视野、通过性和动力储备更有价值。');
+      energy.destNotes.push('低动力车型在高原和连续爬坡路段可能吃力，建议优先选择油车、混动或增程。');
       energy.energyType = 'oil';
       energy.energyLabel = '建议油车 / 增程';
       energy.energyLevel = 'recommend-oil';
       energy.destBias = 'suv-up';
       break;
 
+    case 'yunnan-mountain':
+      energy.destNotes.push('云贵山地更像“城市跨点 + 山路爬升”的组合，既要舒适性，也要动力和补能容错率。');
+      energy.destNotes.push('纯电不是完全不可行，但山路和海拔变化会放大续航不确定性，增程或混动更稳。');
+      energy.energyType = 'oil';
+      energy.energyLabel = '建议混动 / 增程';
+      energy.energyLevel = 'recommend-oil';
+      energy.destBias = 'balanced-suv';
+      break;
+
     case 'grassland-long':
-      energy.destNotes.push('地广人稀、部分路段为非铺装路面，中型以上 SUV 的通过性和舒适性更有保障。');
-      energy.destNotes.push('加油站间隔较大，油车补能确定性更高，纯电车型需要仔细规划补能点。');
+      energy.destNotes.push('草原边疆景点分散、单日车程容易拉长，中型以上 SUV 的通过性和舒适性更有保障。');
+      energy.destNotes.push('补能点间隔可能较大，油车、混动或增程的确定性更高，纯电需要仔细规划。');
       energy.energyType = 'oil';
       energy.energyLabel = '建议油车';
       energy.energyLevel = 'recommend-oil-strong';
@@ -192,8 +207,8 @@ function applyDestination(destType, base) {
       break;
 
     case 'loop-long':
-      energy.destNotes.push('跨城长途对空间、舒适性和续航容错率要求较高，建议中型以上车型。');
-      energy.destNotes.push('增程车型在这个场景下是比较理想的折中：电驱静谧 + 加油补能便利。');
+      energy.destNotes.push('戈壁大环线距离长、路段空旷，舒适性、可靠性和续航容错率都要往前排。');
+      energy.destNotes.push('增程或油车在这个场景下更稳：既能应对长距离，也能降低补能焦虑。');
       energy.energyType = 'oil';
       energy.energyLabel = '建议油车 / 增程';
       energy.energyLevel = 'recommend-oil';
@@ -333,12 +348,12 @@ function buildDirections(profile, form) {
   }
 
   // 谨慎
-  if (['mountain-plateau', 'grassland-long', 'loop-long'].includes(form.destinationType)) {
+  if (['mountain-plateau', 'yunnan-mountain', 'grassland-long', 'loop-long'].includes(form.destinationType)) {
     cautious.push('低动力经济型轿车 — 高原或长途路段动力储备可能不足');
     if (form.destinationType === 'grassland-long' || form.destinationType === 'loop-long') {
       cautious.push('纯电车型（无增程）— 偏远路段充电设施不确定，需要仔细规划补能');
     }
-    if (form.destinationType === 'mountain-plateau') {
+    if (form.destinationType === 'mountain-plateau' || form.destinationType === 'yunnan-mountain') {
       cautious.push('纯电车型 — 高原低温可能影响续航，建议优先确认沿途充电条件');
     }
   }
@@ -394,7 +409,7 @@ function buildReasons(profile, form, destContext) {
 
 function mainAdvice(dest, people, luggage, profile, destContext) {
   const category = profile.category;
-  const destName = destContext ? destContext.name : '';
+  const destName = getDestinationTypeLabel(dest);
   const peopleLabel = people === '1-2' ? '1-2 人' : people === '3-4' ? '3-4 人' : people === '5' ? '5 人' : '6 人及以上';
   const heavySuffix = luggage === 'heavy' ? '；行李较多的话建议往上选一个尺寸级别，确保每人都有舒服的乘坐空间' : '';
 
@@ -437,33 +452,42 @@ function mainAdvice(dest, people, luggage, profile, destContext) {
 
     case 'mountain-plateau':
       if (people === '1-2') {
-        return `山路和高原路线可能遇到爬坡、海拔变化和天气波动。1-2 人出行，${category}够用，但建议不要只盯着最低租金选车——动力储备和刹车稳定性在高海拔路段比省几十块租金更重要。`;
+        return `山地高原路线可能遇到爬坡、连续弯道、海拔变化和天气波动。1-2 人出行，${category}够用，但建议不要只盯着最低租金选车——动力储备和刹车稳定性在高海拔路段比省几十块租金更重要。`;
       }
       if (people === '3-4') {
-        return `山路和高原路线对车辆的动力、底盘和刹车稳定性要求比城市道路高。3-4 人出行，${category}在空间和通过性上比较理想${luggage === 'heavy' ? '；行李较多的话，建议确认后备箱能否装下所有人的装备' : ''}。`;
+        return `山地高原路线对车辆的动力、底盘和刹车稳定性要求比城市道路高。3-4 人出行，${category}在空间和通过性上比较理想${luggage === 'heavy' ? '；行李较多的话，建议确认后备箱能否装下所有人的装备' : ''}。`;
       }
-      return `山路和高原路线，${people === '5' ? '5 人' : '6 人及以上'}出行。满员跑山路时车辆负载较大，${category}在动力和制动上更有余量，不建议在这个场景下选小排量或小型车。`;
+      return `山地高原路线，${people === '5' ? '5 人' : '6 人及以上'}出行。满员跑山路时车辆负载较大，${category}在动力和制动上更有余量，不建议在这个场景下选小排量或小型车。`;
+
+    case 'yunnan-mountain':
+      if (people === '1-2') {
+        return `云贵山地路线通常是城市间高速、国道和山路混合。1-2 人出行，${category}够用，但建议优先看动力更从容、座椅舒服的车型，别只按最低日租价选。`;
+      }
+      if (people === '3-4') {
+        return `云贵山地路线会在城市道路和山路之间切换，3-4 人出行，${category}在空间、动力和灵活性上更均衡${luggage === 'heavy' ? '；行李较多的话，建议确认后备箱空间' : ''}。`;
+      }
+      return `云贵山地路线，${people === '5' ? '5 人' : '6 人及以上'}出行。满员加行李会放大动力和空间压力，${category}比小型车更合适。`;
 
     case 'island-leisure':
       if (people === '1-2') {
-        return `海岛和城市轻松游的路况整体比较友好，城市和景区之间距离通常可控。1-2 人出行，${category}完全够用，不用盲目租大车——把预算留给体验和美食可能更划算。`;
+        return `海岛滨海路线整体比较友好，城市和景区之间距离通常可控。1-2 人出行，${category}完全够用，不用盲目租大车——把预算留给体验和美食可能更划算。`;
       }
-      return `海岛和城市轻松游对车型的硬性要求不高。${people === '3-4' ? '3-4 人' : '多人'}出行，${category}在空间和舒适性上刚好${luggage === 'heavy' ? '；如果行李很多，可以考虑再往上选一级尺寸' : ''}。这个场景下新能源车型的使用成本优势也比较明显。`;
+      return `海岛滨海路线对车型的硬性要求不高。${people === '3-4' ? '3-4 人' : '多人'}出行，${category}在空间和舒适性上刚好${luggage === 'heavy' ? '；如果行李很多，可以考虑再往上选一级尺寸' : ''}。这个场景下新能源车型的使用成本优势也比较明显。`;
 
     case 'loop-long':
       if (people === '1-2') {
-        return `大环线或跨城长途，每天在车上的时间不短。1-2 人出行，${category}够用，但长途舒适性值得多花一点预算——好的座椅和隔音会让整趟体验差别很大。`;
+        return `戈壁大环线每天在车上的时间不短，偏远路段的补能和信号也更需要余量。1-2 人出行，${category}够用，但长途舒适性值得多花一点预算——好的座椅和隔音会让整趟体验差别很大。`;
       }
       if (people === '3-4') {
-        return `大环线或跨城长途，车型选择不要只看日租金便宜。3-4 人出行，${category}在空间、舒适性和续航容错率上比较均衡${luggage === 'heavy' ? '；行李较多的话，中大型 SUV 或 MPV 的后备箱会更从容' : ''}。`;
+        return `戈壁大环线的车型选择不要只看日租金便宜。3-4 人出行，${category}在空间、舒适性和续航容错率上比较均衡${luggage === 'heavy' ? '；行李较多的话，中大型 SUV 或 MPV 的后备箱会更从容' : ''}。`;
       }
-      return `大环线或跨城长途，${people === '5' ? '5 人' : '6 人及以上'}出行。这个人数在长途路线上，${category}是更合理的选择——每天开车时间较长的话，每个人的乘坐舒适性都会被放大。`;
+      return `戈壁大环线，${people === '5' ? '5 人' : '6 人及以上'}出行。这个人数在长途路线上，${category}是更合理的选择——每天开车时间较长的话，每个人的乘坐舒适性都会被放大。`;
 
     case 'city-short':
       if (people === '1-2') {
-        return `城市周边短途对车型的硬性要求不高，重点看预算和舒适性就够了。1-2 人出行，${category}完全可以胜任，不需要为"万一用得上"而租一辆大车。`;
+        return `市郊短途对车型的硬性要求不高，重点看预算、停车便利和舒适性就够了。1-2 人出行，${category}完全可以胜任，不需要为"万一用得上"而租一辆大车。`;
       }
-      return `城市周边短途，${people === '3-4' ? '3-4 人' : '多人'}出行。${category}在空间和灵活性上比较合适${luggage === 'heavy' ? '；行李较多的话可以考虑紧凑型 SUV 或中型 SUV' : ''}。城市周边充电方便，新能源车型的使用成本优势也比较突出。`;
+      return `市郊短途，${people === '3-4' ? '3-4 人' : '多人'}出行。${category}在空间和灵活性上比较合适${luggage === 'heavy' ? '；行李较多的话可以考虑紧凑型 SUV 或中型 SUV' : ''}。城市周边充电方便，新能源车型的使用成本优势也比较突出。`;
 
     case 'unsure':
     default:
@@ -491,12 +515,15 @@ function peopleLuggageNote(people, luggage, profile) {
 }
 
 function intensityTip(intensity, dest, destContext) {
-  const destName = destContext ? destContext.name : '';
+  const destName = getDestinationTypeLabel(dest);
 
   switch (intensity) {
     case 'high':
       if (dest === 'loop-long' || dest === 'grassland-long') {
         return `行程强度较高${destName ? `，${destName}又是长距离路线` : '，又是长距离路线'}，建议优先考虑带辅助驾驶、座椅支撑好、隔音到位的车型。长途下来，这些配置的体验差异比想象中大。`;
+      }
+      if (dest === 'yunnan-mountain') {
+        return `行程强度较高${destName ? `，${destName}又有山路和跨城路段` : '，又有山路和跨城路段'}，建议优先考虑动力储备、座椅支撑和隔音都更稳的车型。`;
       }
       return `行程强度较高${destName ? `，${destName}每天驾驶时间不短` : '，每天驾驶时间不短'}。座椅舒适性、隔音和辅助驾驶值得多花一点预算——省下的疲劳比省下的租金更值。`;
     case 'medium':
@@ -507,7 +534,7 @@ function intensityTip(intensity, dest, destContext) {
 }
 
 function preferenceTip(pref, dest, profile, destContext) {
-  const destName = destContext ? destContext.name : '';
+  const destName = getDestinationTypeLabel(dest);
 
   switch (pref) {
     case 'ev':
@@ -517,18 +544,18 @@ function preferenceTip(pref, dest, profile, destContext) {
         }
         return '你偏好新能源，但这类长距离路线补能条件需要提前确认。增程车型是兼顾电驱体验和长途补能安全的折中选择——既有新能源的静谧和低成本，又不需要完全依赖充电站。';
       }
-      if (dest === 'mountain-plateau') {
+      if (dest === 'mountain-plateau' || dest === 'yunnan-mountain') {
         if (destContext && destContext.energyHint) {
           return `你偏好新能源，${destName}对续航管理要求更高。${destContext.energyHint}`;
         }
-        return '你偏好新能源，山路和高原路线对续航管理要求更高。建议优先看增程或混动，纯电的话需要提前确认沿途充电站的覆盖情况。';
+        return '你偏好新能源，山路和海拔变化路线对续航管理要求更高。建议优先看增程或混动，纯电的话需要提前确认沿途充电站的覆盖情况。';
       }
       if (destContext && destContext.energyHint) {
         return `你偏好新能源，${destName}整体对新能源比较友好。${destContext.energyHint}`;
       }
       return '你偏好新能源，在这个目的地场景下是比较匹配的。重点关注车辆续航、住宿地充电条件和还车电量要求即可。';
     case 'oil':
-      if (dest === 'grassland-long' || dest === 'loop-long' || dest === 'mountain-plateau') {
+      if (dest === 'grassland-long' || dest === 'loop-long' || dest === 'mountain-plateau' || dest === 'yunnan-mountain') {
         if (destName) {
           return `你偏好油车优先，在${destName}这条路上这个思路很务实——油车或混动的补能确定性最高，把精力留给风景而不是充电规划。`;
         }
@@ -547,9 +574,9 @@ function preferenceTip(pref, dest, profile, destContext) {
 function buildNotRecommended(profile, form, destContext) {
   const items = [];
   const dest = form.destinationType;
-  const destName = destContext ? destContext.name : '';
+  const destName = getDestinationTypeLabel(dest);
 
-  if (['mountain-plateau', 'grassland-long', 'loop-long'].includes(dest)) {
+  if (['mountain-plateau', 'yunnan-mountain', 'grassland-long', 'loop-long'].includes(dest)) {
     if (profile.size === 'compact' || profile.size === 'compact-mid') {
       items.push(dest === 'mountain-plateau'
         ? `低底盘轿车跑${destName || '山路'} — 通过性不足，遇到非铺装路面或陡坡会比较吃力`
@@ -563,6 +590,10 @@ function buildNotRecommended(profile, form, destContext) {
 
   if (dest === 'mountain-plateau') {
     items.push(`小排量自然吸气车型 — ${destName ? `${destName}高海拔含氧量低` : '高海拔含氧量低'}，动力衰减会比平原明显，超车和爬坡时可能不够从容`);
+  }
+
+  if (dest === 'yunnan-mountain') {
+    items.push(`只看最低价小轿车 — ${destName || '云贵山地'}山路和海拔变化会放大动力、隔音和座椅支撑的短板`);
   }
 
   if (form.peopleCount === '6+' && !profile.category.includes('MPV')) {
@@ -587,6 +618,7 @@ function calculateEvScore(form) {
 
   // 目的地类型
   if (form.destinationType === 'mountain-plateau') score -= 25;
+  if (form.destinationType === 'yunnan-mountain') score -= 15;
   if (form.destinationType === 'grassland-long') score -= 20;
   if (form.destinationType === 'loop-long') score -= 25;
   if (form.destinationType === 'island-leisure') score += 15;
@@ -745,6 +777,7 @@ export default function CarRecommendPage() {
               options={destinationTypeOptions}
               value={form.destinationType}
               onChange={(v) => update('destinationType', v)}
+              cols="full"
             />
 
             <OptionField
@@ -871,14 +904,21 @@ function OptionField({ label, icon: Icon, options, value, onChange, cols }) {
               key={opt.value}
               type="button"
               onClick={() => onChange(active ? '' : opt.value)}
-              className={`flex min-h-11 items-center gap-2 rounded-[16px] px-3 py-2.5 text-left text-sm font-bold leading-snug transition active:scale-[0.98] ${
+              className={`flex min-h-[58px] items-center gap-2 rounded-[16px] px-3 py-2.5 text-left transition active:scale-[0.98] ${
                 active
                   ? 'bg-pine text-white shadow-sm shadow-pine/15'
                   : 'bg-aquaCard text-muted hover:bg-mint hover:text-ink'
               }`}
             >
               {OptIcon ? <OptIcon size={16} className="shrink-0" /> : null}
-              <span>{opt.label}</span>
+              <span className="min-w-0">
+                <span className="block break-words text-sm font-bold leading-snug">{opt.label}</span>
+                {opt.hint ? (
+                  <span className={`mt-0.5 block break-words text-[11px] font-medium leading-snug ${active ? 'text-white/75' : 'text-muted/80'}`}>
+                    {opt.hint}
+                  </span>
+                ) : null}
+              </span>
             </button>
           );
         })}
@@ -888,7 +928,6 @@ function OptionField({ label, icon: Icon, options, value, onChange, cols }) {
 }
 
 function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions) {
-  const dc = result.destContext;
   const tieredVehicles = getTieredVehicleRecommendations(result.derivedDest || '', {
     peopleCount: form.peopleCount,
     luggageLevel: form.luggage,
@@ -898,8 +937,6 @@ function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions
   });
   const lines = [
     '【我的车型建议】',
-    `目的地：${result.tripProfile.destination}`,
-    dc ? `路线概况：${dc.intro}` : null,
     `目的地类型：${result.tripProfile.type}`,
     `出行人数：${result.tripProfile.people}`,
     `行李：${result.tripProfile.luggage}`,
@@ -980,7 +1017,7 @@ async function copyToClipboard(text) {
    ======================================================================== */
 
 function ResultView({ result, form }) {
-  const { tripProfile, primary, reasons, notRecommended, energyAdvice, evScore, destContext } = result;
+  const { tripProfile, primary, notRecommended, energyAdvice, destContext } = result;
   const [copyState, setCopyState] = useState('idle'); // idle | ok | fail
 
   const handleCopy = async () => {
@@ -1012,9 +1049,9 @@ function ResultView({ result, form }) {
   const keywords = buildSearchKeywords(topVehicles);
   const whyNotAdvices = buildWhyNotAdvice(topVehicles, derivedDest, {
     peopleCount: form.peopleCount,
+    destinationLabel: tripProfile.type,
   });
   const tradeOff = buildTradeOffAdvice(destContext, form);
-  const dataNotice = buildDataNotice(destContext, topVehicles, form);
 
   // 保险场景化建议
   const insuranceContext = useMemo(() => buildInsuranceContext(form, result), [form, result]);
@@ -1034,17 +1071,6 @@ function ResultView({ result, form }) {
             {oneLiner}
           </p>
         </section>
-      ) : null}
-
-      {/* === 数据提示横幅 === */}
-      {dataNotice.message ? (
-        <div className={`rounded-2xl px-4 py-3 text-sm font-bold leading-relaxed ${
-          dataNotice.level === 'tip'
-            ? 'bg-aquaCard/70 text-pine ring-1 ring-pine/10'
-            : 'bg-amberSoft/30 text-amberDark'
-        }`}>
-          {dataNotice.message}
-        </div>
       ) : null}
 
       {/* === 卡片 1：推荐方向 === */}
@@ -1119,48 +1145,19 @@ function ResultView({ result, form }) {
           <h2 className="text-lg font-bold text-ink">为什么适合</h2>
         </div>
         <div className="mt-3 grid gap-2">
-          {/* 目的地路况 */}
-          {destContext ? (
-            <FitRow icon={<MapPin size={14} />} label="路况特征">
-              {destContext.highlights || destContext.routeSummary}
-            </FitRow>
-          ) : null}
-          {/* 人数行李 */}
           <FitRow icon={<Users size={14} />} label="人数行李">
-            {tripProfile.people}出行{tripProfile.luggage !== '少：背包 / 登机箱为主' ? `，${tripProfile.luggage}` : ''}
-            {primary.category ? `，${primary.category}刚好` : ''}
+            {tripProfile.people}出行，{tripProfile.luggage}，优先看{primary.category}。
           </FitRow>
-          {/* 补能 */}
-          {destContext ? (
-            <FitRow icon={destContext.chargingCondition === '好' ? <BatteryCharging size={14} /> : <Fuel size={14} />} label="补能条件">
-              {destContext.chargingCondition === '好'
-                ? '充电设施完善，纯电和增程都很方便'
-                : destContext.chargingCondition === '一般'
-                  ? '充电设施一般，增程或混动更稳妥'
-                  : '充电设施不足，油车或增程更省心'}
-            </FitRow>
-          ) : null}
-          {/* 难度因素 */}
-          {destContext && (destContext.altitudeRisk !== '低' || destContext.beginnerDifficulty !== '简单') ? (
-            <FitRow icon={<Mountain size={14} />} label="路况难度">
-              {[
-                destContext.altitudeRisk !== '低' ? `海拔风险${destContext.altitudeRisk}` : '',
-                destContext.beginnerDifficulty !== '简单' ? `新手难度${destContext.beginnerDifficulty}` : '',
-                destContext.comfortImportance === '高' ? '长途舒适性要求高' : '',
-              ].filter(Boolean).join('，')}
-            </FitRow>
-          ) : null}
-          {/* 行程强度 */}
+          <FitRow icon={<MapPin size={14} />} label="路线类型">
+            {tripProfile.type}，按路况、距离和补能风险来匹配车型。
+          </FitRow>
           {form.tripIntensity === 'high' ? (
             <FitRow icon={<CarFront size={14} />} label="行程强度">
-              行程较赶，座椅和隔音值得多花预算
+              行程较赶，座椅、隔音和辅助驾驶更值得关注。
             </FitRow>
           ) : null}
           <FitRow icon={<BatteryCharging size={14} />} label="能源偏好">
-            {tripProfile.energyPreference}，推荐会优先匹配补能风险更合适的车型
-          </FitRow>
-          <FitRow icon={<UserCheck size={14} />} label="驾驶熟练度">
-            {tripProfile.drivingProficiency}，推荐会兼顾停车难度、道路适应和新手友好度
+            {energyAdvice.recommended}。
           </FitRow>
         </div>
       </section>
@@ -1258,10 +1255,6 @@ function ResultView({ result, form }) {
           价格以平台实时显示为准，旺季建议提前 3-7 天看车源、对比 2-3 个平台再下单。
         </p>
 
-        {/* 目的地轻量提醒 */}
-        {destContext ? (
-          <DestinationSearchTip destContext={destContext} />
-        ) : null}
       </section>
 
       {/* === 卡片 5：为什么不建议这样选 === */}
@@ -1556,39 +1549,3 @@ function InsuranceAdviceCard({ advice, suggestions, destContext }) {
   );
 }
 
-const BUSY_DESTINATIONS = ['伊犁环线', '川西小环线', '青甘大环线', '昆大丽香线'];
-const EV_FRIENDLY_DESTINATIONS = ['海南环岛自驾'];
-
-function DestinationSearchTip({ destContext }) {
-  if (!destContext) return null;
-
-  const name = destContext.name;
-
-  if (EV_FRIENDLY_DESTINATIONS.includes(name)) {
-    return (
-      <div className="mt-2.5 rounded-2xl bg-aquaCard px-3 py-2.5 ring-1 ring-pine/10">
-        <p className="text-xs font-medium leading-relaxed text-ink">
-          海南补能相对方便，可以把纯电车也纳入搜索范围，但节假日价格波动会比较明显，建议尽早锁定车源。
-        </p>
-      </div>
-    );
-  }
-
-  if (BUSY_DESTINATIONS.includes(name)) {
-    return (
-      <div className="mt-2.5 rounded-2xl bg-amberSoft/30 px-3 py-2.5">
-        <p className="text-xs font-medium leading-relaxed text-amberDark">
-          热门自驾目的地旺季车源紧张，建议先锁定 SUV 或混动 SUV，再比较保险方案和异地还车费用。
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-2.5 rounded-2xl bg-aquaCard/50 px-3 py-2.5">
-      <p className="text-xs font-medium leading-relaxed text-ink">
-        建议结合目的地实际情况，提前确认取还车地点和保险方案。
-      </p>
-    </div>
-  );
-}
