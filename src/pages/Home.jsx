@@ -8,151 +8,143 @@ const whyItems = [
   '生成自己的出行计划，方便保存和复盘',
 ];
 
+const tools = [
+  {
+    to: '/car-recommend',
+    icon: MapPin,
+    title: '目的地车型推荐',
+    text: '按目的地、人数和行李选车',
+    button: '选车',
+  },
+  {
+    to: '/price-compare',
+    icon: Scale,
+    title: '比租车方案',
+    text: '平台、车型、保险放一起看',
+    button: '对比',
+  },
+  {
+    to: '/budget',
+    icon: Calculator,
+    title: '算整趟预算',
+    text: '租车、油电、住宿一次算清',
+    button: '计算',
+  },
+  {
+    to: '/car-inspection-map',
+    icon: ShieldCheck,
+    title: '车身验车避坑图',
+    text: '点车身部位看哪里要重点拍',
+    button: '验车',
+  },
+];
+
 export default function Home() {
   const [isWhyOpen, setIsWhyOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-cream">
-      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#123B52_0%,#1E5A6E_55%,#DFF3F8_160%)] px-5 pb-7 pt-5 text-white">
-        <div className="flex items-center justify-between gap-3">
-          <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/15 px-3 text-xs font-bold">
-            <Sparkles size={14} className="text-red" />
-            pYuY
-          </div>
-          <div className="rounded-full bg-[rgba(229,57,53,0.12)] px-3 py-1.5 text-xs font-bold text-[#C91F1F]">小红书收藏版</div>
-        </div>
+    <main className="min-h-screen overflow-hidden bg-cream text-ink">
+      <section className="relative px-4 pb-5 pt-4">
+        <div className="absolute inset-x-0 top-0 h-[238px] bg-[linear-gradient(135deg,#10A7D8_0%,#0797BD_45%,#18C3C7_100%)]" />
+        <div className="absolute right-[-72px] top-[-74px] h-44 w-44 rounded-full bg-white/20 blur-3xl" />
+        <div className="absolute left-[-52px] top-28 h-32 w-32 rounded-full bg-[#48E0CF]/25 blur-3xl" />
 
-        <div className="mt-5 flex items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold tracking-[0.08em] text-white/65">租车自驾先理清，再出发</p>
-            <h1 className="mt-2 text-[24px] font-bold leading-tight">租车自驾工具箱</h1>
-            <p className="mt-2 text-[14px] font-medium leading-relaxed text-white/90">
-              出发前 3 分钟，把预算、车型和方案先算清楚。
-            </p>
+        <div className="relative">
+          <div className="flex items-center justify-between gap-3">
+            <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/20">
+              <Sparkles size={14} className="text-white" />
+              pYuY
+            </div>
+            <div className="rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold text-white ring-1 ring-white/20">小红书收藏版</div>
           </div>
-          <div className="shrink-0">
-            <div className="rounded-full bg-[#A5D0DC]/25 p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.15)]">
+
+          <div className="mt-4 flex items-center gap-3 rounded-[22px] bg-white/[0.16] p-3 text-white ring-1 ring-white/20 backdrop-blur">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-bold tracking-[0.08em] text-white/80">租车自驾先理清，再出发</p>
+              <h1 className="mt-1 text-[23px] font-black leading-tight">租车自驾工具箱</h1>
+              <p className="mt-1.5 max-w-[13rem] text-[13px] font-semibold leading-relaxed text-white/90">
+                出发前 3 分钟，把车型、预算、方案和验车一次理顺。
+              </p>
+            </div>
+            <div className="shrink-0 rounded-[22px] bg-white/[0.22] p-1.5 shadow-[0_12px_30px_rgba(5,93,125,0.24)] ring-1 ring-white/20">
               <img
                 src="/images/pyuy-lighthouse-hero.png"
-                alt="pyUY 租车自驾工具箱品牌插画"
-                width="115"
-                height="115"
+                alt="pyUY 租车自驾工具箱个人图像"
+                width="78"
+                height="78"
                 fetchPriority="high"
-                className="h-[115px] w-[115px] rounded-full object-cover sm:h-[145px] sm:w-[145px]"
+                className="h-[78px] w-[78px] rounded-[18px] object-cover"
               />
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="-mt-5 rounded-t-[26px] bg-gradient-to-b from-cream via-cream to-mint px-5 pb-7 pt-6">
-        <div className="grid gap-4">
-          <ToolEntry
-            to="/car-recommend"
-            icon={MapPin}
-            title="目的地车型推荐"
-            text="根据目的地、人数和行李，判断这趟更适合租什么车"
-            button="开始选车建议"
-            priority="primary"
-          />
-          <ToolEntry
-            to="/price-compare"
-            icon={Scale}
-            title="比租车方案"
-            text="不同平台、车型和保险方案放一起看"
-            button="开始方案对比"
-            priority="primary"
-          />
-          <ToolEntry
-            to="/budget"
-            icon={Calculator}
-            title="算整趟预算"
-            text="租车、油电、住宿、门票和押金一次算清"
-            button="开始预算计算"
-            priority="primary"
-          />
-          <ToolEntry
-            to="/car-inspection-map"
-            icon={ShieldCheck}
-            title="车身验车避坑图"
-            text="点车身部位，看取车时哪里要重点拍"
-            button="开始验车"
-            priority="secondary"
-          />
-        </div>
-
-        <section className="fade-up mt-6 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-          <button
-            type="button"
-            aria-expanded={isWhyOpen}
-            onClick={() => setIsWhyOpen((open) => !open)}
-            className="flex w-full items-center gap-3 text-left"
-          >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-mint text-pine">
-              <Camera size={20} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-base font-bold leading-tight text-ink">为什么出发前建议先理一遍</h2>
-              <p className="mt-1 text-xs leading-relaxed text-muted">几分钟把租车方案、预算和关键留证顺一遍。</p>
-            </div>
-            <ChevronDown
-              size={18}
-              className={`shrink-0 text-pine transition-transform duration-200 ${isWhyOpen ? 'rotate-180' : ''}`}
-            />
-          </button>
-
-          {isWhyOpen ? (
-            <ul className="mt-4 grid gap-2.5">
-              {whyItems.map((item) => (
-                <li key={item} className="flex gap-2 rounded-2xl bg-mint/70 px-3 py-2.5 text-sm font-medium leading-relaxed text-ink">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-pine" />
-                  <span>{item}</span>
-                </li>
+          <section className="mt-3 rounded-[24px] bg-card/[0.96] p-3 shadow-[0_18px_42px_rgba(10,128,163,0.16)] ring-1 ring-skyLine backdrop-blur">
+            <div className="grid grid-cols-2 gap-3">
+              {tools.map((tool) => (
+                <ToolEntry key={tool.to} {...tool} />
               ))}
-            </ul>
-          ) : null}
-        </section>
+            </div>
+          </section>
 
-        <p className="mt-4 rounded-[20px] bg-amberSoft/45 px-4 py-3 text-center text-sm font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
-          收藏后可随时回来算预算、选车型和对比方案
-        </p>
+          <section className="fade-up mt-4 rounded-[20px] border border-skyLine bg-card/[0.92] p-3 shadow-card">
+            <button
+              type="button"
+              aria-expanded={isWhyOpen}
+              onClick={() => setIsWhyOpen((open) => !open)}
+              className="flex w-full items-center gap-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-mint text-pine">
+                <Camera size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[14px] font-bold leading-tight text-ink">为什么出发前建议先理一遍</h2>
+                <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-muted">少走弯路，取还车也更安心。</p>
+              </div>
+              <ChevronDown
+                size={17}
+                className={`shrink-0 text-pine transition-transform duration-200 ${isWhyOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {isWhyOpen ? (
+              <ul className="mt-3 grid gap-2">
+                {whyItems.map((item) => (
+                  <li key={item} className="flex gap-2 rounded-2xl bg-aquaCard px-3 py-2 text-xs font-bold leading-relaxed text-ink">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-pine" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+
+          <p className="mt-3 rounded-[18px] bg-amberSoft/[0.55] px-3 py-2.5 text-center text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
+            收藏后可随时回来算预算、选车型、对比方案和验车留证
+          </p>
+        </div>
       </section>
     </main>
   );
 }
 
-function ToolEntry({ to, icon: Icon, title, text, button, priority }) {
-  const isPrimary = priority === 'primary';
-
+function ToolEntry({ to, icon: Icon, title, text, button }) {
   return (
-    <article
-      className={`fade-up rounded-[24px] bg-card text-ink ring-1 ring-pine/10 ${
-        isPrimary ? 'p-[18px] shadow-card' : 'p-4 shadow-card'
-      }`}
-    >
-      <div className="flex items-start gap-3.5">
-        <span
-          className={`grid shrink-0 place-items-center rounded-[18px] ${
-            isPrimary ? 'h-14 w-14 bg-pine text-white' : 'h-11 w-11 bg-mint text-pine'
-          }`}
-        >
-          <Icon size={isPrimary ? 27 : 21} />
+    <article className="fade-up flex min-h-[150px] flex-col rounded-[20px] bg-white p-3 text-ink shadow-[0_8px_22px_rgba(8,116,151,0.10)] ring-1 ring-skyLine">
+      <div className="flex items-start justify-between gap-2">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(135deg,#0EA5D6,#12BFC1)] text-white shadow-md shadow-pine/15">
+          <Icon size={21} />
         </span>
-        <div className="min-w-0 flex-1">
-          <h2 className={`font-bold leading-tight ${isPrimary ? 'text-[20px]' : 'text-[17px]'}`}>{title}</h2>
-          <p className={`mt-1.5 font-medium leading-relaxed text-muted ${isPrimary ? 'text-sm' : 'text-[13px]'}`}>{text}</p>
-        </div>
+        <ChevronRight size={17} className="mt-1 shrink-0 text-pine/70" />
+      </div>
+      <div className="mt-3 min-w-0 flex-1">
+        <h2 className="text-[15px] font-black leading-tight text-ink">{title}</h2>
+        <p className="mt-1 text-[11px] font-semibold leading-relaxed text-muted">{text}</p>
       </div>
       <Link
         to={to}
-        className={`inline-flex w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-center font-bold leading-tight ${
-          isPrimary
-            ? 'mt-4 min-h-12 bg-gradient-to-r from-[#174B63] to-[#1E6B8A] text-sm text-white shadow-md shadow-pine/15 hover:from-[#123B52] hover:to-[#174B63] active:from-[#123B52] active:to-[#174B63]'
-            : 'mt-3 min-h-11 border border-pine/15 bg-aquaCard text-[13px] text-pine hover:border-pine/25 hover:bg-mint/60'
-        }`}
+        className="mt-3 inline-flex min-h-9 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#0EA5D6] to-[#12BFC1] px-3 text-center text-[12px] font-black leading-tight text-white shadow-md shadow-pine/15 hover:from-[#0B93C2] hover:to-[#0EAFAF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
       >
-        {button}
-        <ChevronRight size={isPrimary ? 18 : 16} />
+        开始{button}
       </Link>
     </article>
   );

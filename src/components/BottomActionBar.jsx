@@ -11,8 +11,8 @@ export default function BottomActionBar({ children, layout = 'single', className
 export function BottomActionButton({ as: Component = 'button', variant = 'primary', className = '', children, ...props }) {
   const variantClass =
     variant === 'secondary'
-      ? 'bg-card text-pine shadow-sm ring-1 ring-pine/15 hover:border-pine/25 hover:bg-mint/60 disabled:bg-aquaCard disabled:text-muted/60'
-      : 'bg-gradient-to-r from-[#174B63] to-[#1E6B8A] text-lightText shadow-md shadow-pine/15 hover:from-[#123B52] hover:to-[#174B63] active:from-[#123B52] active:to-[#174B63] disabled:from-muted/40 disabled:to-muted/40 disabled:text-white/80';
+      ? 'bg-card text-pine shadow-sm ring-1 ring-skyLine hover:border-pine/25 hover:bg-mint/70 disabled:bg-aquaCard disabled:text-muted/60'
+      : 'bg-gradient-to-r from-[#0EA5D6] to-[#12BFC1] text-lightText shadow-md shadow-pine/15 hover:from-[#0B93C2] hover:to-[#0EAFAF] active:from-[#087FA8] active:to-[#0B9E9E] disabled:from-muted/40 disabled:to-muted/40 disabled:text-white/80';
 
   return (
     <Component
