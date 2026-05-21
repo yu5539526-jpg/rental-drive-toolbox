@@ -750,8 +750,6 @@ export default function CarRecommendPage() {
       <TopBar title="目的地车型推荐" />
 
       <section className="safe-bottom-action px-4 pt-4">
-        <IntroCard />
-
         {feedback ? (
           <p className="mt-3 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark" role="status">
             {feedback}
@@ -853,27 +851,6 @@ export default function CarRecommendPage() {
 /* ========================================================================
    表单子组件
    ======================================================================== */
-
-function IntroCard() {
-  return (
-    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-      <div className="flex items-start gap-3">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[20px] bg-aquaCard text-pine" aria-hidden="true">
-          <CarFront size={24} />
-        </span>
-        <div className="min-w-0">
-          <h1 className="text-xl font-bold leading-tight text-ink">目的地车型推荐</h1>
-          <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted">
-            不用纠结轿车、SUV、MPV 还是新能源，先根据这趟行程判断大方向。
-          </p>
-          <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
-            免费轻量建议，会给出低价、中价、高价三档车型参考；实际价格以平台车源为准。
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function FormField({ label, icon: Icon, children }) {
   return (
