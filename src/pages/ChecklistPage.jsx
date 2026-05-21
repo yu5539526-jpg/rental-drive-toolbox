@@ -71,6 +71,8 @@ const riskAdvice = {
   留证充分: '关键照片和视频留得不错，后续还车更有依据。',
 };
 
+const issueStatusHint = '发现划痕、收费不一致或规则说不清时，点“需拍照留证”：拍近照/截图，并让门店写进验车单或订单备注。';
+
 const quickItemIcons = {
   bodyVideo: Video,
   quickBumpers: Car,
@@ -228,7 +230,7 @@ export default function ChecklistPage() {
           <p className="text-xs font-bold text-muted">留证完成后</p>
           <h2 className="mt-1 text-lg font-bold text-ink">生成本次取车留证摘要</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            汇总已完成项目、还没确认项目、需备注项目和建议补拍内容，方便后面保存或复盘。
+          汇总已完成项目、还没确认项目、需拍照留证项目和待补拍内容，方便后面保存或复盘。
           </p>
         </section>
 
@@ -317,6 +319,9 @@ function ChecklistItem({ item, value, onUpdate }) {
           active ? statusStyles[option.value].active : 'text-muted/70 hover:bg-card/70 hover:text-ink'
         }
       />
+      <p className="mt-2 rounded-2xl bg-aquaCard px-3 py-2 text-[11px] font-bold leading-relaxed text-muted">
+        {issueStatusHint}
+      </p>
     </article>
   );
 }
@@ -340,8 +345,8 @@ function RealtimeFeedback({ stats, riskStyle }) {
 
       <div className="mt-3 grid grid-cols-3 gap-2">
         <Metric label="已完成" value={`${stats.completed}/${stats.activeTotal}`} />
-        <Metric label="需备注" value={`${stats.issueCount} 项`} danger={stats.issueCount > 0} />
-        <Metric label="建议补拍" value={`${needRetake} 项`} danger={needRetake > 0} />
+        <Metric label="需留证" value={`${stats.issueCount} 项`} danger={stats.issueCount > 0} />
+        <Metric label="待补拍" value={`${needRetake} 项`} danger={needRetake > 0} />
       </div>
 
       <p className="mt-3 rounded-2xl bg-aquaCard px-3 py-2 text-xs font-bold leading-relaxed text-pine">{riskAdvice[stats.riskLevel]}</p>
@@ -439,7 +444,7 @@ function SummaryCard({ summary }) {
       <div className="mt-3 rounded-2xl bg-aquaCard p-3 text-sm font-bold leading-relaxed text-ink">
         <p>你已经完成 {summary.completedCount} 项留证。</p>
         <p className="mt-1">仍有 {summary.remainingAdviceCount} 项建议补拍。</p>
-        <p className="mt-1">有 {summary.issueCount} 项被标记为需要注意。</p>
+        <p className="mt-1">有 {summary.issueCount} 项被标记为需要拍照留证。</p>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div className="rounded-2xl bg-aquaCard p-3">
@@ -452,9 +457,9 @@ function SummaryCard({ summary }) {
         </div>
       </div>
       <SummaryList title="建议补拍项目" empty="暂无建议补拍项目" items={summary.unfinishedHighRisk} tone="warm" />
-      <SummaryList title="需要备注的项目" empty="暂无需要备注的项目" items={summary.issueItems} tone="danger" />
+      <SummaryList title="需拍照留证项目" empty="暂无需拍照留证项目" items={summary.issueItems} tone="danger" />
       <div className="mt-3 rounded-2xl bg-aquaCard p-3">
-        <p className="text-xs font-bold text-muted">建议补拍内容</p>
+        <p className="text-xs font-bold text-muted">下一步怎么处理</p>
         <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-ink">
           {summary.suggestions.map((item) => (
             <li key={item}>• {item}</li>
@@ -725,7 +730,7 @@ function buildSummary(items, state, stats) {
   }
 
   if (issueItems.length) {
-    suggestions.push(`需要注意的项目建议拍近景，并和门店同步备注：${issueItems.slice(0, 3).join('、')}。`);
+    suggestions.push(`已标记为“需拍照留证”的项目，请拍近景，并让门店写进验车单或订单备注：${issueItems.slice(0, 3).join('、')}。`);
   }
 
   if (uncheckedItems.length) {

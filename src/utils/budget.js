@@ -25,8 +25,7 @@ export function calculateBudget(draft, selectedPlan = null) {
   const tripDays = count(draft.tripDays);
   const people = count(draft.people);
   const mileage = amount(draft.mileage);
-  const fallbackEnergyType = draft.energyType === 'hybrid' ? 'extended' : draft.energyType || 'oil';
-  const energyConfig = resolveEnergyConfig(fallbackEnergyType, selectedPlan);
+  const energyConfig = resolveEnergyConfig('oil', selectedPlan);
   const energyType = energyConfig.energyType;
   const stayNights = Math.max(tripDays - 1, 0);
   const energyCost = energyConfig.getCost(mileage);

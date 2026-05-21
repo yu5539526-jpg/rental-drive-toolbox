@@ -1,7 +1,7 @@
 export const STATUS_OPTIONS = [
   { value: 'unchecked', label: '还没确认' },
   { value: 'ok', label: '已确认没问题' },
-  { value: 'issue', label: '建议补拍/备注' },
+  { value: 'issue', label: '需拍照留证' },
   { value: 'na', label: '本项不用看' },
 ];
 

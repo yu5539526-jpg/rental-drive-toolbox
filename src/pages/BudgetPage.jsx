@@ -1,19 +1,15 @@
 import {
   ArrowLeft,
-  BatteryCharging,
   Calculator,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Copy,
-  Download,
-  Fuel,
   Image,
   Info,
   RotateCcw,
   ShieldAlert,
-  Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -29,24 +25,6 @@ import { findInsurancePlan, getTierLabel, isBasicPlan, INSURANCE_DISCLAIMER } fr
 
 const STORAGE_KEY = 'rentalDrive.budgetDraft';
 const SELECTED_PLAN_STORAGE_KEY = 'rentalDrive.selectedRentalPlan';
-const ENERGY_CARD_META = {
-  oil: {
-    icon: Fuel,
-    title: '油车',
-    description: '适合长途、偏远路线和补能不确定场景',
-  },
-  electric: {
-    icon: BatteryCharging,
-    title: '新能源',
-    description: '适合城市周边、充电条件明确的路线',
-  },
-  extended: {
-    icon: Zap,
-    title: '增程',
-    description: '兼顾电驱体验和长途补能安全感',
-  },
-};
-
 export default function BudgetPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -106,10 +84,11 @@ export default function BudgetPage() {
 
     lastSavedRef.current = JSON.stringify({ draft: snapshot.draft, selectedPlan: snapshot.selectedPlan });
 
+    const { energyType, ...snapshotDraft } = snapshot.draft || {};
+
     setDraft({
       ...defaultBudgetDraft,
-      ...snapshot.draft,
-      energyType: snapshot.draft.energyType === 'hybrid' ? 'extended' : snapshot.draft.energyType || defaultBudgetDraft.energyType,
+      ...snapshotDraft,
     });
 
     if (snapshot.selectedPlan) {
@@ -312,7 +291,6 @@ function BudgetFormStep({ step, stepIndex, draft, result, update }) {
         <StandardBudgetFields step={step} draft={draft} update={update} />
       )}
 
-      {stepIndex === 0 ? <EnergyInfoCard selectedType={draft.energyType} result={result} compact /> : null}
       <BudgetPreview result={result} draft={draft} />
     </div>
   );
@@ -324,10 +302,6 @@ function BasicInfoStep({ step, draft, update }) {
 
   return (
     <div className="grid gap-5">
-      <FieldGroup title="能源类型" compact>
-        <EnergyTypeCards choice={step.choice} value={draft[step.choice.name]} onChange={(value) => update(step.choice.name, value)} />
-      </FieldGroup>
-
       <FieldGroup title="基础行程">
         <div className="grid gap-4">
           {textFields.map((field) => (
@@ -343,49 +317,6 @@ function BasicInfoStep({ step, draft, update }) {
           ))}
         </div>
       </FieldGroup>
-    </div>
-  );
-}
-
-function EnergyTypeCards({ choice, value, onChange }) {
-  if (!choice) return null;
-
-  return (
-    <div>
-      <div className="grid gap-3">
-        {choice.options.map((option) => {
-          const meta = ENERGY_CARD_META[option.value] || { icon: Zap, title: option.label, description: '' };
-          const Icon = meta.icon;
-          const active = value === option.value;
-
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onChange(option.value)}
-              className={`flex min-h-[76px] items-center gap-3 rounded-[20px] border px-3.5 py-3 text-left transition hover:-translate-y-0.5 active:scale-[0.99] ${
-                active
-                  ? 'border-pine bg-gradient-to-r from-[#174B63] to-[#1E6B8A] text-lightText shadow-lg shadow-pine/15'
-                  : 'border-pine/10 bg-card text-ink shadow-sm hover:border-pine/25 hover:bg-aquaCard'
-              }`}
-            >
-              <span
-                className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${
-                  active ? 'bg-white/15 text-lightText' : 'bg-aquaCard text-pine'
-                }`}
-              >
-                <Icon size={22} />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-base font-bold leading-tight">{meta.title}</span>
-                <span className={`mt-1 block text-xs font-medium leading-relaxed ${active ? 'text-white/80' : 'text-muted'}`}>
-                  {meta.description}
-                </span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -596,7 +527,7 @@ function BudgetResult({ result, draft, selectedPlan, cardStatus, onReset, onEdit
 
       <BudgetLevelPanel report={budgetReport} result={result} />
 
-      <EnergyInfoCard selectedType={draft.energyType} result={result} />
+      <EnergyInfoCard result={result} />
 
       <BudgetTipsCard suggestions={result.suggestions} />
 
@@ -753,8 +684,6 @@ function ResultActionButton({ children, icon, onClick }) {
 
 function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
   const [copyStatus, setCopyStatus] = useState('');
-  const [saveStatus, setSaveStatus] = useState('idle');
-  const cardRef = useRef(null);
   const cardData = useMemo(() => buildBudgetCardData(result, draft), [result, draft]);
 
   if (!open) return null;
@@ -762,41 +691,6 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
   const copyCardText = async () => {
     const ok = await copyText(buildBudgetCopyText(result, draft, selectedPlan));
     setCopyStatus(ok ? '文字版预算卡已复制。' : '复制失败，可以稍后再试。');
-  };
-
-  const saveBudgetCardImage = async () => {
-    if (!cardRef.current || saveStatus === 'saving') return;
-
-    setSaveStatus('saving');
-    setCopyStatus('');
-
-    try {
-      const blob = await exportElementToPngBlob(cardRef.current, { pixelRatio: 2 });
-      const fileName = buildBudgetCardImageName(draft.destination);
-      const file = new File([blob], fileName, { type: 'image/png' });
-
-      if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-        await navigator.share({
-          title: '我的自驾预算卡',
-          text: '我的自驾预算卡',
-          files: [file],
-        });
-      } else {
-        downloadBlob(blob, fileName);
-      }
-
-      setSaveStatus('saved');
-      setCopyStatus('预算卡已生成，可保存或分享。');
-    } catch (error) {
-      if (error?.name === 'AbortError') {
-        setSaveStatus('idle');
-        setCopyStatus('已取消保存，可重新点击生成预算卡。');
-        return;
-      }
-
-      setSaveStatus('idle');
-      setCopyStatus('保存失败，可先使用截图或复制文字版。');
-    }
   };
 
   return (
@@ -817,10 +711,10 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
 
         <div className="min-h-0 flex-1 overflow-y-auto pb-4">
           <div className="mx-4 mt-4 rounded-2xl bg-aquaCard px-3 py-2 text-center text-xs font-bold leading-relaxed text-pine">
-            可保存成长图或发给同行人。
+            可使用手机截长图保存，也可以发给同行人。
           </div>
 
-          <div ref={cardRef} className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-[390px] overflow-hidden rounded-[24px] border border-pine/10 bg-gradient-to-br from-cream via-aquaCard to-amberSoft/45 shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
+          <div className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-[390px] overflow-hidden rounded-[24px] border border-pine/10 bg-gradient-to-br from-cream via-aquaCard to-amberSoft/45 shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
             <div className="bg-gradient-to-b from-[#174B63] to-[#1E6B8A] px-5 pb-5 pt-4 text-lightText">
               <p className="text-xs font-bold text-white/70">pYuY 租车自驾工具箱</p>
               <h3 className="mt-2 text-2xl font-bold leading-tight">我的自驾预算卡</h3>
@@ -896,19 +790,15 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
           </div>
 
           <p className="mx-4 mt-3 rounded-2xl bg-aquaCard px-3 py-2 text-center text-xs font-bold leading-relaxed text-pine">
-            可以保存成长图或复制文字版。
+            建议使用手机截长图保存完整预算卡，或复制文字版。
           </p>
           {copyStatus ? <p className="mx-4 mt-2 text-center text-xs font-bold text-muted">{copyStatus}</p> : null}
         </div>
 
-        <div className="modal-bottom-action grid shrink-0 grid-cols-2 gap-3 px-4 pt-3">
-          <BottomActionButton type="button" variant="secondary" onClick={copyCardText}>
+        <div className="modal-bottom-action grid shrink-0 grid-cols-1 gap-3 px-4 pt-3">
+          <BottomActionButton type="button" onClick={copyCardText}>
             <Copy size={18} />
             复制文字版
-          </BottomActionButton>
-          <BottomActionButton type="button" onClick={saveBudgetCardImage} disabled={saveStatus === 'saving'}>
-            {saveStatus === 'saved' ? <CheckCircle2 size={17} /> : <Download size={17} />}
-            {saveStatus === 'saving' ? '正在生成' : saveStatus === 'saved' ? '已生成' : '保存预算卡'}
           </BottomActionButton>
         </div>
       </div>
@@ -951,9 +841,9 @@ function BudgetCardFeeRow({ label, value, percent }) {
   );
 }
 
-function EnergyInfoCard({ selectedType, result, compact = false }) {
+function EnergyInfoCard({ result, compact = false }) {
   const [open, setOpen] = useState(false);
-  const safeType = result.energyType || (selectedType === 'hybrid' ? 'extended' : selectedType || 'oil');
+  const safeType = result.energyType || 'oil';
   const current = ENERGY_DEFAULTS[safeType] || ENERGY_DEFAULTS.oil;
   const rules = ['oil', 'electric', 'extended'].map((type) => ENERGY_DEFAULTS[type]);
   const usesVehicleEnergy = result.energySource === 'vehicle' && result.matchedVehicleName;
@@ -980,7 +870,7 @@ function EnergyInfoCard({ selectedType, result, compact = false }) {
       {open ? (
         <div className="mt-4 grid gap-2.5">
           <p className="rounded-2xl bg-card px-3 py-2 text-xs font-bold leading-relaxed text-pine">
-            {usesVehicleEnergy ? `当前匹配：${result.matchedVehicleName}（${currentLabel}）` : `当前选择：${currentLabel}`}，预计能源费用 {formatMoney(result.energyCost)}。
+            {usesVehicleEnergy ? `当前匹配：${result.matchedVehicleName}（${currentLabel}）` : `通用估算：${currentLabel}`}，预计能源费用 {formatMoney(result.energyCost)}。
           </p>
           {usesVehicleEnergy ? (
             <div className="rounded-2xl bg-card px-3 py-2.5">
@@ -1151,116 +1041,6 @@ async function copyText(text) {
   }
 }
 
-async function exportElementToPngBlob(element, options = {}) {
-  const pixelRatio = options.pixelRatio || 2;
-  const rect = element.getBoundingClientRect();
-  const width = Math.ceil(rect.width);
-  const height = Math.ceil(element.scrollHeight || rect.height);
-
-  if (!width || !height) {
-    throw new Error('budget-card-empty');
-  }
-
-  const clone = element.cloneNode(true);
-  inlineComputedStyles(element, clone);
-  clone.setAttribute(
-    'style',
-    `${clone.getAttribute('style') || ''};width:${width}px;height:${height}px;margin:0;box-sizing:border-box;`,
-  );
-
-  const serializedNode = new XMLSerializer().serializeToString(clone);
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <foreignObject width="100%" height="100%" x="0" y="0">
-        <div xmlns="http://www.w3.org/1999/xhtml">${serializedNode}</div>
-      </foreignObject>
-    </svg>
-  `;
-
-  const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
-
-  try {
-    const image = new window.Image();
-    await loadImage(image, svgUrl);
-
-    const canvas = document.createElement('canvas');
-    canvas.width = width * pixelRatio;
-    canvas.height = height * pixelRatio;
-
-    const context = canvas.getContext('2d');
-    context.scale(pixelRatio, pixelRatio);
-    context.drawImage(image, 0, 0, width, height);
-
-    return await new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error('budget-card-export-failed'));
-        }
-      }, 'image/png');
-    });
-  } finally {
-    URL.revokeObjectURL(svgUrl);
-  }
-}
-
-function loadImage(image, src) {
-  return new Promise((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = () => reject(new Error('budget-card-image-load-failed'));
-    image.decoding = 'async';
-    image.src = src;
-
-    if (image.decode) {
-      image.decode().then(resolve).catch(() => {
-        // Some mobile browsers reject decode for SVG but still fire onload.
-      });
-    }
-  });
-}
-
-function inlineComputedStyles(source, target) {
-  if (!(source instanceof Element) || !(target instanceof Element)) return;
-
-  const computedStyle = window.getComputedStyle(source);
-  let styleText = '';
-
-  for (const property of computedStyle) {
-    styleText += `${property}:${computedStyle.getPropertyValue(property)};`;
-  }
-
-  target.setAttribute('style', styleText);
-
-  const sourceChildren = Array.from(source.children);
-  const targetChildren = Array.from(target.children);
-
-  sourceChildren.forEach((child, index) => {
-    inlineComputedStyles(child, targetChildren[index]);
-  });
-}
-
-function buildBudgetCardImageName(destination) {
-  const safeDestination = String(destination || '自驾预算')
-    .trim()
-    .replace(/[\\/:*?"<>|]/g, '')
-    .slice(0, 16) || '自驾预算';
-  const date = new Date().toISOString().slice(0, 10);
-  return `自驾预算卡-${safeDestination}-${date}.png`;
-}
-
-function downloadBlob(blob, fileName) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.rel = 'noopener';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 function buildBudgetCopyText(result, draft, selectedPlan) {
   const energyEstimateText = result.matchedVehicleName
     ? `按${result.matchedVehicleName}估算（${result.energyUnitText}）`
@@ -1340,6 +1120,7 @@ function loadSelectedRentalPlan() {
 function loadBudgetDraft() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const { energyType, ...draftWithoutLegacyEnergyType } = parsed;
     const migratedTotal =
       Number(parsed.rentalPlatformTotal) > 0
         ? parsed.rentalPlatformTotal
@@ -1347,8 +1128,7 @@ function loadBudgetDraft() {
 
     return {
       ...defaultBudgetDraft,
-      ...parsed,
-      energyType: parsed.energyType === 'hybrid' ? 'extended' : parsed.energyType || defaultBudgetDraft.energyType,
+      ...draftWithoutLegacyEnergyType,
       rentalPlatformTotal: migratedTotal || defaultBudgetDraft.rentalPlatformTotal,
     };
   } catch {

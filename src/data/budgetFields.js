@@ -10,15 +10,6 @@ export const budgetSteps = [
       { name: 'rentalDays', label: '租车天数', type: 'number', suffix: '天' },
       { name: 'mileage', label: '预计总里程', type: 'number', suffix: 'km' },
     ],
-    choice: {
-      name: 'energyType',
-      label: '能源类型',
-      options: [
-        { value: 'oil', label: '油车' },
-        { value: 'electric', label: '新能源' },
-        { value: 'extended', label: '增程' },
-      ],
-    },
   },
   {
     title: '车辆与交通费用',
@@ -93,7 +84,6 @@ export const defaultBudgetDraft = {
   people: 2,
   rentalDays: 3,
   mileage: '',
-  energyType: 'oil',
   rentalPlatformTotal: '',
   tolls: '',
   parking: '',
