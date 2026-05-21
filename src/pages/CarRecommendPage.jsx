@@ -21,7 +21,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
 import TopBar from '../components/TopBar.jsx';
-import { findDestinationProfile, buildDestinationContext, getTopVehicleExamples, buildOneLinerSummary, buildSearchKeywords, buildWhyNotAdvice, buildTradeOffAdvice, buildDataNotice } from '../utils/carRecommendationDataHelpers.js';
+import { findDestinationProfile, buildDestinationContext, getTopVehicleExamples, getTieredVehicleRecommendations, buildOneLinerSummary, buildSearchKeywords, buildWhyNotAdvice, buildTradeOffAdvice, buildDataNotice } from '../utils/carRecommendationDataHelpers.js';
 import { getInsuranceAdviceByScenario, getPlatformInsurancePlans, INSURANCE_DISCLAIMER } from '../utils/insuranceUtils.js';
 
 /* ========================================================================
@@ -69,12 +69,17 @@ const intensityOptions = [
   { value: 'high', label: '较高：跨城 / 环线 / 每天开车较久' },
 ];
 
-const preferenceOptions = [
-  { value: 'budget', label: '省钱优先' },
-  { value: 'comfort', label: '舒适优先' },
-  { value: 'photo', label: '拍照 / 体验优先' },
-  { value: 'ev', label: '新能源优先' },
-  { value: 'reliable', label: '不想操心，稳定优先' },
+const energyPreferenceOptions = [
+  { value: 'flexible', label: '不限能源，系统推荐' },
+  { value: 'oil', label: '油车优先，补能省心' },
+  { value: 'hybrid', label: '混动 / 增程优先' },
+  { value: 'ev', label: '纯电 / 新能源优先' },
+];
+
+const drivingProficiencyOptions = [
+  { value: 'beginner', label: '新手：更重视好开好停' },
+  { value: 'normal', label: '普通：日常驾驶没问题' },
+  { value: 'experienced', label: '熟练：能接受山路长途' },
 ];
 
 /* ========================================================================
@@ -85,7 +90,7 @@ function generateRecommendation(form) {
   const profile = buildProfile(form);
   const destAdjust = applyDestination(form.destinationType, profile);
   const intensityResult = applyIntensity(form.tripIntensity, destAdjust);
-  const prefResult = applyPreference(form.preference, intensityResult);
+  const prefResult = applyPreference(form.energyPreference, intensityResult);
 
   // 根据目的地类型自动匹配具体的路线数据
   const derivedDest = DEST_TYPE_TO_DESTINATION[form.destinationType] || '';
@@ -107,7 +112,8 @@ function generateRecommendation(form) {
       people: peopleOptions.find((o) => o.value === form.peopleCount)?.label || '',
       luggage: luggageOptions.find((o) => o.value === form.luggage)?.label || '',
       intensity: intensityOptions.find((o) => o.value === form.tripIntensity)?.label || '',
-      preference: preferenceOptions.find((o) => o.value === form.preference)?.label || '',
+      energyPreference: energyPreferenceOptions.find((o) => o.value === form.energyPreference)?.label || '',
+      drivingProficiency: drivingProficiencyOptions.find((o) => o.value === form.drivingProficiency)?.label || '',
     },
     primary: prefResult,
     reasons,
@@ -234,9 +240,9 @@ function applyIntensity(intensity, profile) {
   return result;
 }
 
-/* —— 第四步：用车偏好修正 —— */
+/* —— 第四步：能源偏好修正 —— */
 
-function applyPreference(preference, profile) {
+function applyPreference(energyPreference, profile) {
   const result = { ...profile, prefNotes: [], extraNotes: [] };
   result.energyAdvice = {
     recommended: profile.energyLabel || '油车',
@@ -244,27 +250,24 @@ function applyPreference(preference, profile) {
     reason: profile.destNotes.join(''),
   };
 
-  switch (preference) {
-    case 'budget':
-      result.prefNotes.push('不必盲目上大车，先满足空间下限和行程强度的最低要求即可。');
-      result.prefNotes.push('建议用"比租车方案"功能横向对比不同平台同车型的含保险总价。');
-      result.prefBias = 'economy';
+  switch (energyPreference) {
+    case 'oil':
+      result.prefNotes.push('优先油车或油电混动，适合不想额外规划充电补能的行程。');
+      result.prefBias = 'reliable';
       break;
 
-    case 'comfort':
-      result.prefNotes.push('建议在基础推荐上提升一个车型级别，优先选空间大、隔音好的车型。');
-      result.prefNotes.push('关注座椅通风/加热、辅助驾驶、悬挂舒适度等配置。');
-      result.prefBias = 'upsize';
-      break;
-
-    case 'photo':
-      result.prefNotes.push('个性车型（敞篷、硬派越野、复古车型等）可以作为加分项，拍照出片率高。');
-      result.prefNotes.push('但建议不要为了拍照牺牲空间和续航容错率，尤其是长途或多人出行时。');
-      result.prefBias = 'style';
+    case 'hybrid':
+      result.prefNotes.push('优先看插混、增程或油电混动，兼顾低能耗和长途补能容错率。');
+      result.energyAdvice = {
+        recommended: '混动 / 增程优先',
+        level: profile.energyLevel === 'ev-friendly' ? 'ev-friendly' : 'recommend-extended',
+        reason: '混动和增程能兼顾电驱体验与加油补能，对跨城和路线不确定的行程更稳。',
+      };
+      result.prefBias = 'hybrid';
       break;
 
     case 'ev':
-      result.prefNotes.push('优先看纯电和增程车型，日常使用成本更低、驾驶静谧性更好。');
+      result.prefNotes.push('优先看纯电、插混和增程车型，日常使用成本更低、驾驶静谧性更好。');
       if (profile.energyLevel === 'recommend-oil-strong') {
         result.extraNotes.push('这个目的地充电条件可能不够完善。如果坚持选新能源，建议优先看增程车型，并提前规划沿途补能点。');
         result.energyAdvice = {
@@ -283,15 +286,7 @@ function applyPreference(preference, profile) {
       result.prefBias = 'ev';
       break;
 
-    case 'reliable':
-      result.prefNotes.push('建议优先油车、混动或增程，加油站覆盖率高，不依赖充电规划。');
-      result.prefNotes.push('选择保有量大、维修方便的车型（如 RAV4、CR-V、卡罗拉），减少不确定性。');
-      if (profile.energyLevel === 'ev-friendly') {
-        result.extraNotes.push('虽然这个目的地新能源友好，但如果你更看重省心，油车仍然是容错率最高的选择。');
-      }
-      result.prefBias = 'reliable';
-      break;
-
+    case 'flexible':
     default:
       result.prefBias = 'neutral';
       break;
@@ -315,7 +310,7 @@ function buildDirections(profile, form) {
 
   // 可选：同级不同能源
   if (profile.energyLevel === 'recommend-oil' || profile.energyLevel === 'recommend-oil-strong') {
-    if (profile.size !== 'xlarge' && form.preference === 'ev') {
+    if (profile.size !== 'xlarge' && form.energyPreference === 'ev') {
       alternatives.push('增程 SUV（理想 L 系列、问界 M 系列）— 兼顾电驱和补能便利');
     }
     alternatives.push('同级别混动车型 — 油耗更低，适合长途');
@@ -325,25 +320,16 @@ function buildDirections(profile, form) {
   }
 
   // 可选：预算降级
-  if (form.preference === 'budget' && baseIdx > 0) {
-    const downSize = sizeOrder[baseIdx - 1];
-    alternatives.push(`如果预算紧张，${sizeLabel(downSize)}也可以考虑，前提是满足空间下限`);
-  }
-
   // 可选：舒适升级
-  if ((form.preference === 'comfort' || form.tripIntensity === 'high') && baseIdx < sizeOrder.length - 1) {
+  if ((form.drivingProficiency === 'experienced' || form.tripIntensity === 'high') && baseIdx < sizeOrder.length - 1) {
     const upSize = sizeOrder[baseIdx + 1];
     if (upSize !== 'xlarge' || form.peopleCount === '6+') {
       alternatives.push(`如果预算允许，${sizeLabel(upSize)}的舒适性和空间更好`);
     }
   }
 
-  // 可选：个性车型
-  if (form.preference === 'photo' && ['city-short', 'island-leisure'].includes(form.destinationType)) {
-    alternatives.push('敞篷 / 个性车型 — 拍照出片，适合轻松路线的氛围感出行');
-  }
-  if (form.preference === 'photo' && ['mountain-plateau', 'grassland-long'].includes(form.destinationType)) {
-    alternatives.push('硬派越野（牧马人、坦克300）— 车身造型本身就很出片');
+  if (form.drivingProficiency === 'beginner') {
+    alternatives.push('新手友好车型 — 优先好开好停、视野清楚、辅助配置完整');
   }
 
   // 谨慎
@@ -386,7 +372,7 @@ function buildReasons(profile, form, destContext) {
   const people = form.peopleCount;
   const luggage = form.luggage;
   const intensity = form.tripIntensity;
-  const pref = form.preference;
+  const pref = form.energyPreference;
 
   // 主线：目的地场景描述 + 车型大方向
   reasons.push(mainAdvice(dest, people, luggage, profile, destContext));
@@ -399,7 +385,7 @@ function buildReasons(profile, form, destContext) {
   const intensityNote = intensityTip(intensity, dest, destContext);
   if (intensityNote) reasons.push(intensityNote);
 
-  // 副线 3：偏好对选择的影响
+  // 副线 3：能源偏好对选择的影响
   const prefNote = preferenceTip(pref, dest, profile, destContext);
   if (prefNote) reasons.push(prefNote);
 
@@ -524,21 +510,6 @@ function preferenceTip(pref, dest, profile, destContext) {
   const destName = destContext ? destContext.name : '';
 
   switch (pref) {
-    case 'budget':
-      return '你偏好省钱，这个思路在车型选择上完全可以成立——先满足空间和行程强度的下限，再在同级别里找价格更友好的平台和方案，不必盲目追高。';
-    case 'comfort':
-      if (dest === 'loop-long' || dest === 'grassland-long') {
-        return `你偏好舒适${destName ? `，在${destName}这类长距离路线上正好匹配` : '，在这类长距离路线上正好匹配'}——建议在基础推荐上提升一个车型级别，长途体验会明显更好。`;
-      }
-      return '你偏好舒适，建议在预算可接受的范围内优先看空间更大、隔音更好、座椅更舒服的车型。短途可能感觉不出差别，但一整趟下来体验差异很明显。';
-    case 'photo':
-      if (dest === 'island-leisure' || dest === 'city-short') {
-        return `拍照和体验优先的话${destName ? `，${destName}的敞篷、个性车型确实是加分项` : '，海岛或城市周边的敞篷、个性车型确实是加分项'}，出片率很高。不过建议先确认行李能不能装下，别为了造型牺牲实用性。`;
-      }
-      if (dest === 'mountain-plateau' || dest === 'grassland-long') {
-        return `拍照和体验优先${destName ? `，${destName}沿途硬派越野的造型本身就是很好的拍摄元素` : '，硬派越野的造型本身就是很好的拍摄元素'}。但注意不要为了外观牺牲空间和续航容错率——毕竟这趟路线本身对车辆的要求就不低。`;
-      }
-      return '你偏好拍照和体验，可以在满足基本空间和续航要求的前提下，优先看造型更有辨识度的车型。';
     case 'ev':
       if (dest === 'grassland-long' || dest === 'loop-long') {
         if (destContext && destContext.energyHint) {
@@ -556,14 +527,16 @@ function preferenceTip(pref, dest, profile, destContext) {
         return `你偏好新能源，${destName}整体对新能源比较友好。${destContext.energyHint}`;
       }
       return '你偏好新能源，在这个目的地场景下是比较匹配的。重点关注车辆续航、住宿地充电条件和还车电量要求即可。';
-    case 'reliable':
+    case 'oil':
       if (dest === 'grassland-long' || dest === 'loop-long' || dest === 'mountain-plateau') {
         if (destName) {
-          return `你偏好稳定省心，在${destName}这条路上这个思路很务实——油车或混动的补能确定性最高，把精力留给风景而不是充电规划。`;
+          return `你偏好油车优先，在${destName}这条路上这个思路很务实——油车或混动的补能确定性最高，把精力留给风景而不是充电规划。`;
         }
-        return '你偏好稳定省心，在这类路线上这个思路很务实——油车或混动的补能确定性最高，把精力留给风景而不是充电规划。';
+        return '你偏好油车优先，在这类路线上这个思路很务实——油车或混动的补能确定性最高，把精力留给风景而不是充电规划。';
       }
-      return '你偏好稳定省心，建议优先看保有量大、维修网络完善的车型。油车或混动在这个场景下是最不用操心的选择。';
+      return '你偏好油车优先，建议优先看保有量大、维修网络完善的车型。油车或混动在这个场景下是最不用操心的选择。';
+    case 'hybrid':
+      return '你偏好混动或增程，这个选择适合大多数自驾路线：有新能源的静谧和低能耗，也保留加油补能的容错率。';
     default:
       return null;
   }
@@ -628,9 +601,10 @@ function calculateEvScore(form) {
   // 人数
   if (form.peopleCount === '5' || form.peopleCount === '6+') score -= 10;
 
-  // 用车偏好
-  if (form.preference === 'reliable') score -= 15;
-  if (form.preference === 'ev') score += 15;
+  // 能源偏好
+  if (form.energyPreference === 'oil') score -= 15;
+  if (form.energyPreference === 'ev') score += 15;
+  if (form.energyPreference === 'hybrid') score += 5;
 
   return Math.max(0, Math.min(100, score));
 }
@@ -704,7 +678,8 @@ const emptyForm = {
   peopleCount: '',
   luggage: '',
   tripIntensity: '',
-  preference: '',
+  energyPreference: '',
+  drivingProficiency: '',
 };
 
 export default function CarRecommendPage() {
@@ -718,7 +693,7 @@ export default function CarRecommendPage() {
     setFeedback('');
   };
 
-  const canGenerate = form.destinationType && form.peopleCount && form.luggage && form.tripIntensity && form.preference;
+  const canGenerate = form.destinationType && form.peopleCount && form.luggage && form.tripIntensity && form.energyPreference && form.drivingProficiency;
 
   const handleGenerate = () => {
     if (!canGenerate) {
@@ -799,11 +774,20 @@ export default function CarRecommendPage() {
             />
 
             <OptionField
-              label="用车偏好"
-              icon={Sparkles}
-              options={preferenceOptions}
-              value={form.preference}
-              onChange={(v) => update('preference', v)}
+              label="能源类型偏好"
+              icon={BatteryCharging}
+              options={energyPreferenceOptions}
+              value={form.energyPreference}
+              onChange={(v) => update('energyPreference', v)}
+            />
+
+            <OptionField
+              label="驾驶熟练度"
+              icon={UserCheck}
+              options={drivingProficiencyOptions}
+              value={form.drivingProficiency}
+              onChange={(v) => update('drivingProficiency', v)}
+              cols="full"
             />
 
             <button
@@ -841,8 +825,8 @@ function IntroCard() {
   return (
     <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
       <div className="flex items-start gap-3">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[20px] bg-aquaCard text-xl" aria-hidden="true">
-          🚗
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[20px] bg-aquaCard text-pine" aria-hidden="true">
+          <CarFront size={24} />
         </span>
         <div className="min-w-0">
           <h1 className="text-xl font-bold leading-tight text-ink">目的地车型推荐</h1>
@@ -850,7 +834,7 @@ function IntroCard() {
             不用纠结轿车、SUV、MPV 还是新能源，先根据这趟行程判断大方向。
           </p>
           <p className="mt-2 rounded-2xl bg-amberSoft/45 px-3 py-2 text-xs font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
-            免费轻量建议，帮你判断车型和能源大方向，不做具体车型排行榜和平台比价。
+            免费轻量建议，会给出低价、中价、高价三档车型参考；实际价格以平台车源为准。
           </p>
         </div>
       </div>
@@ -905,6 +889,13 @@ function OptionField({ label, icon: Icon, options, value, onChange, cols }) {
 
 function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions) {
   const dc = result.destContext;
+  const tieredVehicles = getTieredVehicleRecommendations(result.derivedDest || '', {
+    peopleCount: form.peopleCount,
+    luggageLevel: form.luggage,
+    tripIntensity: form.tripIntensity,
+    energyPreference: form.energyPreference,
+    drivingPreference: form.drivingProficiency,
+  });
   const lines = [
     '【我的车型建议】',
     `目的地：${result.tripProfile.destination}`,
@@ -913,9 +904,10 @@ function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions
     `出行人数：${result.tripProfile.people}`,
     `行李：${result.tripProfile.luggage}`,
     `行程强度：${result.tripProfile.intensity}`,
-    `用车偏好：${result.tripProfile.preference}`,
+    `能源偏好：${result.tripProfile.energyPreference}`,
+    `驾驶熟练度：${result.tripProfile.drivingProficiency}`,
     '',
-    `优先推荐：${result.primary.category}`,
+    `优先方向：${result.primary.category}`,
     `参考车型：${result.primary.models}`,
     `新能源适配：${result.evScore.level}（${result.evRawScore} 分）`,
     '',
@@ -924,6 +916,14 @@ function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions
   if (result.reasons.length) {
     lines.push('推荐理由：');
     result.reasons.forEach((r, i) => lines.push(`${i + 1}. ${r}`));
+    lines.push('');
+  }
+
+  if (tieredVehicles.length) {
+    lines.push('三档车型参考：');
+    tieredVehicles.forEach((v) => {
+      lines.push(`- ${v.priceTierLabel || '推荐方案'}：${v.brand || ''}${v.model || ''}（${[v.vehicleLevel, v.bodyType, v.energyType].filter(Boolean).join(' / ')}，${v.overallScore || '-'} 分）`);
+    });
     lines.push('');
   }
 
@@ -990,18 +990,27 @@ function ResultView({ result, form }) {
     setTimeout(() => setCopyState('idle'), 3000);
   };
 
-  // 获取车型示例 + 生成一句话总结 + 关键词 + 不建议理由
+  // 获取三档车型示例 + 生成一句话总结 + 关键词 + 不建议理由
   const derivedDest = result.derivedDest || '';
-  const topVehicles = getTopVehicleExamples(derivedDest, {
+  const tieredVehicles = getTieredVehicleRecommendations(derivedDest, {
     peopleCount: form.peopleCount,
     luggageLevel: form.luggage,
-    budgetPreference: form.preference,
-    energyPreference: form.preference,
+    tripIntensity: form.tripIntensity,
+    energyPreference: form.energyPreference,
+    drivingPreference: form.drivingProficiency,
   });
+  const topVehicles = tieredVehicles.length
+    ? tieredVehicles
+    : getTopVehicleExamples(derivedDest, {
+      peopleCount: form.peopleCount,
+      luggageLevel: form.luggage,
+      tripIntensity: form.tripIntensity,
+      energyPreference: form.energyPreference,
+      drivingPreference: form.drivingProficiency,
+    });
   const oneLiner = buildOneLinerSummary(destContext, result, topVehicles, form);
   const keywords = buildSearchKeywords(topVehicles);
   const whyNotAdvices = buildWhyNotAdvice(topVehicles, derivedDest, {
-    budgetPreference: form.preference,
     peopleCount: form.peopleCount,
   });
   const tradeOff = buildTradeOffAdvice(destContext, form);
@@ -1045,9 +1054,9 @@ function ResultView({ result, form }) {
           <h2 className="text-lg font-bold text-ink">推荐方向</h2>
         </div>
 
-        {/* 优先推荐车型 */}
+        {/* 优先推荐方向 */}
         <div className="mt-3 rounded-2xl bg-gradient-to-r from-mint/70 to-mint/30 px-4 py-3 ring-1 ring-pine/10">
-          <p className="text-[11px] font-bold text-muted">优先推荐</p>
+          <p className="text-[11px] font-bold text-muted">推荐方向</p>
           <p className="mt-0.5 text-xl font-bold text-pine">{primary.category}</p>
           <p className="mt-0.5 text-sm font-medium text-ink">{primary.models}</p>
         </div>
@@ -1061,22 +1070,35 @@ function ResultView({ result, form }) {
           <p className="text-sm font-bold text-ink">{energyAdvice.recommended}</p>
         </div>
 
-        {/* 具体车型示例 */}
+        {/* 三档车型示例 */}
         <div className="mt-3">
-          <p className="text-xs font-bold text-muted">具体车型参考</p>
-          {topVehicles.length > 0 ? (
+          <p className="text-xs font-bold text-muted">按价格档位推荐</p>
+          {tieredVehicles.length > 0 ? (
             <div className="mt-2 grid gap-2">
-              {topVehicles.slice(0, 3).map((v) => (
-                <div key={v.vehicleId} className="flex items-start gap-2.5 rounded-2xl bg-aquaCard/70 px-3 py-2.5">
-                  <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    v.recommendationLevel === '强烈推荐' ? 'bg-pine text-white' : 'bg-mint text-pine'
-                  }`}>
-                    {v.overallScore || '-'}
-                  </span>
+              {tieredVehicles.map((v) => (
+                <div key={`${v.priceTier}-${v.vehicleId}`} className="rounded-2xl bg-aquaCard/70 px-3 py-3 ring-1 ring-pine/5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-bold text-muted">{v.priceTierLabel || '推荐方案'}</p>
+                      <p className="mt-0.5 text-base font-bold leading-snug text-ink">{v.brand || ''}{v.model || ''}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      v.recommendationLevel === '强烈推荐' ? 'bg-pine text-white' : 'bg-mint text-pine'
+                    }`}>
+                      {v.overallScore || '-'} 分
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {[v.vehicleLevel, v.bodyType, v.energyType, v.drivingDifficulty ? `驾驶${v.drivingDifficulty}` : ''].filter(Boolean).map((tag) => (
+                      <span key={tag} className="rounded-full bg-card/80 px-2 py-0.5 text-[10px] font-bold text-pine ring-1 ring-pine/10">{tag}</span>
+                    ))}
+                  </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-ink">{v.brand || ''}{v.model || ''} <span className="text-xs font-medium text-muted">{v.energyType || ''}</span></p>
                     {v.summarySentence ? (
-                      <p className="mt-0.5 text-xs leading-relaxed text-muted">{v.summarySentence}</p>
+                      <p className="mt-2 text-xs leading-relaxed text-muted">{v.summarySentence}</p>
+                    ) : null}
+                    {v.reason ? (
+                      <p className="mt-1 text-xs font-medium leading-relaxed text-ink">{v.reason}</p>
                     ) : null}
                   </div>
                 </div>
@@ -1134,6 +1156,12 @@ function ResultView({ result, form }) {
               行程较赶，座椅和隔音值得多花预算
             </FitRow>
           ) : null}
+          <FitRow icon={<BatteryCharging size={14} />} label="能源偏好">
+            {tripProfile.energyPreference}，推荐会优先匹配补能风险更合适的车型
+          </FitRow>
+          <FitRow icon={<UserCheck size={14} />} label="驾驶熟练度">
+            {tripProfile.drivingProficiency}，推荐会兼顾停车难度、道路适应和新手友好度
+          </FitRow>
         </div>
       </section>
 
@@ -1317,10 +1345,10 @@ function ResultView({ result, form }) {
       {/* 轻量说明 */}
       <div className="rounded-2xl bg-mint/50 px-4 py-3 text-center ring-1 ring-pine/10">
         <p className="text-xs font-bold leading-relaxed text-pine">
-          当前为免费轻量建议，主要帮你判断车型和能源大方向。
+          当前为免费轻量建议，主要帮你判断低价、中价、高价三档车型方向。
         </p>
         <p className="mt-1 text-xs font-medium leading-relaxed text-muted">
-          具体车型、平台价格和补能路线，建议结合实际车源再确认。
+          具体日租价、保险和补能路线，建议结合实际车源再确认。
         </p>
       </div>
     </div>
@@ -1370,10 +1398,10 @@ function buildInsuranceContext(form, result) {
     peopleCount: form.peopleCount || form.people || '',
     people: form.peopleCount || form.people || '',
     tripDays: result?.tripProfile ? form.tripDays : '',
-    preference: form.preference || '',
-    isBeginner: false,
-    experience: '',
-    budgetConscious: form.preference === 'budget',
+    preference: form.energyPreference || '',
+    isBeginner: form.drivingProficiency === 'beginner',
+    experience: form.drivingProficiency || '',
+    budgetConscious: false,
   };
 }
 

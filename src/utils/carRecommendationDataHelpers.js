@@ -136,7 +136,16 @@ const LEVEL_PRIORITY = {
 
 export function getRecommendationsByDestination(destinationInput) {
   const profile = findDestinationProfile(destinationInput);
-  if (!profile) return [];
+  if (!profile) {
+    return recommendations
+      .filter((r) => r.recommendationLevel !== '不建议')
+      .sort((a, b) => {
+        const pa = LEVEL_PRIORITY[a.recommendationLevel] ?? 99;
+        const pb = LEVEL_PRIORITY[b.recommendationLevel] ?? 99;
+        if (pa !== pb) return pa - pb;
+        return (b.overallScore ?? 0) - (a.overallScore ?? 0);
+      });
+  }
 
   const list = recommendations.filter((r) => r.destinationId === profile.id);
 
@@ -247,31 +256,43 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
   }
 
   // 能源偏好
-  if (energyPreference === 'ev' || energyPreference === '新能源优先') {
+  if (energyPreference === 'ev' || energyPreference === 'electric' || energyPreference === '新能源优先') {
     const evRecs = candidates.filter((r) =>
       ['纯电动', '增程式', '插电混动'].includes(r.energyType),
     );
     if (evRecs.length >= 3) candidates = evRecs;
-  } else if (energyPreference === 'oil' || energyPreference === '油车优先') {
+  } else if (energyPreference === 'oil' || energyPreference === 'fuel' || energyPreference === '油车优先') {
     const oilRecs = candidates.filter((r) =>
       ['汽油', '油电混动'].includes(r.energyType),
     );
     if (oilRecs.length >= 3) candidates = oilRecs;
+  } else if (energyPreference === 'hybrid' || energyPreference === '混动/增程优先') {
+    const hybridRecs = candidates.filter((r) =>
+      ['油电混动', '插电混动', '增程式'].includes(r.energyType),
+    );
+    if (hybridRecs.length >= 3) candidates = hybridRecs;
   }
 
   // 驾驶偏好
-  if (drivingPreference === 'comfort' || drivingPreference === '舒适') {
-    candidates.sort((a, b) => (b.comfortScore ?? 0) - (a.comfortScore ?? 0));
-  } else if (drivingPreference === 'offroad' || drivingPreference === '越野') {
+  if (drivingPreference === 'beginner' || drivingPreference === '新手') {
+    candidates.sort((a, b) => {
+      const beginnerDiff = (b.beginnerFriendlyScore ?? 0) - (a.beginnerFriendlyScore ?? 0);
+      if (beginnerDiff !== 0) return beginnerDiff;
+      return (b.parkingScore ?? 0) - (a.parkingScore ?? 0);
+    });
+  } else if (drivingPreference === 'experienced' || drivingPreference === '熟练') {
     candidates.sort((a, b) => (b.roadScore ?? 0) - (a.roadScore ?? 0));
+  } else if (drivingPreference === 'comfort' || drivingPreference === '舒适') {
+    candidates.sort((a, b) => (b.comfortScore ?? 0) - (a.comfortScore ?? 0));
   }
 
-  // 返回前 5 条，去重 vehicleId
+  // 返回指定数量，去重 vehicleId
+  const limit = options.limit ?? 5;
   const VEHICLE_FALLBACKS = {
     brand: '', model: '', vehicleLevel: '中型', bodyType: 'SUV', energyType: '',
     driveType: '', fuelConsumption: '', groundClearance: '', luggageCapacity: '',
     trunkSpace: '', summarySentence: '', bestUseCase: '', notSuitableCase: '',
-    commonProblems: '', recommendationLevel: '可选',
+    commonProblems: '', recommendationLevel: '可选', priceTier: '',
   };
   const seen = new Set();
   const result = [];
@@ -285,6 +306,7 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
       vehicleLevel: rec.vehicleLevel,
       bodyType: rec.bodyType,
       energyType: rec.energyType,
+      priceTier: rec.priceTier,
       driveType: rec.driveType,
       seatCount: rec.seatCount,
       suitablePeopleCount: rec.suitablePeopleCount,
@@ -302,12 +324,107 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
       comfortScore: rec.comfortScore,
       spaceScore: rec.spaceScore,
       roadScore: rec.roadScore,
+      parkingScore: rec.parkingScore,
       costScore: rec.costScore,
+      beginnerFriendlyScore: rec.beginnerFriendlyScore,
+      drivingDifficulty: rec.drivingDifficulty,
+      parkingDifficulty: rec.parkingDifficulty,
+      longDistanceComfort: rec.longDistanceComfort,
+      reason: rec.reason,
     }, VEHICLE_FALLBACKS));
-    if (result.length >= 5) break;
+    if (result.length >= limit) break;
   }
 
   return result;
+}
+
+const PRICE_TIER_ORDER = ['低', '中', '高'];
+const PRICE_TIER_LABELS = {
+  低: '低价方案',
+  中: '中价方案',
+  高: '高价方案',
+};
+
+function normalizePriceTier(value) {
+  if (!value) return '';
+  if (PRICE_TIER_ORDER.includes(value)) return value;
+  if (String(value).includes('低')) return '低';
+  if (String(value).includes('中')) return '中';
+  if (String(value).includes('高')) return '高';
+  return '';
+}
+
+function scoreTierCandidate(rec, options = {}) {
+  let score = rec.overallScore ?? 0;
+  const { drivingPreference } = options;
+
+  if (drivingPreference === 'beginner') {
+    score += (rec.beginnerFriendlyScore ?? 0) * 0.18;
+    score += (rec.parkingScore ?? 0) * 0.12;
+  }
+
+  if (drivingPreference === 'experienced') {
+    score += (rec.roadScore ?? 0) * 0.16;
+    score += (rec.comfortScore ?? 0) * 0.08;
+  }
+
+  if (options.tripIntensity === 'high') {
+    score += (rec.comfortScore ?? 0) * 0.12;
+  }
+
+  if (options.luggageLevel === 'heavy') {
+    score += (rec.spaceScore ?? 0) * 0.12;
+  }
+
+  return score;
+}
+
+export function getTieredVehicleRecommendations(destinationInput, options = {}) {
+  const allRecs = getTopVehicleExamples(destinationInput, {
+    ...options,
+    budgetPreference: '',
+    limit: 80,
+  });
+
+  if (!allRecs.length) return [];
+
+  const selected = [];
+  const used = new Set();
+
+  for (const tier of PRICE_TIER_ORDER) {
+    const tierCandidates = allRecs
+      .filter((rec) => normalizePriceTier(rec.priceTier) === tier && !used.has(rec.vehicleId))
+      .sort((a, b) => scoreTierCandidate(b, options) - scoreTierCandidate(a, options));
+
+    const picked = tierCandidates[0];
+    if (picked) {
+      used.add(picked.vehicleId);
+      selected.push({
+        ...picked,
+        priceTier: tier,
+        priceTierLabel: PRICE_TIER_LABELS[tier],
+      });
+    }
+  }
+
+  if (selected.length < 3) {
+    const fillers = allRecs
+      .filter((rec) => !used.has(rec.vehicleId))
+      .sort((a, b) => scoreTierCandidate(b, options) - scoreTierCandidate(a, options));
+
+    for (const rec of fillers) {
+      const tier = normalizePriceTier(rec.priceTier) || PRICE_TIER_ORDER[selected.length] || '中';
+      selected.push({
+        ...rec,
+        priceTier: tier,
+        priceTierLabel: PRICE_TIER_LABELS[tier] || '推荐方案',
+      });
+      used.add(rec.vehicleId);
+      if (selected.length >= 3) break;
+    }
+  }
+
+  return selected.slice(0, 3);
 }
 
 /* ========================================================================
@@ -571,25 +688,14 @@ export function buildTradeOffAdvice(destContext, form) {
   if (!form) return null;
 
   const destName = destContext ? destContext.name : '';
-  const pref = form.preference || '';
+  const pref = form.energyPreference || form.preference || '';
   const peopleRaw = form.peopleCount || '';
   const peopleNum = parseInt(peopleRaw, 10);
   const peopleLabel = peopleRaw === '1-2' ? '1-2' : peopleRaw === '3-4' ? '3-4' : peopleRaw === '5' ? '5' : peopleRaw === '6+' ? '6+' : '';
   const luggage = form.luggage || '';
   const notRecommendedEnergy = destContext ? (destContext.notRecommendedEnergy || []) : [];
 
-  // 条件 1：省钱优先 + 人数>=3 或行李较多
-  if ((pref === 'budget' || pref === '省钱优先') && (peopleNum >= 3 || luggage === 'heavy')) {
-    const peopleNote = peopleLabel ? ` ${peopleLabel}人出行` : '';
-    const luggageNote = luggage === 'heavy' ? '加上行李较多' : '';
-    const extraNote = [peopleNote, luggageNote].filter(Boolean).join('，');
-    return {
-      title: '为什么不建议只看最低价？',
-      body: `你偏好省钱${extraNote ? `，但${extraNote}` : ''}，小型车或紧凑型轿车后备箱可能吃紧；这次更建议在预算内优先看紧凑型 SUV 或中型 SUV，而不是只选最低价小车。`,
-    };
-  }
-
-  // 条件 2：目的地不推荐纯电 + 用户偏好新能源
+  // 条件 1：目的地不推荐纯电 + 用户偏好新能源
   if (notRecommendedEnergy.includes('纯电动') && (pref === 'ev' || pref === '新能源优先')) {
     const hasAltitude = destContext && (destContext.altitudeRisk === '高' || destContext.altitudeRisk === '中高');
     const reason = hasAltitude
@@ -601,15 +707,7 @@ export function buildTradeOffAdvice(destContext, form) {
     };
   }
 
-  // 条件 3：舒适优先（推荐通常不需要上豪华车）
-  if (pref === 'comfort' || pref === '舒适优先') {
-    return {
-      title: '为什么不必盲目上大车？',
-      body: `你更看重舒适，但这次不一定需要直接上大型豪华 SUV；中型或中大型 SUV 已经能覆盖空间、长途舒适和路况适应，性价比更均衡。`,
-    };
-  }
-
-  // 条件 4：人数 <= 2 且目的地轻松（如海南）
+  // 条件 2：人数 <= 2 且目的地轻松（如海南）
   if (peopleNum <= 2 && destContext && destContext.altitudeRisk === '低') {
     return {
       title: '为什么不必盲目上大车？',
@@ -617,10 +715,10 @@ export function buildTradeOffAdvice(destContext, form) {
     };
   }
 
-  // 条件 5：兜底 — 均衡说明
+  // 条件 3：兜底 — 均衡说明
   return {
     title: '为什么这类车更均衡？',
-    body: '这次推荐优先平衡空间、补能、路况和预算，不是单纯选最便宜或最大的一类车。',
+    body: '这次推荐优先平衡空间、补能、路况、驾驶难度和预算档位，不是单纯选最便宜或最大的一类车。',
   };
 }
 
@@ -639,7 +737,7 @@ export function buildDataNotice(destContext, topVehicles, form) {
   }
 
   // 场景 2：能源冲突提示（轻量提醒，不阻断）
-  if (destContext && destContext.notRecommendedEnergy.includes('纯电动') && form.preference === 'ev') {
+  if (destContext && destContext.notRecommendedEnergy.includes('纯电动') && form.energyPreference === 'ev') {
     notice.level = 'tip';
     notice.message = '纯电在这条路线可以选择，但建议提前规划沿途补能点；如果是第一次去，更建议汽油、插混或增程。';
     return notice;
