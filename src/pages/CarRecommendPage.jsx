@@ -27,13 +27,13 @@ import { getInsuranceAdviceByScenario, getPlatformInsurancePlans, INSURANCE_DISC
    ======================================================================== */
 
 const DEST_TYPE_TO_DESTINATION = {
-  'city-short': '',
-  'island-leisure': '海南环岛自驾',
-  'mountain-plateau': '川西小环线',
-  'grassland-gobi': '青甘大环线',
-  'yunnan-mountain': '昆大丽香线',
-  'grassland-long': '伊犁环线',
-  'loop-long': '青甘大环线',
+  'city-short': '城区近郊轻自驾',
+  'island-leisure': '海岛滨海环线',
+  'mountain-plateau': '山地高原山路',
+  'grassland-gobi': '草原戈壁大长线',
+  'yunnan-mountain': '山地高原山路',
+  'grassland-long': '草原戈壁大长线',
+  'loop-long': '草原戈壁大长线',
   unsure: '',
 };
 
@@ -91,10 +91,17 @@ function generateRecommendation(form) {
   const derivedDest = DEST_TYPE_TO_DESTINATION[form.destinationType] || '';
   const destProfile = derivedDest ? findDestinationProfile(derivedDest) : null;
   const destContext = derivedDest && destProfile ? buildDestinationContext(derivedDest) : null;
+  const optimizedVehicles = derivedDest ? getTieredVehicleRecommendations(derivedDest, {
+    peopleCount: form.peopleCount,
+    luggageLevel: form.luggage,
+    energyPreference: form.energyPreference,
+    drivingPreference: form.drivingProficiency,
+  }) : [];
+  const recommendedProfile = buildOptimizedPrimaryProfile(prefResult, optimizedVehicles);
 
-  const directions = buildDirections(prefResult, form);
-  const reasons = buildReasons(prefResult, form, destContext);
-  const notRecommended = buildNotRecommended(prefResult, form, destContext);
+  const directions = buildDirections(recommendedProfile, form);
+  const reasons = buildReasons(recommendedProfile, form, destContext);
+  const notRecommended = buildNotRecommended(recommendedProfile, form, destContext);
   const evScore = calculateEvScore(form);
   const evLevel = getEvLevel(evScore);
 
@@ -109,12 +116,12 @@ function generateRecommendation(form) {
       energyPreference: energyPreferenceOptions.find((o) => o.value === form.energyPreference)?.label || '',
       drivingProficiency: drivingProficiencyOptions.find((o) => o.value === form.drivingProficiency)?.label || '',
     },
-    primary: prefResult,
+    primary: recommendedProfile,
     reasons,
     notRecommended,
     directions,
-    energyAdvice: prefResult.energyAdvice,
-    extraNotes: prefResult.extraNotes || [],
+    energyAdvice: recommendedProfile.energyAdvice,
+    extraNotes: recommendedProfile.extraNotes || [],
     evScore: evLevel,
     evRawScore: evScore,
     destContext,
@@ -125,6 +132,8 @@ function generateRecommendation(form) {
 /* —— 第一步：人数 + 行李 → 基础车型 —— */
 
 function buildProfile(form) {
+  // 仅作为 CheXingKu 数据未命中时的轻量 fallback，不作为车型推荐主数据源。
+  // 真实推荐车型来自 src/data/car-recommendation/index.js 中的 optimized* 数据。
   const key = `${form.peopleCount}|${form.luggage}`;
   const map = {
     '1-2|light':  { category: '经济轿车 / 紧凑型 SUV', models: '卡罗拉、飞度、比亚迪秦 PLUS、探歌', size: 'compact', energyOpen: true },
@@ -865,7 +874,7 @@ function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions
     '',
     `优先方向：${result.primary.category}`,
     `参考车型：${result.primary.models}`,
-    `新能源适配：${result.evScore.level}（${result.evRawScore} 分）`,
+    `新能源适配：${result.evScore.level}`,
     '',
   ].filter(Boolean);
 
@@ -878,7 +887,7 @@ function buildResultCopyText(result, form, insuranceAdvice, insuranceSuggestions
   if (tieredVehicles.length) {
     lines.push('三档车型参考：');
     tieredVehicles.forEach((v) => {
-      lines.push(`- ${v.priceTierLabel || '推荐方案'}：${v.brand || ''}${v.model || ''}（${[v.vehicleLevel, v.bodyType, v.energyType].filter(Boolean).join(' / ')}，${v.overallScore || '-'} 分）`);
+      lines.push(`- ${v.priceTierLabel || '推荐方案'}：${getVehicleName(v)}（${getVehicleTags(v, form, result.destContext).join(' / ')}，${getFitLabel(v)}）`);
     });
     lines.push('');
   }
@@ -929,6 +938,137 @@ async function copyToClipboard(text) {
   } catch {
     return false;
   }
+}
+
+function getVehicleName(vehicle) {
+  return vehicle?.name || `${vehicle?.brand || ''}${vehicle?.model || ''}`.trim() || '推荐车型';
+}
+
+function compactText(text, maxLength = 76) {
+  const cleaned = String(text || '').replace(/\s+/g, '').replace(/；{2,}/g, '；');
+  if (!cleaned) return '';
+  return cleaned.length > maxLength ? `${cleaned.slice(0, maxLength - 1)}…` : cleaned;
+}
+
+function getVehicleTypeTag(vehicle) {
+  const type = vehicle?.bodyType || vehicle?.carType || '';
+  const level = vehicle?.vehicleLevel || '';
+  if (type && level && !type.includes(level) && !level.includes(type)) return `${level}${type}`;
+  return type || level || '';
+}
+
+function getEnergyTag(energyType) {
+  const map = {
+    汽油: '油车',
+    油电混动: '混动',
+    插电混动: '插混',
+    增程式: '增程',
+    纯电动: '纯电',
+  };
+  return map[energyType] || energyType || '';
+}
+
+function getDestinationFitTag(form, destContext) {
+  if (form.destinationType === 'city-short') return '城市友好';
+  if (form.destinationType === 'island-leisure') return '滨海适合';
+  if (['mountain-plateau', 'yunnan-mountain'].includes(form.destinationType)) return '山路适配';
+  if (['grassland-gobi', 'grassland-long', 'loop-long'].includes(form.destinationType)) return '长途适合';
+  return destContext?.altitudeRisk === '高' ? '复杂路况适合' : '路线适配';
+}
+
+function getFitLabel(vehicle) {
+  const score = Number(vehicle?.recommendationScore ?? vehicle?.overallScore ?? 0);
+  if (vehicle?.recommendationLevel === '强烈推荐' || score >= 4.35) return '适配度较高';
+  if (score >= 3.85) return '适配度中等偏高';
+  if (vehicle?.recommendationLevel === '谨慎选择') return '需要确认车况';
+  return '适配度中等';
+}
+
+function parseHorsepowerText(value) {
+  const nums = String(value || '').match(/\d+(?:\.\d+)?/g);
+  if (!nums) return 0;
+  return Math.max(...nums.map(Number).filter(Number.isFinite));
+}
+
+function getPowerDisplay(vehicle, form, detail = false) {
+  const hp = parseHorsepowerText(vehicle?.horsepower);
+  const label = vehicle?.powerReserveLabel || '';
+  const complexRoute = ['mountain-plateau', 'yunnan-mountain', 'grassland-gobi', 'grassland-long', 'loop-long'].includes(form.destinationType);
+  const loaded = ['5', '6+'].includes(form.peopleCount) || form.luggage === 'heavy';
+
+  if (!label && !hp) return '';
+  if (detail) {
+    if (complexRoute && hp >= 220) return `动力储备更适合山路、长途或满载场景，参考马力：${hp} Ps。`;
+    if (loaded && hp >= 180) return `多人或行李较多时动力更从容，参考马力：${hp} Ps。`;
+    if (form.destinationType === 'city-short') return hp ? `城市短途不必只看高马力，这台车的动力日常够用，参考马力：${hp} Ps。` : '城市短途更看重好开好停，动力不是唯一重点。';
+    return hp ? `动力表现以日常自驾够用为主，参考马力：${hp} Ps。` : label;
+  }
+
+  if (complexRoute && label === '动力更充足') return '动力充足';
+  if (loaded && hp >= 180) return '满载更从容';
+  if (complexRoute && label) return label;
+  return '';
+}
+
+function getVehicleTags(vehicle, form, destContext) {
+  const tags = [
+    getVehicleTypeTag(vehicle),
+    getEnergyTag(vehicle?.energyType),
+    getDestinationFitTag(form, destContext),
+  ];
+
+  const powerTag = getPowerDisplay(vehicle, form);
+  if (powerTag) tags.push(powerTag);
+  if ((form.drivingProficiency === 'beginner' || vehicle?.beginnerFriendlyScore >= 4) && tags.length < 4) tags.push('新手友好');
+  if ((vehicle?.spaceScore >= 4 || vehicle?.luggageCapacity === '好' || vehicle?.trunkSpace === '好') && tags.length < 4) tags.push('空间够用');
+  if ((vehicle?.comfortScore >= 4 || vehicle?.longDistanceComfort === '好') && tags.length < 4) tags.push('长途舒服');
+
+  return [...new Set(tags.filter(Boolean))].slice(0, 4);
+}
+
+function buildVehicleShortReason(vehicle, form, destContext) {
+  const source = vehicle?.reason || vehicle?.summarySentence || vehicle?.bestUseCase || '';
+  if (source) return compactText(source);
+
+  const type = getVehicleTypeTag(vehicle) || '这类车';
+  const fit = getDestinationFitTag(form, destContext);
+  return `${type}在空间、补能和驾驶难度上比较均衡，适合这次${fit}的自驾需求。`;
+}
+
+function buildVehicleDetailItems(vehicle, form, tripProfile, destContext, keywords) {
+  const items = [
+    {
+      label: '为什么适合当前目的地',
+      text: vehicle?.reason || destContext?.highlights || `${tripProfile.type}会同时考虑路况、距离、补能和停车难度，这台车综合适配更稳。`,
+    },
+    {
+      label: '动力判断',
+      text: getPowerDisplay(vehicle, form, true) || '这次推荐没有把马力数字放在最前面，主要看它是否满足当前路线和载人载物需求。',
+    },
+    {
+      label: '适配依据',
+      text: '综合看了车型类型、能源形式、空间表现、驾驶难度、目的地路况和补能风险，不只按单一分数或最低价格排序。',
+    },
+  ];
+
+  if (vehicle?.notSuitableCase) {
+    items.push({ label: '需要留意', text: vehicle.notSuitableCase });
+  } else if (vehicle?.warning) {
+    items.push({ label: '需要留意', text: vehicle.warning });
+  }
+
+  if (vehicle?.energyType) {
+    items.push({
+      label: '能源选择',
+      text: `${getEnergyTag(vehicle.energyType)}适合度会结合目的地补能条件判断；长途、山路和偏远路线不建议只看使用成本。`,
+    });
+  }
+
+  if (keywords?.length) {
+    items.push({ label: '平台搜索建议', text: `可以优先搜索：${keywords.slice(0, 5).join('、')}。` });
+  }
+
+  return items;
 }
 
 /* ========================================================================
@@ -1008,7 +1148,7 @@ function ResultView({ result, form }) {
 
         {/* 三档车型示例 */}
         <div className="mt-3">
-          <p className="text-xs font-bold text-muted">按价格档位推荐</p>
+          <p className="text-xs font-bold text-muted">三档车型推荐</p>
           {tieredVehicles.length > 0 ? (
             <div className="mt-2 grid gap-2">
               {tieredVehicles.map((v) => (
@@ -1016,26 +1156,32 @@ function ResultView({ result, form }) {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-[11px] font-bold text-muted">{v.priceTierLabel || '推荐方案'}</p>
-                      <p className="mt-0.5 text-base font-bold leading-snug text-ink">{v.brand || ''}{v.model || ''}</p>
+                      <p className="mt-0.5 break-words text-base font-bold leading-snug text-ink">{getVehicleName(v)}</p>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                      v.recommendationLevel === '强烈推荐' ? 'bg-pine text-white' : 'bg-mint text-pine'
-                    }`}>
-                      {v.overallScore || '-'} 分
+                    <span className="shrink-0 rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold text-pine">
+                      {getFitLabel(v)}
                     </span>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {[v.vehicleLevel, v.bodyType, v.energyType, v.drivingDifficulty ? `驾驶${v.drivingDifficulty}` : ''].filter(Boolean).map((tag) => (
+                    {getVehicleTags(v, form, destContext).map((tag) => (
                       <span key={tag} className="rounded-full bg-card/80 px-2 py-0.5 text-[10px] font-bold text-pine ring-1 ring-pine/10">{tag}</span>
                     ))}
                   </div>
                   <div className="min-w-0">
-                    {v.summarySentence ? (
-                      <p className="mt-2 text-xs leading-relaxed text-muted">{v.summarySentence}</p>
-                    ) : null}
-                    {v.reason ? (
-                      <p className="mt-1 text-xs font-medium leading-relaxed text-ink">{v.reason}</p>
-                    ) : null}
+                    <p className="mt-2 line-clamp-2 text-xs font-medium leading-relaxed text-ink">{buildVehicleShortReason(v, form, destContext)}</p>
+                    <details className="group mt-2 rounded-xl bg-card/60 px-3 py-2 ring-1 ring-pine/10">
+                      <summary className="cursor-pointer list-none text-[11px] font-bold text-pine">
+                        展开看选择依据
+                      </summary>
+                      <div className="mt-2 grid gap-2">
+                        {buildVehicleDetailItems(v, form, tripProfile, destContext, keywords).map((item) => (
+                          <div key={item.label}>
+                            <p className="text-[10px] font-bold text-muted">{item.label}</p>
+                            <p className="mt-0.5 text-xs font-medium leading-relaxed text-ink">{item.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                   </div>
                 </div>
               ))}
@@ -1048,8 +1194,13 @@ function ResultView({ result, form }) {
         </div>
       </section>
 
+      <details className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+        <summary className="cursor-pointer list-none text-sm font-bold text-pine">
+          展开看完整理由、搜索和保险建议
+        </summary>
+        <div className="mt-3 grid gap-3">
       {/* === 卡片 2：为什么适合 === */}
-      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <section className="rounded-[20px] bg-aquaCard/40 p-3 ring-1 ring-pine/10">
         <div className="flex items-center gap-2">
           <Info size={18} className="text-pine" />
           <h2 className="text-lg font-bold text-ink">为什么适合</h2>
@@ -1068,7 +1219,7 @@ function ResultView({ result, form }) {
       </section>
 
       {/* === 卡片 3：能源怎么选 === */}
-      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <section className="rounded-[20px] bg-aquaCard/40 p-3 ring-1 ring-pine/10">
         <div className="flex items-center gap-2">
           <BatteryCharging size={18} className="text-pine" />
           <h2 className="text-lg font-bold text-ink">能源怎么选</h2>
@@ -1102,7 +1253,7 @@ function ResultView({ result, form }) {
       </section>
 
       {/* === 卡片 4：去平台怎么搜 === */}
-      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <section className="rounded-[20px] bg-aquaCard/40 p-3 ring-1 ring-pine/10">
         <div className="flex items-center gap-2">
           <ArrowRight size={18} className="text-pine" />
           <h2 className="text-lg font-bold text-ink">去平台上可以这样搜</h2>
@@ -1163,7 +1314,7 @@ function ResultView({ result, form }) {
       </section>
 
       {/* === 卡片 5：为什么不建议这样选 === */}
-      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <section className="rounded-[20px] bg-aquaCard/40 p-3 ring-1 ring-pine/10">
         <div className="flex items-center gap-2">
           <Info size={18} className="text-amberDark" />
           <h2 className="text-lg font-bold text-ink">{tradeOff ? tradeOff.title : '不建议什么'}</h2>
@@ -1206,7 +1357,10 @@ function ResultView({ result, form }) {
         advice={insuranceAdvice}
         suggestions={insuranceSuggestions}
         destContext={destContext}
+        compact
       />
+        </div>
+      </details>
 
       {/* === 底部操作 === */}
       <section className="rounded-[24px] border border-pine/10 bg-aquaCard p-4 shadow-card">
@@ -1302,6 +1456,25 @@ function buildInsuranceContext(form, result) {
   };
 }
 
+function buildOptimizedPrimaryProfile(fallbackProfile, vehicles) {
+  if (!vehicles.length) return fallbackProfile;
+
+  const bodyTypes = [...new Set(vehicles.map((v) => v.bodyType || v.carType).filter(Boolean))].slice(0, 2);
+  const levels = [...new Set(vehicles.map((v) => v.vehicleLevel).filter(Boolean))].slice(0, 2);
+  const models = vehicles.map((v) => `${v.brand || ''}${v.model || ''}`.trim()).filter(Boolean).slice(0, 4);
+  const energyTypes = [...new Set(vehicles.map((v) => v.energyType).filter(Boolean))].slice(0, 2);
+
+  return {
+    ...fallbackProfile,
+    category: [levels.join('/'), bodyTypes.join('/')].filter(Boolean).join(' ') || fallbackProfile.category,
+    models: models.join('、') || fallbackProfile.models,
+    energyAdvice: {
+      ...fallbackProfile.energyAdvice,
+      recommended: energyTypes.length ? energyTypes.join(' / ') : fallbackProfile.energyAdvice?.recommended,
+    },
+  };
+}
+
 /** 根据匹配到的场景规则，从 INSURANCE_PLANS 中查找对应平台/方案名称 */
 function buildInsuranceSuggestions(insuranceAdvice) {
   if (!insuranceAdvice || !insuranceAdvice.matched) return null;
@@ -1360,11 +1533,11 @@ function buildInsuranceSuggestions(insuranceAdvice) {
   };
 }
 
-function InsuranceAdviceCard({ advice, suggestions, destContext }) {
+function InsuranceAdviceCard({ advice, suggestions, destContext, compact = false }) {
   if (!advice) return null;
 
   return (
-    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+    <section className={compact ? 'rounded-[20px] bg-aquaCard/40 p-3 ring-1 ring-pine/10' : 'rounded-[24px] border border-pine/10 bg-card p-4 shadow-card'}>
       <div className="flex items-center gap-2">
         <ShieldCheck size={18} className="text-pine" />
         <h2 className="text-lg font-bold text-ink">保险怎么选</h2>

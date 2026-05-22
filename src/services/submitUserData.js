@@ -7,8 +7,6 @@ export async function submitUserData(data) {
     ...data,
   };
 
-  console.log('submitUserData', payload);
-
   try {
     const existing = safeParse(localStorage.getItem(STORAGE_KEY), []);
     localStorage.setItem(STORAGE_KEY, JSON.stringify([payload, ...existing]));

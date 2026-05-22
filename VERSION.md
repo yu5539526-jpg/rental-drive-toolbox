@@ -1,5 +1,39 @@
 # 版本记录
 
+## v1.3.0 - 2026-05-22 17:32
+
+### 更新摘要
+本次更新接入 CheXingKu 项目中优化后的车型库数据，车型推荐从旧的简化数据升级为基于车型基础信息、目的地类型、车型目的地适配评分和打分规则的综合判断。结果页继续保持轻量展示，避免直接暴露过多技术字段。
+
+### 主要改动
+- 同步车型基础信息、目的地类型、车型目的地适配评分和车型目的地打分规则。
+- 将马力、车型类型、能源类型、人数、行李、驾驶熟练度和能源偏好纳入推荐评分。
+- 保持低价 / 中价 / 高价三档推荐输出，并修复缺档时的兜底补齐逻辑。
+- 优化结果页车型卡片，只展示车型名称、标签、适配度和简短理由，详细依据放入展开区域。
+- 完成云贵山地、川西高原、城市短途、草原戈壁等典型场景测试和构建检查。
+
+### 涉及文件
+- src/data/car-recommendation/optimizedCarModels.js：新增 CheXingKu 车型基础信息数据。
+- src/data/car-recommendation/optimizedDestinationTypes.js：新增目的地类型数据。
+- src/data/car-recommendation/optimizedCarDestinationScores.js：新增车型与目的地适配评分数据。
+- src/data/car-recommendation/optimizedCarRecommendationRules.js：新增车型目的地打分规则。
+- src/data/car-recommendation/index.js：统一新车型库数据入口，明确旧数据仅作为历史留档。
+- src/data/car-recommendation/README.md：新增车型推荐数据维护说明。
+- src/utils/carRecommendationDataHelpers.js：升级车型推荐评分、三档输出和推荐理由生成逻辑。
+- src/pages/CarRecommendPage.jsx：接入新推荐结果并优化结果页展示。
+- src/services/submitUserData.js：移除调试输出。
+
+### 验证情况
+- 是否已运行构建：是，已运行 `npm run build` 并通过。
+- 是否已本地预览：否，本次未启动本地预览服务。
+- 是否存在待处理问题：构建仍有 Vite chunk 体积提醒，来源于完整车型库数据较大，不影响页面运行。
+
+### Git 信息
+- Commit ID：未提交
+- Commit message：未提交
+
+---
+
 ## v1.2.1 - 2026-05-22 12:08
 
 ### 更新摘要

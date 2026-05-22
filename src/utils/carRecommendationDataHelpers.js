@@ -1,4 +1,4 @@
-import { destinations, recommendations } from '../data/car-recommendation/index.js';
+import { carRecommendationRules, destinations, recommendations } from '../data/car-recommendation/index.js';
 
 /* ========================================================================
    0. sanitize — 过滤 null / undefined / "待人工确认" 等内部值
@@ -31,56 +31,64 @@ function sanitizeRecord(record, fieldDefaults = {}) {
    ======================================================================== */
 
 const ALIAS_MAP = {
+  城区近郊: '城区近郊轻自驾',
+  市郊短途: '城区近郊轻自驾',
+  城市周边: '城区近郊轻自驾',
+  周边短途: '城区近郊轻自驾',
+
   // 伊犁环线
-  伊犁: '伊犁环线',
-  新疆伊犁: '伊犁环线',
-  赛里木湖: '伊犁环线',
-  那拉提: '伊犁环线',
-  独库公路: '伊犁环线',
-  新疆: '伊犁环线',
-  北疆: '伊犁环线',
+  伊犁: '草原戈壁大长线',
+  新疆伊犁: '草原戈壁大长线',
+  赛里木湖: '草原戈壁大长线',
+  那拉提: '草原戈壁大长线',
+  独库公路: '草原戈壁大长线',
+  新疆: '草原戈壁大长线',
+  北疆: '草原戈壁大长线',
 
   // 川西小环线
-  川西: '川西小环线',
-  川西大环线: '川西小环线',
-  稻城亚丁: '川西小环线',
-  色达: '川西小环线',
-  新都桥: '川西小环线',
-  '318': '川西小环线',
-  川藏线: '川西小环线',
-  四姑娘山: '川西小环线',
-  理塘: '川西小环线',
+  川西: '山地高原山路',
+  川西大环线: '山地高原山路',
+  稻城亚丁: '山地高原山路',
+  色达: '山地高原山路',
+  新都桥: '山地高原山路',
+  '318': '山地高原山路',
+  川藏线: '山地高原山路',
+  四姑娘山: '山地高原山路',
+  理塘: '山地高原山路',
 
   // 青甘大环线
-  青甘: '青甘大环线',
-  青甘环线: '青甘大环线',
-  西北环线: '青甘大环线',
-  青海湖: '青甘大环线',
-  敦煌: '青甘大环线',
-  大柴旦: '青甘大环线',
-  青海: '青甘大环线',
-  甘肃: '青甘大环线',
-  河西走廊: '青甘大环线',
+  青甘: '草原戈壁大长线',
+  青甘环线: '草原戈壁大长线',
+  西北环线: '草原戈壁大长线',
+  青海湖: '草原戈壁大长线',
+  敦煌: '草原戈壁大长线',
+  大柴旦: '草原戈壁大长线',
+  青海: '草原戈壁大长线',
+  甘肃: '草原戈壁大长线',
+  河西走廊: '草原戈壁大长线',
 
   // 海南环岛自驾
-  三亚: '海南环岛自驾',
-  海南: '海南环岛自驾',
-  海南环岛: '海南环岛自驾',
-  三亚环岛: '海南环岛自驾',
-  海口: '海南环岛自驾',
-  万宁: '海南环岛自驾',
-  陵水: '海南环岛自驾',
+  三亚: '海岛滨海环线',
+  海南: '海岛滨海环线',
+  海南环岛: '海岛滨海环线',
+  三亚环岛: '海岛滨海环线',
+  海口: '海岛滨海环线',
+  万宁: '海岛滨海环线',
+  陵水: '海岛滨海环线',
+  青岛: '海岛滨海环线',
+  厦门: '海岛滨海环线',
+  威海: '海岛滨海环线',
 
   // 昆大丽香线
-  云南: '昆大丽香线',
-  滇西北: '昆大丽香线',
-  大理: '昆大丽香线',
-  丽江: '昆大丽香线',
-  香格里拉: '昆大丽香线',
-  泸沽湖: '昆大丽香线',
-  昆明: '昆大丽香线',
-  西双版纳: '昆大丽香线',
-  腾冲: '昆大丽香线',
+  云南: '山地高原山路',
+  滇西北: '山地高原山路',
+  大理: '山地高原山路',
+  丽江: '山地高原山路',
+  香格里拉: '山地高原山路',
+  泸沽湖: '山地高原山路',
+  昆明: '山地高原山路',
+  西双版纳: '山地高原山路',
+  腾冲: '山地高原山路',
 };
 
 export function normalizeDestinationName(input) {
@@ -89,7 +97,7 @@ export function normalizeDestinationName(input) {
   if (!trimmed) return '';
 
   // 直接命中 JSON 中的标准名称
-  const exact = destinations.find((d) => d.name === trimmed);
+  const exact = destinations.find((d) => d.name === trimmed || d.shortName === trimmed);
   if (exact) return exact.name;
 
   // 别名映射
@@ -97,7 +105,7 @@ export function normalizeDestinationName(input) {
 
   // 模糊匹配：输入包含标准名
   for (const d of destinations) {
-    if (trimmed.includes(d.name) || d.name.includes(trimmed)) {
+    if (trimmed.includes(d.name) || d.name.includes(trimmed) || (d.shortName && (trimmed.includes(d.shortName) || d.shortName.includes(trimmed)))) {
       return d.name;
     }
   }
@@ -174,6 +182,7 @@ export function getVehicleById(vehicleId) {
     bodyType: rec.bodyType,
     energyType: rec.energyType,
     driveType: rec.driveType,
+    horsepower: rec.horsepower,
     seatCount: rec.seatCount,
     suitablePeopleCount: rec.suitablePeopleCount,
     fuelConsumption: rec.fuelConsumption,
@@ -195,7 +204,8 @@ function fitsPeopleCount(rec, peopleCount) {
   if (!peopleCount) return true;
   const n = parseInt(peopleCount, 10);
   if (isNaN(n)) return true;
-  if (n >= 5) return rec.seatCount >= 6 || rec.bodyType === 'MPV';
+  if (n >= 6) return rec.seatCount >= 6 || rec.bodyType === 'MPV';
+  if (n >= 5) return rec.seatCount >= 5;
   if (n >= 3) return rec.seatCount >= 5;
   return true;
 }
@@ -208,24 +218,294 @@ function fitsLuggageLevel(rec, luggageLevel) {
   return true;
 }
 
+const LEVEL_SCORE = {
+  很差: 1,
+  差: 1,
+  较差: 2,
+  一般: 2.6,
+  中等: 3,
+  较好: 4,
+  好: 4.5,
+  很好: 5,
+  优秀: 5,
+};
+
+const DESTINATION_TYPE_BY_NAME = {
+  城区近郊轻自驾: '城区近郊',
+  海岛滨海环线: '海岛滨海',
+  山地高原山路: '山地高原',
+  草原戈壁大长线: '草原戈壁',
+};
+
+const DESTINATION_KEY_TO_RULE_TYPE = {
+  'city-short': '城区近郊',
+  'island-leisure': '海岛滨海',
+  'mountain-plateau': '山地高原',
+  'yunnan-mountain': '山地高原',
+  'grassland-gobi': '草原戈壁',
+  'grassland-long': '草原戈壁',
+  'loop-long': '草原戈壁',
+};
+
+function getDestinationRuleType(profile) {
+  if (!profile) return '';
+  return DESTINATION_TYPE_BY_NAME[profile.name] || DESTINATION_KEY_TO_RULE_TYPE[profile.type] || profile.shortName || profile.name || '';
+}
+
+function getDestinationCategory(profile) {
+  const ruleType = getDestinationRuleType(profile);
+  if (ruleType === '城区近郊') return 'city-short';
+  if (ruleType === '海岛滨海') return 'island-leisure';
+  if (ruleType === '山地高原') return 'mountain-plateau';
+  if (ruleType === '草原戈壁') return 'grassland-gobi';
+  return profile?.type || '';
+}
+
+function parsePeopleNumber(value) {
+  if (value === '6+' || value === '6人及以上') return 6;
+  if (value === '5') return 5;
+  if (value === '3-4') return 4;
+  if (value === '1-2') return 2;
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function levelScore(value, fallback = 3) {
+  const text = String(value || '').trim();
+  if (!text) return fallback;
+  for (const [key, score] of Object.entries(LEVEL_SCORE)) {
+    if (text.includes(key)) return score;
+  }
+  if (text.includes('容易') || text.includes('简单')) return 5;
+  if (text.includes('困难') || text.includes('较大') || text.includes('高')) return 2;
+  return fallback;
+}
+
+function parseHorsepower(value) {
+  const nums = String(value || '').match(/\d+(?:\.\d+)?/g);
+  if (!nums) return 0;
+  return Math.max(...nums.map(Number).filter(Number.isFinite));
+}
+
+function getPowerLabel(rec) {
+  const hp = parseHorsepower(rec.horsepower);
+  if (!hp) return '';
+  if (hp >= 300) return '动力更充足';
+  if (hp >= 180) return '动力够用';
+  return '动力偏日常';
+}
+
+function getPowerAdjustment(rec, profile, options = {}) {
+  const hp = parseHorsepower(rec.horsepower);
+  if (!hp) return 0;
+
+  const category = getDestinationCategory(profile);
+  const people = parsePeopleNumber(options.peopleCount);
+  const heavyLoad = people >= 4 || options.luggageLevel === 'heavy';
+  const complexRoute = ['mountain-plateau', 'grassland-gobi'].includes(category);
+
+  if (complexRoute || heavyLoad) {
+    if (hp >= 300) return 0.32;
+    if (hp >= 220) return 0.22;
+    if (hp >= 160) return 0.08;
+    return -0.22;
+  }
+
+  if (category === 'city-short' && people <= 2 && options.luggageLevel !== 'heavy') {
+    if (hp >= 300) return -0.08;
+    if (hp >= 160) return 0.04;
+    return 0;
+  }
+
+  return hp >= 180 ? 0.08 : 0;
+}
+
+function getBodyTypeAdjustment(rec, profile) {
+  const category = getDestinationCategory(profile);
+  const body = `${rec.bodyType || ''}${rec.vehicleLevel || ''}${rec.carType || ''}`;
+
+  if (category === 'city-short') {
+    if (/轿车|小型|紧凑/.test(body)) return 0.18;
+    if (/大型|中大型|MPV|硬派/.test(body)) return -0.18;
+  }
+
+  if (category === 'island-leisure') {
+    if (/轿车|SUV|紧凑|中型/.test(body)) return 0.12;
+    if (/硬派越野/.test(body)) return -0.18;
+  }
+
+  if (category === 'mountain-plateau') {
+    if (/SUV|越野/.test(body)) return 0.2;
+    if (/小型|轿车/.test(body)) return -0.14;
+  }
+
+  if (category === 'grassland-gobi') {
+    if (/中型|中大型|SUV|MPV/.test(body)) return 0.2;
+    if (/小型|两厢/.test(body)) return -0.18;
+  }
+
+  return 0;
+}
+
+function getPeopleLuggageAdjustment(rec, options = {}) {
+  const people = parsePeopleNumber(options.peopleCount);
+  const seats = Number(rec.seatCount) || 0;
+  const suitable = Number(rec.suitablePeopleCount) || 0;
+  let score = 0;
+
+  if (people >= 6 && seats < 6) score -= 1.2;
+  else if (people >= 5 && seats < 5) score -= 1;
+  else if (people >= 5 && (rec.bodyType === 'MPV' || seats >= 6)) score += 0.28;
+  else if (people >= 3 && seats >= 5) score += 0.12;
+  else if (people <= 2 && /小型|紧凑型|两厢|三厢/.test(`${rec.vehicleLevel || ''}${rec.bodyType || ''}`)) score += 0.12;
+
+  if (suitable && people && suitable < people) score -= 0.35;
+
+  const luggageScore = levelScore(rec.luggageCapacity || rec.trunkSpace, 3);
+  if (options.luggageLevel === 'heavy') {
+    score += (luggageScore - 3) * 0.18;
+    if (people >= 4 && luggageScore < 3.5) score -= 0.45;
+  } else if (options.luggageLevel === 'light' && people <= 2 && /大型|中大型|MPV/.test(`${rec.vehicleLevel || ''}${rec.bodyType || ''}`)) {
+    score -= 0.12;
+  }
+
+  return score;
+}
+
+function getDrivingAdjustment(rec, options = {}) {
+  const drivingPreference = options.drivingPreference;
+  if (!drivingPreference) return 0;
+
+  const drivingScore = levelScore(rec.drivingDifficulty, 3);
+  const parkingScore = levelScore(rec.parkingDifficulty, 3);
+  const largeOrHard = /大型|中大型|MPV|硬派|越野/.test(`${rec.vehicleLevel || ''}${rec.bodyType || ''}${rec.bestUseCase || ''}`);
+  const hp = parseHorsepower(rec.horsepower);
+
+  if (drivingPreference === 'beginner' || drivingPreference === '新手') {
+    let score = (rec.beginnerFriendlyScore || 3) * 0.08 + (rec.parkingScore || 3) * 0.05;
+    if (drivingScore < 3 || parkingScore < 3 || largeOrHard) score -= 0.35;
+    if (hp >= 350) score -= 0.12;
+    return score;
+  }
+
+  if (drivingPreference === 'experienced' || drivingPreference === '熟练') {
+    return (rec.roadScore || 3) * 0.08 + (largeOrHard ? 0.08 : 0);
+  }
+
+  return 0;
+}
+
+function getEnergyAdjustment(rec, profile, options = {}) {
+  const pref = options.energyPreference;
+  const energy = rec.energyType || '';
+  const category = getDestinationCategory(profile);
+  const notRecommendedEnergy = profile ? (profile.notRecommendedEnergy || []) : [];
+  let score = 0;
+
+  if (pref === 'ev' || pref === 'electric' || pref === '新能源优先') {
+    if (['纯电动', '增程式', '插电混动'].includes(energy)) score += 0.28;
+    if (energy === '纯电动' && ['mountain-plateau', 'grassland-gobi'].includes(category)) score -= 0.55;
+  } else if (pref === 'oil' || pref === 'fuel' || pref === '油车优先') {
+    if (['汽油', '油电混动'].includes(energy)) score += 0.24;
+  } else if (pref === 'hybrid' || pref === '混动/增程优先') {
+    if (['油电混动', '插电混动', '增程式'].includes(energy)) score += 0.28;
+  }
+
+  if (notRecommendedEnergy.includes(energy)) score -= 0.7;
+
+  if (category === 'city-short' || category === 'island-leisure') {
+    if (['纯电动', '插电混动', '增程式'].includes(energy)) score += 0.12;
+  }
+
+  if (category === 'mountain-plateau' || category === 'grassland-gobi') {
+    if (['汽油', '油电混动', '插电混动', '增程式'].includes(energy)) score += 0.15;
+  }
+
+  return score;
+}
+
+function getRulesWeightAdjustment(rec, profile) {
+  const ruleType = getDestinationRuleType(profile);
+  const weights = carRecommendationRules?.destinationWeights?.[ruleType] || {};
+  const bonus = carRecommendationRules?.bonusRules?.[ruleType] || {};
+  let score = 0;
+
+  if (weights.horsepower) score += getPowerAdjustment(rec, profile, {}) * Math.min(weights.horsepower / 6, 1);
+  if (weights.parking_difficulty) score += (rec.parkingScore || 3) * 0.015;
+  if (weights.energy_type) score += (rec.energyRiskScore || 3) * 0.015;
+  if (weights.seat_comfort || weights.long_distance_comfort) score += (rec.comfortScore || 3) * 0.012;
+  if (weights.rear_space || weights.trunk_space) score += (rec.spaceScore || 3) * 0.012;
+
+  if (bonus.four_wheel_drive && /四驱|AWD|4WD/.test(rec.driveType || '')) score += 0.12;
+  if (bonus.long_distance_comfort_good && levelScore(rec.longDistanceComfort, 3) >= 4) score += 0.12;
+  if (bonus.parking_easy && levelScore(rec.parkingDifficulty, 3) >= 4) score += 0.1;
+
+  return score;
+}
+
+function buildRecommendationReason(rec, profile, options = {}) {
+  const parts = [];
+  const powerLabel = getPowerLabel(rec);
+  const category = getDestinationCategory(profile);
+
+  if (category === 'mountain-plateau' && (options.drivingPreference === 'beginner' || options.peopleCount === '1-2')) {
+    parts.push('城市山路和窄路较多，车身不宜过大');
+  } else if (category === 'mountain-plateau' && options.luggageLevel === 'heavy') {
+    parts.push('山路高原满载出行，更看动力储备和补能稳定性');
+  } else if (category === 'grassland-gobi') {
+    parts.push('长途距离长，空间、舒适性和补能稳定性更重要');
+  } else if (category === 'city-short') {
+    parts.push('城市短途更看重好开好停和低使用成本');
+  }
+
+  if (powerLabel && ['mountain-plateau', 'grassland-gobi'].includes(category)) parts.push(powerLabel);
+  if (options.luggageLevel === 'heavy' && (rec.luggageCapacity || rec.trunkSpace)) parts.push(`行李空间${rec.luggageCapacity || rec.trunkSpace}`);
+  if ((options.drivingPreference === 'beginner' || options.drivingPreference === '新手') && rec.parkingDifficulty) parts.push(`停车${rec.parkingDifficulty}`);
+  if (rec.reason) {
+    parts.push(...String(rec.reason).split(/[；;]+/).filter(Boolean).slice(0, 2));
+  }
+
+  return parts.filter(Boolean).slice(0, 4).join('；');
+}
+
+function buildAdjustedRecommendation(rec, profile, options = {}) {
+  const destinationFit = Number(rec.overallScore) || 0;
+  const typeFit = getBodyTypeAdjustment(rec, profile);
+  const powerFit = getPowerAdjustment(rec, profile, options);
+  const peopleLuggageFit = getPeopleLuggageAdjustment(rec, options);
+  const drivingFit = getDrivingAdjustment(rec, options);
+  const energyFit = getEnergyAdjustment(rec, profile, options);
+  const ruleFit = getRulesWeightAdjustment(rec, profile);
+  const warningPenalty = rec.recommendationLevel === '不建议' ? -1.2 : rec.recommendationLevel === '谨慎选择' ? -0.6 : 0;
+  const recommendationScore = destinationFit + typeFit + powerFit + peopleLuggageFit + drivingFit + energyFit + ruleFit + warningPenalty;
+
+  return {
+    ...rec,
+    recommendationScore: Math.round(recommendationScore * 100) / 100,
+    powerReserveLabel: getPowerLabel(rec),
+    reason: buildRecommendationReason(rec, profile, options),
+    scoreBreakdown: {
+      destinationFit,
+      typeFit,
+      powerFit,
+      peopleLuggageFit,
+      drivingFit,
+      energyFit,
+      ruleFit,
+      warningPenalty,
+    },
+  };
+}
+
 export function getTopVehicleExamples(destinationInput, options = {}) {
   const allRecs = getRecommendationsByDestination(destinationInput);
   if (!allRecs.length) return [];
 
   const profile = findDestinationProfile(destinationInput);
-  const notRecommendedEnergy = profile ? (profile.notRecommendedEnergy || []) : [];
-  const { peopleCount, luggageLevel, budgetPreference, energyPreference, drivingPreference } = options;
+  const { peopleCount, luggageLevel, budgetPreference } = options;
 
   // 从非"不建议"的推荐开始
   let candidates = allRecs.filter((r) => r.recommendationLevel !== '不建议');
-
-  // 如果目的地不推荐纯电，将纯电排在后面（不直接排除，因为可能没得选）
-  if (notRecommendedEnergy.includes('纯电动')) {
-    const nonPureEV = candidates.filter((r) => r.energyType !== '纯电动');
-    if (nonPureEV.length >= 3) {
-      candidates = nonPureEV;
-    }
-  }
 
   // 人数筛选
   if (peopleCount) {
@@ -239,6 +519,8 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
     if (fitted.length >= 2) candidates = fitted;
   }
 
+  candidates = candidates.map((rec) => buildAdjustedRecommendation(rec, profile, options));
+
   // 预算偏好 — 基于 JSON 实际 costScore 排序和车型级别过滤
   if (budgetPreference === 'budget' || budgetPreference === '省钱优先') {
     // 省钱：排除大型/中大型，按 costScore 降序
@@ -246,44 +528,13 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
       (r) => r.vehicleLevel !== '大型' && r.vehicleLevel !== '中大型',
     );
     if (budgetFriendly.length >= 3) candidates = budgetFriendly;
-    candidates.sort((a, b) => (b.costScore ?? 0) - (a.costScore ?? 0));
+    candidates.sort((a, b) => (b.costScore ?? 0) - (a.costScore ?? 0) || (b.recommendationScore ?? 0) - (a.recommendationScore ?? 0));
   } else if (budgetPreference === 'comfort' || budgetPreference === '舒适优先') {
     // 舒适：按 comfortScore 降序
-    candidates.sort((a, b) => (b.comfortScore ?? 0) - (a.comfortScore ?? 0));
+    candidates.sort((a, b) => (b.comfortScore ?? 0) - (a.comfortScore ?? 0) || (b.recommendationScore ?? 0) - (a.recommendationScore ?? 0));
   } else {
-    // 无偏好时保持推荐等级 + overallScore 排序
-    candidates.sort((a, b) => (b.overallScore ?? 0) - (a.overallScore ?? 0));
-  }
-
-  // 能源偏好
-  if (energyPreference === 'ev' || energyPreference === 'electric' || energyPreference === '新能源优先') {
-    const evRecs = candidates.filter((r) =>
-      ['纯电动', '增程式', '插电混动'].includes(r.energyType),
-    );
-    if (evRecs.length >= 3) candidates = evRecs;
-  } else if (energyPreference === 'oil' || energyPreference === 'fuel' || energyPreference === '油车优先') {
-    const oilRecs = candidates.filter((r) =>
-      ['汽油', '油电混动'].includes(r.energyType),
-    );
-    if (oilRecs.length >= 3) candidates = oilRecs;
-  } else if (energyPreference === 'hybrid' || energyPreference === '混动/增程优先') {
-    const hybridRecs = candidates.filter((r) =>
-      ['油电混动', '插电混动', '增程式'].includes(r.energyType),
-    );
-    if (hybridRecs.length >= 3) candidates = hybridRecs;
-  }
-
-  // 驾驶偏好
-  if (drivingPreference === 'beginner' || drivingPreference === '新手') {
-    candidates.sort((a, b) => {
-      const beginnerDiff = (b.beginnerFriendlyScore ?? 0) - (a.beginnerFriendlyScore ?? 0);
-      if (beginnerDiff !== 0) return beginnerDiff;
-      return (b.parkingScore ?? 0) - (a.parkingScore ?? 0);
-    });
-  } else if (drivingPreference === 'experienced' || drivingPreference === '熟练') {
-    candidates.sort((a, b) => (b.roadScore ?? 0) - (a.roadScore ?? 0));
-  } else if (drivingPreference === 'comfort' || drivingPreference === '舒适') {
-    candidates.sort((a, b) => (b.comfortScore ?? 0) - (a.comfortScore ?? 0));
+    // 默认：使用新车型库目的地评分 + 规则微调后的综合分
+    candidates.sort((a, b) => (b.recommendationScore ?? 0) - (a.recommendationScore ?? 0));
   }
 
   // 返回指定数量，去重 vehicleId
@@ -308,6 +559,8 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
       energyType: rec.energyType,
       priceTier: rec.priceTier,
       driveType: rec.driveType,
+      horsepower: rec.horsepower,
+      powerReserveLabel: rec.powerReserveLabel,
       seatCount: rec.seatCount,
       suitablePeopleCount: rec.suitablePeopleCount,
       fuelConsumption: rec.fuelConsumption,
@@ -319,6 +572,8 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
       notSuitableCase: rec.notSuitableCase,
       commonProblems: rec.commonProblems,
       overallScore: rec.overallScore,
+      recommendationScore: rec.recommendationScore,
+      scoreBreakdown: rec.scoreBreakdown,
       recommendationLevel: rec.recommendationLevel,
       energyRiskScore: rec.energyRiskScore,
       comfortScore: rec.comfortScore,
@@ -330,6 +585,8 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
       drivingDifficulty: rec.drivingDifficulty,
       parkingDifficulty: rec.parkingDifficulty,
       longDistanceComfort: rec.longDistanceComfort,
+      seatComfort: rec.seatComfort,
+      rearSpace: rec.rearSpace,
       reason: rec.reason,
     }, VEHICLE_FALLBACKS));
     if (result.length >= limit) break;
@@ -355,25 +612,25 @@ function normalizePriceTier(value) {
 }
 
 function scoreTierCandidate(rec, options = {}) {
-  let score = rec.overallScore ?? 0;
+  let score = rec.recommendationScore ?? rec.overallScore ?? 0;
   const { drivingPreference } = options;
 
   if (drivingPreference === 'beginner') {
-    score += (rec.beginnerFriendlyScore ?? 0) * 0.18;
-    score += (rec.parkingScore ?? 0) * 0.12;
+    score += (rec.beginnerFriendlyScore ?? 0) * 0.06;
+    score += (rec.parkingScore ?? 0) * 0.04;
   }
 
   if (drivingPreference === 'experienced') {
-    score += (rec.roadScore ?? 0) * 0.16;
-    score += (rec.comfortScore ?? 0) * 0.08;
+    score += (rec.roadScore ?? 0) * 0.05;
+    score += (rec.comfortScore ?? 0) * 0.03;
   }
 
   if (options.tripIntensity === 'high') {
-    score += (rec.comfortScore ?? 0) * 0.12;
+    score += (rec.comfortScore ?? 0) * 0.04;
   }
 
   if (options.luggageLevel === 'heavy') {
-    score += (rec.spaceScore ?? 0) * 0.12;
+    score += (rec.spaceScore ?? 0) * 0.05;
   }
 
   return score;
@@ -408,12 +665,13 @@ export function getTieredVehicleRecommendations(destinationInput, options = {}) 
   }
 
   if (selected.length < 3) {
+    const missingTiers = PRICE_TIER_ORDER.filter((tier) => !selected.some((rec) => rec.priceTier === tier));
     const fillers = allRecs
       .filter((rec) => !used.has(rec.vehicleId))
       .sort((a, b) => scoreTierCandidate(b, options) - scoreTierCandidate(a, options));
 
     for (const rec of fillers) {
-      const tier = normalizePriceTier(rec.priceTier) || PRICE_TIER_ORDER[selected.length] || '中';
+      const tier = missingTiers.shift() || normalizePriceTier(rec.priceTier) || PRICE_TIER_ORDER[selected.length] || '中';
       selected.push({
         ...rec,
         priceTier: tier,
@@ -424,7 +682,9 @@ export function getTieredVehicleRecommendations(destinationInput, options = {}) 
     }
   }
 
-  return selected.slice(0, 3);
+  return selected
+    .slice(0, 3)
+    .sort((a, b) => PRICE_TIER_ORDER.indexOf(a.priceTier) - PRICE_TIER_ORDER.indexOf(b.priceTier));
 }
 
 /* ========================================================================
@@ -432,6 +692,30 @@ export function getTieredVehicleRecommendations(destinationInput, options = {}) 
    ======================================================================== */
 
 const DESTINATION_SCENE_MAP = {
+  城区近郊轻自驾: {
+    intro: '城区近郊轻自驾以城市道路、快速路和短途高速为主，核心是好开好停、省钱省心，停车便利性比大车气场更重要。',
+    highlights: '单日里程短、停车频率高，适合紧凑轿车、小型 SUV、混动或纯电车型。',
+    energyHint: '补能条件整体友好，纯电、插混、增程和油车都能选，重点看取还车和停车是否方便。',
+    comfortHint: '不必过度追求大车和高马力，灵活、低成本、好停车更实用。',
+  },
+  海岛滨海环线: {
+    intro: '海岛滨海环线以铺装路、高速和沿海公路为主，海拔低、补能友好，适合轻松舒适的自驾节奏。',
+    highlights: '路况轻松，舒适、空调、空间和能耗更值得关注，不需要默认上硬派越野。',
+    energyHint: '滨海城市充电条件通常较好，纯电、插混和增程都可以纳入选择。',
+    comfortHint: '长时间吹空调和城市景区停车较多，座椅舒适、能耗和停车便利性会影响体验。',
+  },
+  山地高原山路: {
+    intro: '山地高原山路包含高速、国道、山路和县道，海拔变化与连续爬坡会放大动力、底盘和补能容错率的重要性。',
+    highlights: '山路、高原和窄路较多，优先看动力储备、底盘通过性、补能便利和驾驶难度。',
+    energyHint: '纯电需要谨慎规划补能，油车、插混和增程通常更稳。',
+    comfortHint: '满载爬坡和长时间驾驶对动力、制动、座椅支撑和隔音要求更高。',
+  },
+  草原戈壁大长线: {
+    intro: '草原戈壁大长线距离长、路段空旷，部分区域补能和维修距离较远，对可靠性、续航和长途舒适性要求高。',
+    highlights: '每天驾驶时间长，空间、续航、补能确定性和长途舒适性会被明显放大。',
+    energyHint: '油车、插混或增程更稳；纯电除非补能规划非常明确，否则不建议作为默认首选。',
+    comfortHint: '座椅舒适、后排空间、后备箱和辅助驾驶会直接影响长途体验。',
+  },
   伊犁环线: {
     intro: '伊犁环线从乌鲁木齐出发，全程约2000公里，建议留7-10天。草原雪山为主，路况整体不错但距离长，独库公路部分路段有限行时间，山区天气多变。',
     highlights: '景点之间距离较远，路上时间比逛景点的时间可能还长，对车辆续航和长途舒适性要求较高。',
