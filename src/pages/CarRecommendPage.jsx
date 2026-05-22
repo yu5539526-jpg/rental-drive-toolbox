@@ -834,12 +834,9 @@ export default function CarRecommendPage() {
       </section>
 
       {!result ? (
-        <BottomActionBar layout="double">
-          <BottomActionButton as={Link} to="/price-compare" variant="secondary">
+        <BottomActionBar>
+          <BottomActionButton as={Link} to="/price-compare">
             去对比租车方案
-          </BottomActionButton>
-          <BottomActionButton as={Link} to="/budget">
-            去算整趟预算
             <ArrowRight size={17} />
           </BottomActionButton>
         </BottomActionBar>
@@ -1057,15 +1054,8 @@ function ResultView({ result, form }) {
           <h2 className="text-lg font-bold text-ink">推荐方向</h2>
         </div>
 
-        {/* 优先推荐方向 */}
-        <div className="mt-3 rounded-2xl bg-gradient-to-r from-mint/70 to-mint/30 px-4 py-3 ring-1 ring-pine/10">
-          <p className="text-[11px] font-bold text-muted">推荐方向</p>
-          <p className="mt-0.5 text-xl font-bold text-pine">{primary.category}</p>
-          <p className="mt-0.5 text-sm font-medium text-ink">{primary.models}</p>
-        </div>
-
         {/* 能源方向 */}
-        <div className="mt-2.5 flex items-center gap-2 rounded-2xl bg-aquaCard px-3 py-2.5">
+        <div className="mt-3 flex items-center gap-2 rounded-2xl bg-aquaCard px-3 py-2.5">
           {energyAdvice.level === 'ev-friendly' || energyAdvice.level === 'recommend-extended'
             ? <BatteryCharging size={15} className="shrink-0 text-pine" />
             : <Fuel size={15} className="shrink-0 text-amberDark" />

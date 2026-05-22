@@ -6,13 +6,22 @@ export default function SiteFooter() {
 
   return (
     <footer
-      className={`border-t border-pine/10 bg-cream/70 px-5 pt-5 text-center text-[11px] font-bold leading-relaxed text-muted ${
+      className={`border-t border-pine/10 bg-cream/70 px-5 pt-5 text-center text-[11px] font-medium leading-relaxed text-muted ${
         hasFixedActions ? 'footer-action-pad' : 'pb-5'
       }`}
     >
-      <p>小红书：pYuY</p>
-      <p>ICP备案号：备案后填写</p>
-      <p className="mt-1">本工具仅供租车方案、预算和留证参考，结果仅供出行前估算。</p>
+      <p>&copy; 2026 租车自驾工具箱</p>
+      <p>
+        <a
+          className="hover:text-pine hover:underline"
+          href="https://beian.miit.gov.cn/"
+          rel="noreferrer"
+          target="_blank"
+        >
+          渝ICP备2026009822号
+        </a>
+      </p>
+      <p>公安备案号：审核通过后填写</p>
     </footer>
   );
 }

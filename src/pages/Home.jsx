@@ -43,8 +43,8 @@ export default function Home() {
   const [isWhyOpen, setIsWhyOpen] = useState(false);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-cream text-ink">
-      <section className="relative px-4 pb-5 pt-4">
+    <main className="overflow-hidden bg-cream text-ink">
+      <section className="relative px-4 pb-4 pt-4">
         <div className="absolute inset-x-0 top-0 h-[238px] bg-[linear-gradient(135deg,#10A7D8_0%,#0797BD_45%,#18C3C7_100%)]" />
         <div className="absolute right-[-72px] top-[-74px] h-44 w-44 rounded-full bg-white/20 blur-3xl" />
         <div className="absolute left-[-52px] top-28 h-32 w-32 rounded-full bg-[#48E0CF]/25 blur-3xl" />
@@ -78,8 +78,8 @@ export default function Home() {
             </div>
           </div>
 
-          <section className="mt-3 rounded-[24px] bg-card/[0.96] p-3 shadow-[0_18px_42px_rgba(10,128,163,0.16)] ring-1 ring-skyLine backdrop-blur">
-            <div className="grid grid-cols-2 gap-3">
+          <section className="mt-3 rounded-[24px] bg-card/[0.96] p-3.5 shadow-[0_18px_42px_rgba(10,128,163,0.16)] ring-1 ring-skyLine backdrop-blur">
+            <div className="grid grid-cols-2 gap-3.5">
               {tools.map((tool) => (
                 <ToolEntry key={tool.to} {...tool} />
               ))}
@@ -129,23 +129,24 @@ export default function Home() {
 
 function ToolEntry({ to, icon: Icon, title, text, button }) {
   return (
-    <article className="fade-up flex min-h-[150px] flex-col rounded-[20px] bg-white p-3 text-ink shadow-[0_8px_22px_rgba(8,116,151,0.10)] ring-1 ring-skyLine">
+    <Link
+      to={to}
+      aria-label={`开始${button}`}
+      className="fade-up group flex min-h-[168px] flex-col rounded-[22px] bg-white p-3.5 text-ink shadow-[0_10px_26px_rgba(8,116,151,0.12)] ring-1 ring-skyLine hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(8,116,151,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
+    >
       <div className="flex items-start justify-between gap-2">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(135deg,#0EA5D6,#12BFC1)] text-white shadow-md shadow-pine/15">
-          <Icon size={21} />
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] bg-[linear-gradient(135deg,#0EA5D6,#12BFC1)] text-white shadow-md shadow-pine/15">
+          <Icon size={22} />
         </span>
-        <ChevronRight size={17} className="mt-1 shrink-0 text-pine/70" />
+        <ChevronRight size={18} className="mt-1 shrink-0 text-pine/70 transition-transform duration-200 group-hover:translate-x-0.5" />
       </div>
-      <div className="mt-3 min-w-0 flex-1">
-        <h2 className="text-[15px] font-black leading-tight text-ink">{title}</h2>
-        <p className="mt-1 text-[11px] font-semibold leading-relaxed text-muted">{text}</p>
+      <div className="mt-3.5 min-w-0 flex-1">
+        <h2 className="text-[16px] font-black leading-tight text-ink">{title}</h2>
+        <p className="mt-1.5 text-[12px] font-semibold leading-relaxed text-muted">{text}</p>
       </div>
-      <Link
-        to={to}
-        className="mt-3 inline-flex min-h-9 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#0EA5D6] to-[#12BFC1] px-3 text-center text-[12px] font-black leading-tight text-white shadow-md shadow-pine/15 hover:from-[#0B93C2] hover:to-[#0EAFAF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
-      >
+      <span className="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#0EA5D6] to-[#12BFC1] px-3 text-center text-[13px] font-black leading-tight text-white shadow-md shadow-pine/15 group-hover:from-[#0B93C2] group-hover:to-[#0EAFAF]">
         开始{button}
-      </Link>
-    </article>
+      </span>
+    </Link>
   );
 }
