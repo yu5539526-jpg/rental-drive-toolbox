@@ -11,6 +11,7 @@ const whyItems = [
 const tools = [
   {
     to: '/car-recommend',
+    step: 1,
     icon: MapPin,
     title: '目的地车型推荐',
     text: '按目的地、人数和行李选车',
@@ -18,6 +19,7 @@ const tools = [
   },
   {
     to: '/price-compare',
+    step: 2,
     icon: Scale,
     title: '比租车方案',
     text: '平台、车型、保险放一起看',
@@ -25,6 +27,7 @@ const tools = [
   },
   {
     to: '/budget',
+    step: 3,
     icon: Calculator,
     title: '算整趟预算',
     text: '租车、油电、住宿一次算清',
@@ -32,18 +35,12 @@ const tools = [
   },
   {
     to: '/car-inspection-map',
+    step: 4,
     icon: ShieldCheck,
     title: '车身验车避坑图',
     text: '点车身部位看哪里要重点拍',
     button: '取车时重点拍哪里',
   },
-];
-
-const prepSteps = [
-  { to: '/car-recommend', text: '看适合开什么车' },
-  { to: '/price-compare', text: '对比租车方案' },
-  { to: '/budget', text: '算整趟预算' },
-  { to: '/car-inspection-map', text: '取车验车留证' },
 ];
 
 export default function Home() {
@@ -84,21 +81,6 @@ export default function Home() {
               />
             </div>
           </div>
-
-          <section className="mt-3 rounded-[22px] bg-white/[0.94] p-3.5 shadow-[0_14px_34px_rgba(8,116,151,0.14)] ring-1 ring-skyLine backdrop-blur">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-bold text-muted">照着走不容易漏</p>
-                <h2 className="mt-0.5 text-[16px] font-black leading-tight text-ink">3 分钟出发准备</h2>
-              </div>
-              <span className="shrink-0 rounded-full bg-aquaCard px-2.5 py-1 text-[10px] font-bold text-pine">4 步理清</span>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2.5">
-              {prepSteps.map((step, index) => (
-                <PrepStepLink key={step.to} step={step} index={index} />
-              ))}
-            </div>
-          </section>
 
           <section className="mt-3 rounded-[24px] bg-card/[0.96] p-3.5 shadow-[0_18px_42px_rgba(10,128,163,0.16)] ring-1 ring-skyLine backdrop-blur">
             <div className="grid grid-cols-2 gap-3.5">
@@ -149,23 +131,7 @@ export default function Home() {
   );
 }
 
-function PrepStepLink({ step, index }) {
-  return (
-    <Link
-      to={step.to}
-      aria-label={`第 ${index + 1} 步：${step.text}`}
-      className="group flex min-h-[58px] items-center gap-2.5 rounded-[18px] bg-aquaCard px-2.5 py-2.5 text-ink ring-1 ring-pine/10 transition hover:bg-mint/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
-    >
-      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-xs font-black text-pine shadow-sm ring-1 ring-pine/10">
-        {index + 1}
-      </span>
-      <span className="min-w-0 text-[12px] font-black leading-snug">{step.text}</span>
-      <ChevronRight size={14} className="ml-auto shrink-0 text-pine/65 transition-transform duration-200 group-hover:translate-x-0.5" />
-    </Link>
-  );
-}
-
-function ToolEntry({ to, icon: Icon, title, text, button }) {
+function ToolEntry({ to, step, icon: Icon, title, text, button }) {
   return (
     <Link
       to={to}
@@ -173,9 +139,14 @@ function ToolEntry({ to, icon: Icon, title, text, button }) {
       className="fade-up group flex min-h-[168px] flex-col rounded-[22px] bg-white p-3.5 text-ink shadow-[0_10px_26px_rgba(8,116,151,0.12)] ring-1 ring-skyLine hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(8,116,151,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] bg-[linear-gradient(135deg,#0EA5D6,#12BFC1)] text-white shadow-md shadow-pine/15">
-          <Icon size={22} />
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-aquaCard text-xs font-black text-pine ring-1 ring-pine/10">
+            {step}
+          </span>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] bg-[linear-gradient(135deg,#0EA5D6,#12BFC1)] text-white shadow-md shadow-pine/15">
+            <Icon size={22} />
+          </span>
+        </div>
         <ChevronRight size={18} className="mt-1 shrink-0 text-pine/70 transition-transform duration-200 group-hover:translate-x-0.5" />
       </div>
       <div className="mt-3.5 min-w-0 flex-1">

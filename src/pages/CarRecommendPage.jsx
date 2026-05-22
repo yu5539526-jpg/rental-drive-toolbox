@@ -46,7 +46,7 @@ const destinationTypeOptions = [
   { value: 'city-short', label: '市郊短途', hint: '平路为主，停车频繁', icon: MapPin },
   { value: 'island-leisure', label: '海岛滨海', hint: '路况轻松，补能友好', icon: Waves },
   { value: 'mountain-plateau', label: '山地高原', hint: '坡多弯多，海拔变化', icon: Mountain },
-  { value: 'yunnan-mountain', label: '云贵山地', hint: '城市+山路，海拔递增', icon: Mountain },
+  { value: 'yunnan-mountain', label: '云贵山地', hint: '城市山路，道路狭窄', icon: Mountain },
   { value: 'grassland-long', label: '草原边疆', hint: '景点分散，距离很长', icon: Ship },
   { value: 'loop-long', label: '戈壁大环线', hint: '荒漠长途，补能稀疏', icon: Compass },
   { value: 'unsure', label: '还不确定', hint: '先按通用稳妥方案', icon: Info },
@@ -1274,17 +1274,17 @@ function ResultView({ result, form }) {
       <section className="rounded-[24px] border border-pine/10 bg-aquaCard p-4 shadow-card">
         <div className="grid gap-2.5">
           <Link
-            to="/budget"
+            to="/price-compare"
             className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-4 text-sm font-bold text-white shadow-lg shadow-pine/20"
           >
-            去算这趟预算
+            对比两个租车方案
             <ArrowRight size={16} />
           </Link>
           <Link
-            to="/price-compare"
+            to="/budget"
             className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] bg-card px-4 text-sm font-bold text-pine ring-1 ring-pine/15"
           >
-            对比两个租车方案
+            去算这趟预算
             <ArrowRight size={16} />
           </Link>
           <button
