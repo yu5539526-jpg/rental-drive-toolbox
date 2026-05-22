@@ -9,9 +9,6 @@ import {
   getPlatformInsurancePlans,
   findInsurancePlan,
   compareInsurancePlans,
-  getVehicleDamageShort,
-  getTierLabel,
-  getTierBadgeClass,
   getChecklistInsuranceTips,
   INSURANCE_DISCLAIMER,
 } from '../utils/insuranceUtils.js';
@@ -343,29 +340,31 @@ function InsurancePlanSelector({ platformValue, value, onChange }) {
 
 function InsuranceSummaryInline({ plan }) {
   const [expanded, setExpanded] = useState(false);
-  const matched = useMemo(() => {
-    if (!plan || !plan.platform || !plan.insurancePlan) return null;
-    return findInsurancePlan(plan.platform, plan.insurancePlan);
-  }, [plan]);
+  const summary = useMemo(() => getPlanInsuranceSummary(plan), [plan]);
+  const matched = summary.matched;
 
   if (!matched) {
     return (
-      <p className="mt-2 rounded-2xl bg-aquaCard/60 px-3 py-2 text-xs font-medium leading-relaxed text-muted">
-        未收录该保障方案，请以下单页保障说明为准。
-      </p>
+      <div className="mt-2 rounded-2xl bg-aquaCard/60 px-3 py-2.5 ring-1 ring-pine/8">
+        <p className="text-[11px] font-bold text-muted">保险摘要</p>
+        <div className="mt-2 grid grid-cols-2 gap-1.5">
+          {summary.items.map((item) => (
+            <InsuranceInfoPill key={item.label} {...item} />
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] font-medium leading-relaxed text-muted/70">
+          未收录该保障方案，请以下单页保障说明为准。
+        </p>
+      </div>
     );
   }
 
-  const tierLabel = getTierLabel(matched);
-  const tierClass = getTierBadgeClass(matched);
   const tips = getChecklistInsuranceTips(plan.platform, plan.insurancePlan);
 
   return (
     <div className="mt-2 rounded-2xl bg-aquaCard/60 px-3 py-2.5 ring-1 ring-pine/8">
       <div className="flex items-center justify-between gap-2">
-        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${tierClass}`}>
-          {tierLabel}
-        </span>
+        <p className="text-[11px] font-bold text-muted">保险摘要</p>
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
@@ -376,24 +375,10 @@ function InsuranceSummaryInline({ plan }) {
         </button>
       </div>
 
-      {/* 关键保障标签 */}
-      <div className="mt-2 flex flex-wrap gap-1">
-        <CoverageTag label="车损" value={getVehicleDamageShort(matched)} important />
-        <CoverageTag label="三者" value={`${matched.thirdParty?.amount || '?'}万`} important />
-        <CoverageTag
-          label="轮胎"
-          value={matched.tireWheel?.covered === true ? '覆盖' : matched.tireWheel?.covered === false ? '不覆盖' : '看条款'}
-          important={matched.tireWheel?.covered === false}
-        />
-        <CoverageTag
-          label="停运费"
-          value={matched.downtime?.covered === true ? '覆盖' : matched.downtime?.covered === false ? '不覆盖' : '部分'}
-          important={matched.downtime?.covered === false}
-        />
-        <CoverageTag
-          label="司乘"
-          value={matched.driverPassenger?.driver ? `司机${matched.driverPassenger.driver}` : '待确认'}
-        />
+      <div className="mt-2 grid grid-cols-2 gap-1.5">
+        {summary.items.map((item) => (
+          <InsuranceInfoPill key={item.label} {...item} />
+        ))}
       </div>
 
       {/* 展开后详情 */}
@@ -449,17 +434,12 @@ function InsuranceSummaryInline({ plan }) {
   );
 }
 
-function CoverageTag({ label, value, important = false }) {
+function InsuranceInfoPill({ label, value, weak = false, strong = false }) {
   return (
-    <span
-      className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-        important
-          ? 'bg-amberSoft/45 text-amberDark ring-1 ring-warning/20'
-          : 'bg-card text-ink ring-1 ring-pine/10'
-      }`}
-    >
-      {label}:{value}
-    </span>
+    <div className={`rounded-xl px-2.5 py-2 ${weak ? 'bg-amberSoft/35 text-amberDark ring-1 ring-warning/15' : strong ? 'bg-mint/55 text-pine ring-1 ring-pine/10' : 'bg-card text-ink ring-1 ring-pine/10'}`}>
+      <p className="text-[10px] font-bold text-muted">{label}</p>
+      <p className="mt-0.5 text-[11px] font-bold leading-tight">{value}</p>
+    </div>
   );
 }
 
@@ -478,6 +458,7 @@ function PlanCard({ plan, stats, onEdit, onDelete, onUse }) {
   const category = getInsuranceCategory(plan);
   const badge = getInsuranceBadgeMeta(category);
   const budgetHint = getBudgetLinkInsuranceHint(category);
+  const planTags = stats.insuranceInsights?.tagsById?.[plan.id] || [];
 
   return (
     <article className={`rounded-[22px] border bg-card p-4 shadow-card ${isLowest ? 'border-pine/25' : 'border-pine/10'}`}>
@@ -485,7 +466,9 @@ function PlanCard({ plan, stats, onEdit, onDelete, onUse }) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="break-words text-lg font-bold leading-tight text-ink">{plan.platform}</h3>
-            {isLowest ? <span className="rounded-full bg-mint px-2.5 py-1 text-xs font-bold text-pine">当前最低价</span> : null}
+            {planTags.map((tag) => (
+              <PlanTag key={tag.label} {...tag} />
+            ))}
           </div>
           <p className="mt-1 break-words text-sm font-bold leading-relaxed text-ink">{plan.carModel}</p>
           <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${badge.className}`}>
@@ -600,12 +583,49 @@ function CompareResult({ stats }) {
 
   return (
     <section className="mt-4 grid gap-4">
-      <InsuranceCompareTips data={stats.insuranceCompare} plans={stats.sorted} />
+      <InsuranceOverviewCard insights={stats.insuranceInsights} />
+      <InsuranceCompareTips data={stats.insuranceCompare} />
     </section>
   );
 }
 
-function InsuranceCompareTips({ data, plans }) {
+function PlanTag({ label, tone = 'neutral' }) {
+  const toneClass =
+    tone === 'money'
+      ? 'bg-mint text-pine'
+      : tone === 'coverage'
+        ? 'bg-amberSoft/45 text-amberDark ring-1 ring-warning/20'
+        : tone === 'warning'
+          ? 'bg-coral/10 text-coral'
+          : 'bg-aquaCard text-muted';
+
+  return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${toneClass}`}>{label}</span>;
+}
+
+function InsuranceOverviewCard({ insights }) {
+  if (!insights || !insights.shouldShow) return null;
+
+  return (
+    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+      <div className="flex items-center gap-2">
+        <ShieldAlert size={18} className="text-amberDark" />
+        <h2 className="text-lg font-bold text-ink">保险差异提醒</h2>
+      </div>
+      <div className="mt-3 grid gap-2">
+        {insights.messages.map((message) => (
+          <p key={message} className="rounded-2xl bg-aquaCard/60 px-3 py-2.5 text-sm font-medium leading-relaxed text-ink">
+            {message}
+          </p>
+        ))}
+      </div>
+      <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted/70">
+        这里只做轻量提醒，最终以平台下单页、合同和保障说明为准。
+      </p>
+    </section>
+  );
+}
+
+function InsuranceCompareTips({ data }) {
   if (!data) return null;
 
   // 未就绪：显示不可对比的原因
@@ -635,7 +655,7 @@ function InsuranceCompareTips({ data, plans }) {
     <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
       <div className="flex items-center gap-2">
         <ShieldAlert size={18} className="text-amberDark" />
-        <h2 className="text-lg font-bold text-ink">保障差异提醒</h2>
+        <h2 className="text-lg font-bold text-ink">保障细节对比</h2>
       </div>
 
       {/* 对比双方 */}
@@ -743,6 +763,98 @@ function normalizePlan(form) {
   };
 }
 
+function getPlanInsuranceSummary(plan) {
+  const matched = plan?.platform && plan?.insurancePlan ? findInsurancePlan(plan.platform, plan.insurancePlan) : null;
+
+  if (!matched) {
+    const items = [
+      { label: '保险档位', value: '未明确' },
+      { label: '三者险', value: '未明确' },
+      { label: '轮胎/轮毂', value: '未明确' },
+      { label: '玻璃', value: '未明确' },
+      { label: '底盘/救援', value: '未明确' },
+    ];
+
+    return {
+      matched: null,
+      score: 0,
+      items,
+      itemMap: Object.fromEntries(items.map((item) => [item.label, item.value])),
+    };
+  }
+
+  const chassisRoadsideValue = getChassisOrRoadsideValue(matched);
+  const items = [
+    { label: '保险档位', value: getTierUserLabel(matched), strong: matched.tier === 'premium' || matched.tier === 'special' },
+    { label: '三者险', value: formatThirdPartyUser(matched), strong: Number(matched.thirdParty?.amount) >= 100 },
+    { label: '轮胎/轮毂', value: formatCoveredUser(matched.tireWheel?.covered), weak: matched.tireWheel?.covered === false, strong: matched.tireWheel?.covered === true },
+    { label: '玻璃', value: formatCoveredUser(matched.glass?.covered), weak: matched.glass?.covered === false, strong: matched.glass?.covered === true },
+    { label: '底盘/救援', value: chassisRoadsideValue, weak: chassisRoadsideValue === '不包含', strong: chassisRoadsideValue === '包含' },
+  ];
+
+  return {
+    matched,
+    score: getInsuranceCoverageScore(matched),
+    items,
+    itemMap: Object.fromEntries(items.map((item) => [item.label, item.value])),
+  };
+}
+
+function buildInsuranceInsights(sorted) {
+  if (sorted.length < 2) {
+    return { shouldShow: false, tagsById: {}, messages: [] };
+  }
+
+  const planSummaries = sorted.map((plan) => ({
+    plan,
+    summary: getPlanInsuranceSummary(plan),
+  }));
+  const matchedSummaries = planSummaries.filter((item) => item.summary.matched);
+  const lowest = sorted[0];
+  const tagsById = Object.fromEntries(sorted.map((plan) => [plan.id, []]));
+  const messages = [];
+
+  if (lowest) {
+    tagsById[lowest.id].push({ label: '最省钱', tone: 'money' });
+    messages.push(`${formatPlanName(lowest)} 当前总价最低，预算优先可以先看这个。`);
+  }
+
+  if (matchedSummaries.length) {
+    const maxScore = Math.max(...matchedSummaries.map((item) => item.summary.score));
+    const minScore = Math.min(...matchedSummaries.map((item) => item.summary.score));
+    const bestCoverageItems = matchedSummaries.filter((item) => item.summary.score === maxScore && maxScore - minScore >= 2);
+    const bestCoverage = bestCoverageItems[0] || null;
+    const lowestSummary = planSummaries.find((item) => item.plan.id === lowest?.id);
+    const lowestIsWeak = lowestSummary?.summary.matched && maxScore - lowestSummary.summary.score >= 2;
+
+    bestCoverageItems.forEach((item) => {
+      tagsById[item.plan.id].push({ label: '保障更全', tone: 'coverage' });
+    });
+
+    if (lowestIsWeak) {
+      tagsById[lowest.id].push({ label: '低价但保障弱', tone: 'warning' });
+    }
+
+    if (bestCoverage) {
+      messages.push(`${formatPlanName(bestCoverage.plan)} 收录到的保障项更多，想省心可以重点看。`);
+    } else {
+      messages.push('几个方案保障差异不算明显，重点看免赔、三者险和轮胎/玻璃就够。');
+    }
+
+    if (lowestIsWeak) {
+      messages.push('低价方案记得确认轮胎、玻璃和免赔规则，别只看总价。');
+    }
+  } else {
+    messages.push('这些保险方案暂时没匹配到数据，建议手动看下单页的轮胎、玻璃、免赔和三者险。');
+  }
+
+  return {
+    shouldShow: true,
+    tagsById,
+    messages: messages.slice(0, 3),
+  };
+}
+
 function buildCompareStats(plans) {
   const sorted = [...plans].sort((a, b) => a.totalPrice - b.totalPrice);
   const count = plans.length;
@@ -763,6 +875,7 @@ function buildCompareStats(plans) {
     lowest && getInsuranceCategory(lowest) === 'basic'
       ? '最低价方案为基础保障，适合预算敏感、路线简单、驾驶经验较丰富，并愿意认真留证的用户。'
       : '';
+  const insuranceInsights = buildInsuranceInsights(sorted);
 
   // 保障差异对比数据
   const insuranceCompare = buildInsuranceCompareData(sorted);
@@ -787,6 +900,7 @@ function buildCompareStats(plans) {
     premiumPriceHint,
     lowestBasicHint,
     priceGapHint: hasLargePriceGap ? '本次方案价差较大，建议确认车型级别、保险范围和租车天数是否一致。' : '',
+    insuranceInsights,
     insuranceCompare,
   };
 }
@@ -1016,6 +1130,76 @@ function hasMeaningfulInsuranceGap(plans) {
   return categories.has('basic') && categories.has('premium');
 }
 
+function getTierUserLabel(plan) {
+  if (!plan) return '未明确';
+  if (plan.tier === 'basic') return '基础';
+  if (plan.tier === 'standard') return '中等';
+  if (plan.tier === 'premium' || plan.tier === 'special') return '较全';
+  return '未明确';
+}
+
+function formatThirdPartyUser(plan) {
+  const amount = Number(plan?.thirdParty?.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return '未明确';
+  return `${amount}${plan.thirdParty?.unit || '万元'}`;
+}
+
+function formatCoveredUser(value) {
+  if (value === true) return '包含';
+  if (value === false) return '不包含';
+  if (value === '部分') return '部分包含';
+  return '未明确';
+}
+
+function getChassisOrRoadsideValue(plan) {
+  const candidates = [
+    plan?.chassis?.covered,
+    plan?.undercarriage?.covered,
+    plan?.roadsideAssistance?.covered,
+    plan?.roadsideRescue?.covered,
+    plan?.rescue?.covered,
+  ].filter((value) => value !== undefined && value !== null);
+
+  if (!candidates.length) return '未明确';
+  if (candidates.some((value) => value === true)) return '包含';
+  if (candidates.some((value) => value === '部分')) return '部分包含';
+  if (candidates.every((value) => value === false)) return '不包含';
+  return '未明确';
+}
+
+function getInsuranceCoverageScore(plan) {
+  if (!plan) return 0;
+
+  let score = 0;
+  const thirdPartyAmount = Number(plan.thirdParty?.amount);
+
+  if (Number.isFinite(thirdPartyAmount) && thirdPartyAmount > 0) score += 1;
+  if (thirdPartyAmount >= 100) score += 0.5;
+  score += getExplicitCoverageScore(plan.tireWheel?.covered);
+  score += getExplicitCoverageScore(plan.glass?.covered);
+  score += getExplicitCoverageScore(plan.downtime?.covered);
+  score += getExplicitCoverageScore(plan.depreciation?.covered);
+  score += getExplicitCoverageScore(plan.medicalOutsideInsurance?.covered);
+  score += getChassisOrRoadsideValue(plan) === '包含' ? 1 : 0;
+
+  if (plan.vehicleDamage?.customerPay?.includes('0')) score += 1;
+  if (plan.driverPassenger?.driver || plan.driverPassenger?.passenger) score += 1;
+  if (plan.advancePayment?.required === false) score += 0.5;
+
+  return score;
+}
+
+function getExplicitCoverageScore(value) {
+  if (value === true) return 1;
+  if (value === '部分') return 0.5;
+  return 0;
+}
+
+function formatPlanName(plan) {
+  if (!plan) return '该方案';
+  return `${plan.platform}「${plan.insurancePlan}」`;
+}
+
 function getInsuranceCategory(planOrValue) {
   // 如果传入的是方案对象（有 platform 和 insurancePlan），先尝试从数据中查找
   if (planOrValue && typeof planOrValue === 'object' && planOrValue.platform && planOrValue.insurancePlan) {
@@ -1041,20 +1225,20 @@ function getInsuranceBadgeMeta(category) {
 function getBudgetLinkInsuranceHint(category) {
   if (category === 'premium') {
     return {
-      text: '已包含较高保险费用，预算会更接近省心出行方案。',
+      text: '想省心可以重点看这类高保障方案。',
       className: 'bg-amberSoft/35 text-amberDark',
     };
   }
 
   if (category === 'basic') {
     return {
-      text: '基础保障总价更低，但建议取车时完成关键留证。',
+      text: '预算优先可以看，但取车时要把关键位置拍清楚。',
       className: 'bg-aquaCard text-pine',
     };
   }
 
   return {
-    text: '建议结合路线复杂度和驾驶经验，再决定是否需要更高保障。',
+    text: '可以结合路线难度，再决定要不要升保障。',
     className: 'bg-aquaCard/70 text-muted',
   };
 }

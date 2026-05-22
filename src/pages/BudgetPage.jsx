@@ -559,17 +559,28 @@ function BudgetResult({ result, draft, selectedPlan, cardStatus, onReset, onEdit
 }
 
 function ResultHeroCard({ result, draft }) {
+  const splitPeople = Math.max(Number(result.people) || 1, 1);
+
   return (
     <section className="rounded-[24px] bg-gradient-to-b from-[#174B63] to-[#1E6B8A] p-5 text-lightText shadow-[0_12px_32px_rgba(18,50,63,0.12)]">
       <p className="text-sm font-bold text-white/70">{draft.destination || '本次自驾'}</p>
       <h2 className="mt-1 text-xl font-bold">本次自驾预算结果</h2>
-      <div className="mt-5">
-        <p className="text-xs font-bold text-white/65">预计总花费</p>
-        <p className="mt-1 text-[48px] font-bold leading-none tracking-normal">{formatMoney(result.tripTotal)}</p>
-        <p className="mt-2 text-xs font-medium leading-relaxed text-white/70">不含押金占用，押金会影响出发前资金准备。</p>
+      <div className="mt-5 rounded-[22px] bg-white/12 p-4 ring-1 ring-white/10">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-white/65">这趟大概人均</p>
+            <p className="mt-1 text-[38px] font-bold leading-none tracking-normal">{formatMoney(result.perPerson)}</p>
+            <p className="mt-2 text-xs font-bold leading-relaxed text-white/75">按 {splitPeople} 人平摊</p>
+          </div>
+          <div className="shrink-0 rounded-2xl bg-white/12 px-3 py-2.5 text-right ring-1 ring-white/10">
+            <p className="text-[11px] font-bold text-white/60">总预算</p>
+            <p className="mt-1 text-lg font-bold leading-tight">{formatMoney(result.tripTotal)}</p>
+          </div>
+        </div>
+        <p className="mt-3 text-xs font-medium leading-relaxed text-white/70">实际以平台价格和现场消费为准，不含押金占用。</p>
       </div>
       <div className="mt-5 grid grid-cols-2 gap-2">
-        <ResultMetric label="人均预算" value={formatMoney(result.perPerson)} />
+        <ResultMetric label="人均日预算" value={formatMoney(result.perPersonDaily)} />
         <ResultMetric label="日均预算" value={formatMoney(result.dailyAverage)} />
         <ResultMetric label="押金占用" value={formatMoney(result.temporaryFunds)} subtle />
         <ResultMetric label="出行前建议准备资金" value={formatMoney(result.preparedFunds)} wide />
@@ -685,6 +696,7 @@ function ResultActionButton({ children, icon, onClick }) {
 function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
   const [copyStatus, setCopyStatus] = useState('');
   const cardData = useMemo(() => buildBudgetCardData(result, draft), [result, draft]);
+  const splitPeople = Math.max(Number(result.people) || 1, 1);
 
   if (!open) return null;
 
@@ -719,9 +731,18 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
               <p className="text-xs font-bold text-white/70">pYuY 租车自驾工具箱</p>
               <h3 className="mt-2 text-2xl font-bold leading-tight">我的自驾预算卡</h3>
               <div className="mt-5 rounded-[20px] bg-white/12 px-4 py-3">
-                <p className="text-xs font-bold text-white/65">预计总花费</p>
-                <p className="mt-1 text-[44px] font-bold leading-none tracking-normal">{formatMoney(result.tripTotal)}</p>
-                <p className="mt-2 text-xs font-medium leading-relaxed text-white/80">押金不算实际花费，但会影响出发前准备资金。</p>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-white/65">这趟大概人均</p>
+                    <p className="mt-1 text-[36px] font-bold leading-none tracking-normal">{formatMoney(result.perPerson)}</p>
+                    <p className="mt-2 text-xs font-bold leading-relaxed text-white/80">按 {splitPeople} 人平摊</p>
+                  </div>
+                  <div className="shrink-0 rounded-2xl bg-white/12 px-3 py-2 text-right ring-1 ring-white/10">
+                    <p className="text-[11px] font-bold text-white/60">总预算</p>
+                    <p className="mt-1 text-base font-bold leading-tight">{formatMoney(result.tripTotal)}</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs font-medium leading-relaxed text-white/80">实际以平台价格和现场消费为准，押金不算实际花费。</p>
               </div>
             </div>
 
@@ -751,6 +772,7 @@ function BudgetCardModal({ open, onClose, result, draft, selectedPlan }) {
                 <h4 className="mb-3 text-sm font-bold text-ink">核心金额</h4>
                 <div className="grid grid-cols-2 gap-2">
                   <MoneyCell label="人均预算" value={formatMoney(result.perPerson)} />
+                  <MoneyCell label="人均日预算" value={formatMoney(result.perPersonDaily)} />
                   <MoneyCell label="日均预算" value={formatMoney(result.dailyAverage)} />
                   <MoneyCell label="押金占用" value={formatMoney(result.temporaryFunds)} muted />
                   <MoneyCell label="建议准备资金" value={formatMoney(result.preparedFunds)} strong />
