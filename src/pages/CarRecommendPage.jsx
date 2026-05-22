@@ -1478,7 +1478,7 @@ function InsuranceAdviceCard({ advice, suggestions, destContext }) {
                 ))}
               </div>
               <p className="mt-1.5 text-[10px] font-medium leading-relaxed text-muted/70">
-                方案名称来自平台公开页面和用户截图，实际以下单页为准
+                方案名称和保障内容可能随平台调整，实际以下单页为准
               </p>
             </div>
           ) : null}

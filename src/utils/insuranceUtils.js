@@ -11,8 +11,10 @@ import {
   INSURANCE_TERMS,
   INSURANCE_SCENARIO_RULES,
   INSURANCE_CHECKLIST_TIPS,
-  INSURANCE_DISCLAIMER,
 } from '../data/insurancePlans.js';
+
+const INSURANCE_DISCLAIMER =
+  '保障内容仅供出行前参考，实际以下单页展示的合同、保障说明和保险条款为准。';
 
 // ============================================================================
 // 1. 按平台名称获取保险方案列表
@@ -105,8 +107,8 @@ export function compareInsurancePlans(planA, planB) {
   dimensions.push({
     label: '轮胎/轮毂',
     icon: 'tireWheel',
-    valueA: formatCovered(planA.tireWheel?.covered),
-    valueB: formatCovered(planB.tireWheel?.covered),
+    valueA: formatCoverageSection(planA.tireWheel),
+    valueB: formatCoverageSection(planB.tireWheel),
     difference: compareCoverage('tireWheel', planA, planB),
     important: true,
   });
@@ -115,8 +117,8 @@ export function compareInsurancePlans(planA, planB) {
   dimensions.push({
     label: '玻璃单独破损',
     icon: 'glass',
-    valueA: formatCovered(planA.glass?.covered),
-    valueB: formatCovered(planB.glass?.covered),
+    valueA: formatCoverageSection(planA.glass),
+    valueB: formatCoverageSection(planB.glass),
     difference: compareCoverage('glass', planA, planB),
     important: false,
   });
@@ -125,8 +127,8 @@ export function compareInsurancePlans(planA, planB) {
   dimensions.push({
     label: '停运费',
     icon: 'downtime',
-    valueA: formatCovered(planA.downtime?.covered),
-    valueB: formatCovered(planB.downtime?.covered),
+    valueA: formatCoverageSection(planA.downtime),
+    valueB: formatCoverageSection(planB.downtime),
     difference: compareCoverage('downtime', planA, planB),
     important: true,
   });
@@ -135,8 +137,8 @@ export function compareInsurancePlans(planA, planB) {
   dimensions.push({
     label: '折旧/贬值',
     icon: 'depreciation',
-    valueA: formatCovered(planA.depreciation?.covered),
-    valueB: formatCovered(planB.depreciation?.covered),
+    valueA: formatCoverageSection(planA.depreciation),
+    valueB: formatCoverageSection(planB.depreciation),
     difference: compareCoverage('depreciation', planA, planB),
     important: true,
   });
@@ -145,8 +147,8 @@ export function compareInsurancePlans(planA, planB) {
   dimensions.push({
     label: '司机保障',
     icon: 'driverPassenger',
-    valueA: planA.driverPassenger?.driver || '未显示',
-    valueB: planB.driverPassenger?.driver || '未显示',
+    valueA: formatKnownText(planA.driverPassenger?.driver),
+    valueB: formatKnownText(planB.driverPassenger?.driver),
     difference: compareDriver(planA, planB),
     important: false,
   });
@@ -155,8 +157,8 @@ export function compareInsurancePlans(planA, planB) {
   dimensions.push({
     label: '乘客保障',
     icon: 'driverPassenger',
-    valueA: planA.driverPassenger?.passenger || '未显示',
-    valueB: planB.driverPassenger?.passenger || '未显示',
+    valueA: formatKnownText(planA.driverPassenger?.passenger),
+    valueB: formatKnownText(planB.driverPassenger?.passenger),
     difference: comparePassenger(planA, planB),
     important: false,
   });
@@ -165,8 +167,8 @@ export function compareInsurancePlans(planA, planB) {
   dimensions.push({
     label: '医保外医疗费用',
     icon: 'medicalOutsideInsurance',
-    valueA: formatCovered(planA.medicalOutsideInsurance?.covered),
-    valueB: formatCovered(planB.medicalOutsideInsurance?.covered),
+    valueA: formatCoverageSection(planA.medicalOutsideInsurance),
+    valueB: formatCoverageSection(planB.medicalOutsideInsurance),
     difference: compareCoverage('medicalOutsideInsurance', planA, planB),
     important: false,
   });
@@ -257,7 +259,7 @@ export function getInsuranceAdviceByScenario(context = {}) {
     riskTags: rule.riskTags,
     tierAdvice: rule.tierAdvice,
     reason: rule.reason,
-    disclaimerNote: rule.disclaimerNote || INSURANCE_DISCLAIMER,
+    disclaimerNote: sanitizePublicInsuranceNote(rule.disclaimerNote),
   }));
 
   return {
@@ -357,8 +359,42 @@ function formatCovered(value) {
   if (value === true) return '覆盖';
   if (value === false) return '不覆盖';
   if (value === '部分') return '部分覆盖';
-  if (typeof value === 'string') return value;
+  if (typeof value === 'string') return formatKnownText(value);
   return '未明确';
+}
+
+function formatCoverageSection(section) {
+  if (!section) return '未明确';
+  if (hasInternalInsuranceNote(section.note)) return '未明确';
+  return formatCovered(section.covered);
+}
+
+function formatKnownText(value) {
+  if (!value || typeof value !== 'string') return '未明确';
+  if (hasInternalInsuranceNote(value)) return '未明确';
+  return value;
+}
+
+function sanitizePublicInsuranceNote(value) {
+  if (!value || typeof value !== 'string') return INSURANCE_DISCLAIMER;
+  if (hasInternalInsuranceNote(value)) {
+    return INSURANCE_DISCLAIMER;
+  }
+  return value;
+}
+
+function hasInternalInsuranceNote(value) {
+  if (!value) return false;
+  const text = String(value);
+  return (
+    text.includes('未显示') ||
+    text.includes('截图') ||
+    text.includes('待复核') ||
+    text.includes('待确认') ||
+    text.includes('未明确说明') ||
+    text.includes('未单独列明') ||
+    text.includes('未列明')
+  );
 }
 
 function formatThirdParty(plan) {
@@ -383,8 +419,10 @@ function compareThirdParty(planA, planB) {
 }
 
 function compareCoverage(dimension, planA, planB) {
-  const valA = planA?.[dimension]?.covered;
-  const valB = planB?.[dimension]?.covered;
+  const sectionA = planA?.[dimension];
+  const sectionB = planB?.[dimension];
+  const valA = hasInternalInsuranceNote(sectionA?.note) ? undefined : sectionA?.covered;
+  const valB = hasInternalInsuranceNote(sectionB?.note) ? undefined : sectionB?.covered;
 
   const score = (v) => {
     if (v === true) return 3;
@@ -412,9 +450,9 @@ function comparePassenger(planA, planB) {
   const passA = extractAmount(planA?.driverPassenger?.passenger);
   const passB = extractAmount(planB?.driverPassenger?.passenger);
   if (passA === passB) return '相同';
-  if (passA === null && passB === null) return '均未显示';
-  if (passA === null) return 'A未显示';
-  if (passB === null) return 'B未显示';
+  if (passA === null && passB === null) return '均未明确';
+  if (passA === null) return 'A未明确';
+  if (passB === null) return 'B未明确';
   return passA > passB ? 'A更优' : 'B更优';
 }
 

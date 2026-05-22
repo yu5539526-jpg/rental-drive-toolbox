@@ -151,7 +151,7 @@ export function getInsuranceSensitiveZones(insurancePlan, { view, primaryOnly = 
       reasons.push({
         dimension: 'vehicleDamage',
         label: '存在车损自付',
-        detail: `车损自付额：${insurancePlan.vehicleDamage?.customerPay || '待确认'}，小额损伤需自行承担`,
+        detail: `车损自付额：${insurancePlan.vehicleDamage?.customerPay || '未明确'}，小额损伤需自行承担`,
         weight: 2,
       });
     }
@@ -296,7 +296,7 @@ export function getInsuranceLinkedTips(zone, insurancePlan) {
 
   // ── 车损自付 + 外观件 ──
   if (weaknesses.vehicleDamage && keys.includes('vehicleDamage')) {
-    const payAmount = insurancePlan.vehicleDamage?.customerPay || '待确认';
+    const payAmount = insurancePlan.vehicleDamage?.customerPay || '未明确';
     return {
       tip: `当前方案存在小额车损自付（${payAmount}），小划痕、小凹陷、小掉漆也建议拍清楚。`,
       severity: 'strong',
@@ -359,7 +359,7 @@ export function getInsuranceSummaryTips(insurancePlan) {
   }
 
   if (weaknesses.vehicleDamage) {
-    const pay = insurancePlan.vehicleDamage?.customerPay || '待确认';
+    const pay = insurancePlan.vehicleDamage?.customerPay || '未明确';
     warnings.push(`车损自付 ${pay}：前后保险杠、车门、后视镜、大灯/尾灯、侧裙等位置的小损伤也建议拍清楚。`);
   }
 

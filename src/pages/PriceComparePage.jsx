@@ -10,7 +10,6 @@ import {
   findInsurancePlan,
   compareInsurancePlans,
   getChecklistInsuranceTips,
-  INSURANCE_DISCLAIMER,
 } from '../utils/insuranceUtils.js';
 
 const STORAGE_KEY = 'rentalDrive.priceComparePlans';
@@ -22,6 +21,26 @@ const emptyForm = {
 };
 const inputClass =
   'h-12 w-full rounded-[16px] border border-pine/15 bg-aquaCard/70 px-3.5 text-[15px] font-semibold text-ink outline-none transition placeholder:text-muted/55 focus:border-pine focus:bg-card focus:ring-2 focus:ring-pine/10';
+const UNCLEAR_TEXT = '未明确';
+const PUBLIC_INSURANCE_DISCLAIMER =
+  '保障内容仅供出行前参考，实际以下单页展示的合同、保障说明和保险条款为准。';
+const INTERNAL_INSURANCE_NOTE_PATTERNS = [
+  /截图/,
+  /用户截图/,
+  /未显示/,
+  /未单独列明/,
+  /未明确说明/,
+  /未列明/,
+  /待复核/,
+  /待确认/,
+  /以下单页/,
+  /以条款为准/,
+  /未在官方/,
+  /未在媒体/,
+  /媒体报道未/,
+  /帮助中心未/,
+  /无增加/,
+];
 
 export default function PriceComparePage() {
   const navigate = useNavigate();
@@ -332,10 +351,61 @@ function InsurancePlanSelector({ platformValue, value, onChange }) {
         </button>
       </div>
       <p className="mt-1.5 text-[10px] font-medium leading-relaxed text-muted/70">
-        方案名称来自平台公开页面和用户截图，实际以下单页为准
+        方案名称和保障内容可能随平台调整，实际以下单页为准
       </p>
     </div>
   );
+}
+
+function cleanInsuranceText(value, fallback = UNCLEAR_TEXT) {
+  if (value === true) return '包含';
+  if (value === false) return '不包含';
+  if (value === '部分') return '部分包含';
+  if (value === null || value === undefined) return fallback;
+
+  const text = String(value).trim();
+  if (!text || text === '-' || text === '无' || text === '未知') return fallback;
+  if (hasInternalInsuranceNote(text)) return fallback;
+  return text;
+}
+
+function hasInternalInsuranceNote(value) {
+  if (!value) return false;
+  const text = String(value);
+  return INTERNAL_INSURANCE_NOTE_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function formatCoverageDetail(section) {
+  if (hasInternalInsuranceNote(section?.note)) return UNCLEAR_TEXT;
+  const note = cleanInsuranceText(section?.note, '');
+  if (note) return note;
+  return cleanInsuranceText(section?.covered);
+}
+
+function formatThirdPartyDetail(plan) {
+  const amount = plan?.thirdParty?.amount;
+  const unit = plan?.thirdParty?.unit || '';
+  const note = cleanInsuranceText(plan?.thirdParty?.note, '');
+  const amountText = amount ? `${amount}${unit}` : UNCLEAR_TEXT;
+  return note ? `${amountText}（${note}）` : amountText;
+}
+
+function formatDriverPassengerDetail(driverPassenger) {
+  const note = cleanInsuranceText(driverPassenger?.note, '');
+  if (note) return note;
+
+  const driver = cleanInsuranceText(driverPassenger?.driver);
+  const passenger = cleanInsuranceText(driverPassenger?.passenger);
+  if (driver === UNCLEAR_TEXT && passenger === UNCLEAR_TEXT) return UNCLEAR_TEXT;
+  return `司机${driver}，乘客${passenger}`;
+}
+
+function formatAdvancePaymentDetail(advancePayment) {
+  const note = cleanInsuranceText(advancePayment?.note, '');
+  if (note) return note;
+  if (advancePayment?.required === false) return '无需垫付';
+  if (advancePayment?.required === true) return '需垫付';
+  return UNCLEAR_TEXT;
 }
 
 function InsuranceSummaryInline({ plan }) {
@@ -384,17 +454,17 @@ function InsuranceSummaryInline({ plan }) {
       {/* 展开后详情 */}
       {expanded ? (
         <div className="mt-2.5 grid gap-2 border-t border-pine/10 pt-2.5">
-          <DetailRow label="车损责任" value={matched.vehicleDamage?.summary || '-'} />
-          <DetailRow label="三者额度" value={`${matched.thirdParty?.amount || '-'} ${matched.thirdParty?.unit || ''}${matched.thirdParty?.note ? '（' + matched.thirdParty.note + '）' : ''}`} />
-          <DetailRow label="轮胎/轮毂" value={matched.tireWheel?.note || (matched.tireWheel?.covered === true ? '覆盖' : '不覆盖')} />
-          <DetailRow label="玻璃破损" value={matched.glass?.note || (matched.glass?.covered === true ? '覆盖' : '待确认')} />
-          <DetailRow label="停运费" value={matched.downtime?.note || (matched.downtime?.covered === true ? '覆盖' : '不覆盖')} />
-          <DetailRow label="折旧/贬值" value={matched.depreciation?.note || '-'} />
-          <DetailRow label="司乘保障" value={matched.driverPassenger?.note || `司机${matched.driverPassenger?.driver || '未显示'}，乘客${matched.driverPassenger?.passenger || '未显示'}`} />
+          <DetailRow label="车损责任" value={cleanInsuranceText(matched.vehicleDamage?.summary)} />
+          <DetailRow label="三者额度" value={formatThirdPartyDetail(matched)} />
+          <DetailRow label="轮胎/轮毂" value={formatCoverageDetail(matched.tireWheel)} />
+          <DetailRow label="玻璃破损" value={formatCoverageDetail(matched.glass)} />
+          <DetailRow label="停运费" value={formatCoverageDetail(matched.downtime)} />
+          <DetailRow label="折旧/贬值" value={formatCoverageDetail(matched.depreciation)} />
+          <DetailRow label="司乘保障" value={formatDriverPassengerDetail(matched.driverPassenger)} />
           {matched.medicalOutsideInsurance?.covered ? (
-            <DetailRow label="医保外费用" value={matched.medicalOutsideInsurance?.note || '覆盖'} />
+            <DetailRow label="医保外费用" value={formatCoverageDetail(matched.medicalOutsideInsurance)} />
           ) : null}
-          <DetailRow label="费用垫付" value={matched.advancePayment?.note || (matched.advancePayment?.required === false ? '无需垫付' : '需垫付')} />
+          <DetailRow label="费用垫付" value={formatAdvancePaymentDetail(matched.advancePayment)} />
 
           {matched.keyWarnings?.length ? (
             <div className="rounded-xl bg-amberSoft/35 px-2.5 py-2">
@@ -418,7 +488,7 @@ function InsuranceSummaryInline({ plan }) {
           ) : null}
 
           <p className="text-[10px] font-medium leading-relaxed text-muted/70">
-            {INSURANCE_DISCLAIMER}
+            {PUBLIC_INSURANCE_DISCLAIMER}
           </p>
         </div>
       ) : null}
@@ -787,8 +857,8 @@ function getPlanInsuranceSummary(plan) {
   const items = [
     { label: '保险档位', value: getTierUserLabel(matched), strong: matched.tier === 'premium' || matched.tier === 'special' },
     { label: '三者险', value: formatThirdPartyUser(matched), strong: Number(matched.thirdParty?.amount) >= 100 },
-    { label: '轮胎/轮毂', value: formatCoveredUser(matched.tireWheel?.covered), weak: matched.tireWheel?.covered === false, strong: matched.tireWheel?.covered === true },
-    { label: '玻璃', value: formatCoveredUser(matched.glass?.covered), weak: matched.glass?.covered === false, strong: matched.glass?.covered === true },
+    { label: '轮胎/轮毂', value: formatCoveredUser(matched.tireWheel?.covered, matched.tireWheel?.note), weak: matched.tireWheel?.covered === false && !hasInternalInsuranceNote(matched.tireWheel?.note), strong: matched.tireWheel?.covered === true && !hasInternalInsuranceNote(matched.tireWheel?.note) },
+    { label: '玻璃', value: formatCoveredUser(matched.glass?.covered, matched.glass?.note), weak: matched.glass?.covered === false && !hasInternalInsuranceNote(matched.glass?.note), strong: matched.glass?.covered === true && !hasInternalInsuranceNote(matched.glass?.note) },
     { label: '底盘/救援', value: chassisRoadsideValue, weak: chassisRoadsideValue === '不包含', strong: chassisRoadsideValue === '包含' },
   ];
 
@@ -1016,9 +1086,11 @@ function buildCoverageHighlights(compareResult) {
   if (tw && tw.difference !== '相同') {
     const aCover = tw.valueA.includes('覆盖') && !tw.valueA.includes('不覆盖');
     const bCover = tw.valueB.includes('覆盖') && !tw.valueB.includes('不覆盖');
-    if (aCover && !bCover) {
+    const aNoCover = tw.valueA.includes('不覆盖');
+    const bNoCover = tw.valueB.includes('不覆盖');
+    if (aCover && bNoCover) {
       highlights.push(`${planBName}不覆盖轮胎/轮毂单独损失，${planAName}覆盖。如有山路或非铺装路面，轮胎保障值得关注。`);
-    } else if (bCover && !aCover) {
+    } else if (bCover && aNoCover) {
       highlights.push(`${planAName}不覆盖轮胎/轮毂单独损失，${planBName}覆盖。如有山路或非铺装路面，轮胎保障值得关注。`);
     }
   }
@@ -1026,11 +1098,13 @@ function buildCoverageHighlights(compareResult) {
   // 停运费差异
   const dt = dims.find((d) => d.icon === 'downtime');
   if (dt && dt.difference !== '相同') {
-    const aCover = dt.valueA.includes('覆盖');
-    const bCover = dt.valueB.includes('覆盖');
-    if (aCover && !bCover) {
+    const aCover = dt.valueA.includes('覆盖') && !dt.valueA.includes('不覆盖');
+    const bCover = dt.valueB.includes('覆盖') && !dt.valueB.includes('不覆盖');
+    const aNoCover = dt.valueA.includes('不覆盖');
+    const bNoCover = dt.valueB.includes('不覆盖');
+    if (aCover && bNoCover) {
       highlights.push(`${planAName}覆盖停运费，${planBName}不覆盖。万一修车期间仍需付租金，长途环线建议关注。`);
-    } else if (bCover && !aCover) {
+    } else if (bCover && aNoCover) {
       highlights.push(`${planBName}覆盖停运费，${planAName}不覆盖。万一修车期间仍需付租金，长途环线建议关注。`);
     }
   }
@@ -1038,11 +1112,13 @@ function buildCoverageHighlights(compareResult) {
   // 折旧/贬值差异
   const dp = dims.find((d) => d.icon === 'depreciation');
   if (dp && dp.difference !== '相同') {
-    const aCover = dp.valueA.includes('覆盖');
-    const bCover = dp.valueB.includes('覆盖');
-    if (aCover && !bCover) {
+    const aCover = dp.valueA.includes('覆盖') && !dp.valueA.includes('不覆盖');
+    const bCover = dp.valueB.includes('覆盖') && !dp.valueB.includes('不覆盖');
+    const aNoCover = dp.valueA.includes('不覆盖');
+    const bNoCover = dp.valueB.includes('不覆盖');
+    if (aCover && bNoCover) {
       highlights.push(`${planBName}可能需承担折旧/贬值费，${planAName}已覆盖。重大事故时折旧费可能是一笔不小的支出。`);
-    } else if (bCover && !aCover) {
+    } else if (bCover && aNoCover) {
       highlights.push(`${planAName}可能需承担折旧/贬值费，${planBName}已覆盖。重大事故时折旧费可能是一笔不小的支出。`);
     }
   }
@@ -1050,12 +1126,12 @@ function buildCoverageHighlights(compareResult) {
   // 司乘保障差异
   const dpPass = dims.find((d) => d.icon === 'driverPassenger');
   if (dpPass) {
-    const hasDriverA = dpPass.valueA && dpPass.valueA !== '未显示';
-    const hasDriverB = dpPass.valueB && dpPass.valueB !== '未显示';
+    const hasDriverA = dpPass.valueA && dpPass.valueA !== UNCLEAR_TEXT;
+    const hasDriverB = dpPass.valueB && dpPass.valueB !== UNCLEAR_TEXT;
     if (!hasDriverA && hasDriverB) {
-      highlights.push(`${planBName}有司机保障，${planAName}未显示司乘保障。多人出行建议关注车上人员保障。`);
+      highlights.push(`${planBName}司乘保障更明确，${planAName}需要再确认车上人员保障。多人出行建议重点看这一项。`);
     } else if (hasDriverA && !hasDriverB) {
-      highlights.push(`${planAName}有司机保障，${planBName}未显示司乘保障。多人出行建议关注车上人员保障。`);
+      highlights.push(`${planAName}司乘保障更明确，${planBName}需要再确认车上人员保障。多人出行建议重点看这一项。`);
     }
   }
 
@@ -1144,11 +1220,12 @@ function formatThirdPartyUser(plan) {
   return `${amount}${plan.thirdParty?.unit || '万元'}`;
 }
 
-function formatCoveredUser(value) {
+function formatCoveredUser(value, note = '') {
+  if (hasInternalInsuranceNote(note)) return UNCLEAR_TEXT;
   if (value === true) return '包含';
   if (value === false) return '不包含';
   if (value === '部分') return '部分包含';
-  return '未明确';
+  return UNCLEAR_TEXT;
 }
 
 function getChassisOrRoadsideValue(plan) {
