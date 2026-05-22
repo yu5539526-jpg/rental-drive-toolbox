@@ -59,7 +59,6 @@ export default function Home() {
               <Sparkles size={14} className="text-white" />
               pYuY
             </div>
-            <div className="rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold text-white ring-1 ring-white/20">小红书收藏版</div>
           </div>
 
           <div className="mt-4 flex items-center gap-3 rounded-[22px] bg-white/[0.16] p-3 text-white ring-1 ring-white/20 backdrop-blur">

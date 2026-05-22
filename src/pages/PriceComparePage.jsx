@@ -10,9 +10,11 @@ import {
   findInsurancePlan,
   compareInsurancePlans,
   getChecklistInsuranceTips,
+  getInsuranceAdviceByScenario,
 } from '../utils/insuranceUtils.js';
 
 const STORAGE_KEY = 'rentalDrive.priceComparePlans';
+const CAR_RECOMMEND_CONTEXT_KEY = 'rentalDrive.carRecommendationContext';
 const emptyForm = {
   platform: '',
   carModel: '',
@@ -45,10 +47,11 @@ const INTERNAL_INSURANCE_NOTE_PATTERNS = [
 export default function PriceComparePage() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState(loadPlans);
+  const [tripContext] = useState(loadCarRecommendationContext);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState('');
   const [feedback, setFeedback] = useState('把不同平台、车型和保险方案的含保险总价填进来，就能自动对比。');
-  const stats = useMemo(() => buildCompareStats(plans), [plans]);
+  const stats = useMemo(() => buildCompareStats(plans, tripContext), [plans, tripContext]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
@@ -442,8 +445,8 @@ function InsuranceSummaryInline({ plan }) {
 
   if (!matched) {
     return (
-      <div className="mt-2 rounded-2xl bg-aquaCard/60 px-3 py-2.5 ring-1 ring-pine/8">
-        <p className="text-[11px] font-bold text-muted">保险摘要</p>
+      <div className="mx-auto mt-3 w-full rounded-2xl bg-aquaCard/60 px-3 py-2.5 ring-1 ring-pine/8">
+        <p className="text-center text-[11px] font-bold text-muted">保险摘要</p>
         <div className="mt-2 grid grid-cols-2 gap-1.5">
           {summary.items.map((item) => (
             <InsuranceInfoPill key={item.label} {...item} />
@@ -459,7 +462,7 @@ function InsuranceSummaryInline({ plan }) {
   const tips = getChecklistInsuranceTips(plan.platform, plan.insurancePlan);
 
   return (
-    <div className="mt-2 rounded-2xl bg-aquaCard/60 px-3 py-2.5 ring-1 ring-pine/8">
+    <div className="mx-auto mt-3 w-full rounded-2xl bg-aquaCard/60 px-3 py-2.5 ring-1 ring-pine/8">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-bold text-muted">保险摘要</p>
         <button
@@ -534,7 +537,7 @@ function InsuranceSummaryInline({ plan }) {
 
 function InsuranceInfoPill({ label, value, weak = false, strong = false }) {
   return (
-    <div className={`rounded-xl px-2.5 py-2 ${weak ? 'bg-amberSoft/35 text-amberDark ring-1 ring-warning/15' : strong ? 'bg-mint/55 text-pine ring-1 ring-pine/10' : 'bg-card text-ink ring-1 ring-pine/10'}`}>
+    <div className={`flex min-h-[58px] flex-col items-center justify-center rounded-xl px-2.5 py-2 text-center ${weak ? 'bg-amberSoft/35 text-amberDark ring-1 ring-warning/15' : strong ? 'bg-mint/55 text-pine ring-1 ring-pine/10' : 'bg-card text-ink ring-1 ring-pine/10'}`}>
       <p className="text-[10px] font-bold text-muted">{label}</p>
       <p className="mt-0.5 text-[11px] font-bold leading-tight">{value}</p>
     </div>
@@ -561,7 +564,7 @@ function PlanCard({ plan, stats, onEdit, onDelete, onUse }) {
   return (
     <article className={`rounded-[22px] border bg-card p-4 shadow-card ${isLowest ? 'border-pine/25' : 'border-pine/10'}`}>
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="break-words text-lg font-bold leading-tight text-ink">{plan.platform}</h3>
             {planTags.map((tag) => (
@@ -573,13 +576,14 @@ function PlanCard({ plan, stats, onEdit, onDelete, onUse }) {
             {badge.label}
           </span>
           <p className="mt-1 text-xs font-medium leading-relaxed text-muted">保险方案：{plan.insurancePlan}</p>
-          <InsuranceSummaryInline plan={plan} />
         </div>
         <div className="shrink-0 text-right">
           <p className="text-[11px] font-bold text-muted">含保险总价</p>
           <p className="mt-1 text-xl font-bold text-pine">{formatMoney(plan.totalPrice)}</p>
         </div>
       </div>
+
+      <InsuranceSummaryInline plan={plan} />
 
       <div className={`mt-3 rounded-2xl px-3 py-2 text-xs font-bold ${isLowest ? 'bg-mint text-pine' : 'bg-amberSoft/45 text-amberDark'}`}>
         {isLowest ? '当前最低价，可作为预算计算参考。' : `比最低价高 ${formatMoney(diff)}`}
@@ -681,7 +685,6 @@ function CompareResult({ stats }) {
 
   return (
     <section className="mt-4 grid gap-4">
-      <InsuranceOverviewCard insights={stats.insuranceInsights} />
       <InsuranceCompareTips data={stats.insuranceCompare} />
     </section>
   );
@@ -700,132 +703,21 @@ function PlanTag({ label, tone = 'neutral' }) {
   return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${toneClass}`}>{label}</span>;
 }
 
-function InsuranceOverviewCard({ insights }) {
-  if (!insights || !insights.shouldShow) return null;
-
-  return (
-    <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-      <div className="flex items-center gap-2">
-        <ShieldAlert size={18} className="text-amberDark" />
-        <h2 className="text-lg font-bold text-ink">保险差异提醒</h2>
-      </div>
-      <div className="mt-3 grid gap-2">
-        {insights.messages.map((message) => (
-          <p key={message} className="rounded-2xl bg-aquaCard/60 px-3 py-2.5 text-sm font-medium leading-relaxed text-ink">
-            {message}
-          </p>
-        ))}
-      </div>
-      <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted/70">
-        这里只做轻量提醒，最终以平台下单页、合同和保障说明为准。
-      </p>
-    </section>
-  );
-}
-
 function InsuranceCompareTips({ data }) {
   if (!data) return null;
+  if (!data.ready || !data.advice) return null;
 
-  // 未就绪：显示不可对比的原因
-  if (!data.ready) {
-    if (!data.hint) return null;
-    return (
-      <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-        <div className="flex items-center gap-2">
-          <ShieldAlert size={18} className="text-amberDark" />
-          <h2 className="text-lg font-bold text-ink">保障差异对比</h2>
-        </div>
-        <p className="mt-3 rounded-2xl bg-aquaCard/60 px-3 py-3 text-sm font-medium leading-relaxed text-muted">
-          {data.hint}
-        </p>
-        {data.partialMatch ? (
-          <p className="mt-2 rounded-2xl bg-mint/50 px-3 py-2 text-xs font-medium leading-relaxed text-pine">
-            已有 1 个方案的保障被收录。再添加 1 个可识别的方案后，就能看到保障差异。
-          </p>
-        ) : null}
-      </section>
-    );
-  }
-
-  const { result, highlights, advice } = data;
+  const { advice } = data;
 
   return (
     <section className="rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
       <div className="flex items-center gap-2">
         <ShieldAlert size={18} className="text-amberDark" />
-        <h2 className="text-lg font-bold text-ink">保障细节对比</h2>
+        <h2 className="text-lg font-bold text-ink">我的建议</h2>
       </div>
-
-      {/* 对比双方 */}
-      <div className="mt-3 flex items-center gap-2 rounded-2xl bg-aquaCard/60 px-3 py-2.5">
-        <span className="text-xs font-bold text-muted">对比</span>
-        <span className="text-sm font-bold text-ink">
-          {result.planA.platform}「{result.planA.name}」
-        </span>
-        <span className="text-[10px] font-bold text-muted">vs</span>
-        <span className="text-sm font-bold text-ink">
-          {result.planB.platform}「{result.planB.name}」
-        </span>
-      </div>
-
-      {/* 保障高亮差异 */}
-      {highlights.length > 0 ? (
-        <div className="mt-3 grid gap-1.5">
-          {highlights.map((text, i) => (
-            <div key={i} className="flex items-start gap-2 rounded-xl bg-amberSoft/25 px-3 py-2.5">
-              <span className="mt-0.5 shrink-0 text-xs" aria-hidden="true">
-                {i === 0 ? '⚡' : '•'}
-              </span>
-              <p className="text-xs font-medium leading-relaxed text-ink">{text}</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {/* 维度速览表 */}
-      <div className="mt-3 rounded-2xl bg-aquaCard/40 px-3 py-2.5">
-        <p className="mb-2 text-[11px] font-bold text-muted">关键维度速览</p>
-        <div className="grid gap-1.5">
-          {result.dimensions
-            .filter((d) => d.important)
-            .map((dim) => (
-              <div key={dim.label} className="flex items-center justify-between gap-2 text-[11px] leading-relaxed">
-                <span className="shrink-0 font-bold text-muted">{dim.label}</span>
-                <span className="text-right">
-                  <span className={dim.difference === 'A更优' ? 'text-pine font-bold' : 'text-ink'}>
-                    {dim.valueA}
-                  </span>
-                  <span className="mx-1 text-muted/50">|</span>
-                  <span className={dim.difference === 'B更优' ? 'text-pine font-bold' : 'text-ink'}>
-                    {dim.valueB}
-                  </span>
-                </span>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {/* 我的建议 */}
-      {advice ? (
-        <div className="mt-3 rounded-2xl bg-gradient-to-r from-mint/70 to-mint/30 px-3 py-3 ring-1 ring-pine/10">
-          <p className="text-[11px] font-bold text-pine">我的建议</p>
-          <p className="mt-1 text-sm font-medium leading-relaxed text-ink">{advice.text}</p>
-          {advice.note ? (
-            <p className="mt-1.5 text-xs font-medium leading-relaxed text-muted">{advice.note}</p>
-          ) : null}
-        </div>
-      ) : null}
-
-      {/* 通用风险提醒 */}
-      {result.commonWarnings && result.commonWarnings.length > 0 ? (
-        <div className="mt-2.5 rounded-xl bg-coral/5 px-2.5 py-2">
-          <p className="text-[10px] font-bold text-coral">两个方案共同风险</p>
-          <p className="mt-0.5 text-[10px] leading-relaxed text-muted">
-            {result.commonWarnings.slice(0, 2).join('；')}
-          </p>
-        </div>
-      ) : null}
-
+      <p className="mt-3 rounded-2xl bg-gradient-to-r from-mint/70 to-mint/30 px-3 py-3 text-sm font-medium leading-relaxed text-ink ring-1 ring-pine/10">
+        {advice.text}
+      </p>
       <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted/70">
         保障权益会随城市、车型、供应商、渠道和下单页版本变化，最终以下单页、合同和保障说明为准。
       </p>
@@ -951,7 +843,7 @@ function buildInsuranceInsights(sorted) {
   };
 }
 
-function buildCompareStats(plans) {
+function buildCompareStats(plans, tripContext = null) {
   const sorted = [...plans].sort((a, b) => a.totalPrice - b.totalPrice);
   const count = plans.length;
   const lowest = sorted[0] || null;
@@ -974,7 +866,7 @@ function buildCompareStats(plans) {
   const insuranceInsights = buildInsuranceInsights(sorted);
 
   // 保障差异对比数据
-  const insuranceCompare = buildInsuranceCompareData(sorted);
+  const insuranceCompare = buildInsuranceCompareData(sorted, tripContext);
 
   return {
     count,
@@ -1002,7 +894,7 @@ function buildCompareStats(plans) {
 }
 
 /** 从已排序的方案列表中构建保险对比数据 */
-function buildInsuranceCompareData(sorted) {
+function buildInsuranceCompareData(sorted, tripContext = null) {
   if (sorted.length < 2) return null;
 
   // 为每个方案尝试匹配保险数据
@@ -1037,7 +929,7 @@ function buildInsuranceCompareData(sorted) {
 
   // 生成面向用户的对比文案
   const highlights = buildCoverageHighlights(result);
-  const advice = buildInsuranceAdvice(result, pair.a.plan, pair.b.plan);
+  const advice = buildInsuranceAdvice(result, pair.a.plan, pair.b.plan, tripContext, sorted);
 
   return {
     ready: true,
@@ -1169,8 +1061,11 @@ function buildCoverageHighlights(compareResult) {
   return highlights.slice(0, 5);
 }
 
-/** 基于保障对比和价格差生成"我的建议" */
-function buildInsuranceAdvice(compareResult, planA, planB) {
+/** 基于保障对比、价格差和目的地类型生成"我的建议" */
+function buildInsuranceAdvice(compareResult, planA, planB, tripContext = null, sortedPlans = []) {
+  const destinationAdvice = buildDestinationAwareInsuranceAdvice(tripContext, sortedPlans);
+  if (destinationAdvice) return destinationAdvice;
+
   const dims = compareResult.dimensions;
   const betterA = dims.filter((d) => d.difference === 'A更优').length;
   const betterB = dims.filter((d) => d.difference === 'B更优').length;
@@ -1186,20 +1081,15 @@ function buildInsuranceAdvice(compareResult, planA, planB) {
   if (betterA === betterB) {
     return {
       level: 'neutral',
-      text: `两个方案的保障水平接近${priceDiff > 0 ? `，价格相差 ${formatMoney(priceDiff)}` : ''}。如果路线简单、驾驶经验丰富，可以优先考虑价格更低的方案；如果对省心有更高要求，可以结合具体保障维度微调。`,
+      text: `两个方案保障接近${priceDiff > 0 ? `，价格相差 ${formatMoney(priceDiff)}` : ''}。路线简单时优先选低价；长途、复杂路况或多人出行时，再偏向保障更完整的方案。`,
       note: '具体保障以下单页和合同为准。',
     };
   }
 
   if (betterIsCheaper) {
-    const dimExamples = dims
-      .filter((d) => d.difference === 'A更优')
-      .slice(0, 2)
-      .map((d) => d.label)
-      .join('、');
     return {
       level: 'recommendA',
-      text: `${compareResult.planA.platform}「${compareResult.planA.name}」在保障上更完整（如${dimExamples}等），且价格更低或相近。这种情况比较难得，建议优先考虑。`,
+      text: `${betterPlan.platform}「${betterPlan.name}」保障更完整，价格也更低或相近，建议优先考虑；下单前再确认车损、三者和轮胎等关键条款。`,
       note: '同时也请在下单页核对保障详情，确认覆盖范围后再下单。',
     };
   }
@@ -1207,7 +1097,7 @@ function buildInsuranceAdvice(compareResult, planA, planB) {
   if (priceDiff <= 300 && betterA !== betterB) {
     return {
       level: 'recommendCoverage',
-      text: `${betterPlan.platform}「${betterPlan.name}」的保障更完整，而价格仅高出约 ${formatMoney(priceDiff)}。建议优先考虑保障更完整的方案——多花 ${formatMoney(priceDiff)} 换省心，在长途、复杂路线或多人出行场景下很值得。`,
+      text: `${betterPlan.platform}「${betterPlan.name}」保障更完整，只高出约 ${formatMoney(priceDiff)}。长途、复杂路线或多人出行时，建议优先选它；城市短途可继续看低价方案。`,
       note: '如果只是城市短途、路况简单，也可以维持低价方案，但取车时务必做好验车留证。',
     };
   }
@@ -1215,16 +1105,149 @@ function buildInsuranceAdvice(compareResult, planA, planB) {
   if (betterA < betterB) {
     return {
       level: 'tradeoff',
-      text: `${betterPlan.platform}「${betterPlan.name}」保障更完整，但价格也高出约 ${formatMoney(priceDiff)}。你需要权衡：多花的钱主要换来更全面的保障和更省心的体验。长途、山路、新手驾驶或带家人出行，建议往保障更完整的方向靠。`,
+      text: `${betterPlan.platform}「${betterPlan.name}」保障更完整，但高出约 ${formatMoney(priceDiff)}。如果是长途、山路、新手驾驶或带家人出行，建议优先保障；预算敏感且路线简单时可选低价。`,
       note: '如果预算确实有限，低价方案配合认真验车留证也可以。但出发前建议先了解低价方案的不覆盖范围。',
     };
   }
 
   return {
     level: 'tradeoff',
-    text: `${betterPlan.platform}「${betterPlan.name}」保障更完整，但价格也高出约 ${formatMoney(priceDiff)}。如果预算允许且路线复杂、新手驾驶或多人出行，建议优先考虑保障更完整的方案。`,
+    text: `${betterPlan.platform}「${betterPlan.name}」保障更完整，但高出约 ${formatMoney(priceDiff)}。预算允许且路线复杂时建议选保障更完整的方案；城市短途可继续选低价。`,
     note: '城市短途且预算敏感时，低价方案也可以接受，取车时做好验车留证即可。',
   };
+}
+
+function buildDestinationAwareInsuranceAdvice(tripContext, sortedPlans) {
+  if (!tripContext?.destinationType || !sortedPlans.length) return null;
+
+  const scenarioAdvice = getInsuranceAdviceByScenario(buildScenarioContextFromTrip(tripContext));
+  const primaryAdvice = scenarioAdvice.advices?.[0];
+  if (!primaryAdvice) return null;
+
+  const suggestedTier = scenarioAdvice.suggestedTier || primaryAdvice.tierAdvice || 'standard';
+  const destinationLabel = tripContext.destinationLabel || getDestinationTypeLabel(tripContext.destinationType);
+  const lowestPlan = sortedPlans[0];
+  const suggestedPlan = pickPlanBySuggestedTier(sortedPlans, suggestedTier);
+  const selectedTier = getInsuranceCategory(lowestPlan);
+  const selectedTierLabel = getInsuranceTierLabel(selectedTier);
+  const suggestedTierLabel = getInsuranceTierLabel(suggestedTier);
+  const selectedIsWeak = getInsuranceTierRank(selectedTier) < getInsuranceTierRank(suggestedTier);
+  const riskText = getDestinationRiskText(tripContext.destinationType, primaryAdvice);
+  const priorityText = formatInsurancePriorityTags(primaryAdvice.priorityTags);
+
+  if (suggestedPlan) {
+    const suggestedPlanTier = getInsuranceCategory(suggestedPlan);
+    const recommendationLabel =
+      suggestedPlanTier === suggestedTier
+        ? `这类${suggestedTierLabel}方案`
+        : `当前可选的${getInsuranceTierLabel(suggestedPlanTier)}方案（没有${suggestedTierLabel}时的次优选择）`;
+    const priceDiff = Math.max(0, suggestedPlan.totalPrice - lowestPlan.totalPrice);
+    const priceText = priceDiff > 0 ? `，比最低价高约 ${formatMoney(priceDiff)}` : '，价格也是当前较优';
+    const selectedText = selectedIsWeak
+      ? `当前最低价 ${formatPlanName(lowestPlan)} 属于${selectedTierLabel}，在这个目的地条件下保障偏弱`
+      : `当前最低价 ${formatPlanName(lowestPlan)} 已接近这类路线的保障要求`;
+
+    return {
+      level: selectedIsWeak ? 'destinationRisk' : 'destinationFit',
+      text: `你选择的是${destinationLabel}，主要风险是${riskText}。${selectedText}；更建议选择 ${formatPlanName(suggestedPlan)} ${recommendationLabel}${priceText}，重点确认${priorityText}。`,
+    };
+  }
+
+  return {
+    level: 'destinationRisk',
+    text: `你选择的是${destinationLabel}，主要风险是${riskText}。当前方案里暂时没有很匹配的${suggestedTierLabel}保险，建议补充对比车损自付更低、三者额度更高，并覆盖${priorityText}的方案。`,
+  };
+}
+
+function buildScenarioContextFromTrip(tripContext) {
+  return {
+    destination: tripContext.destination || tripContext.destinationLabel || '',
+    destinationType: tripContext.destinationType || '',
+    peopleCount: parsePeopleCount(tripContext.peopleCount),
+    people: parsePeopleCount(tripContext.peopleCount),
+    preference: tripContext.energyPreference || '',
+    isBeginner: tripContext.drivingProficiency === 'beginner',
+    experience: tripContext.drivingProficiency === 'beginner' ? '新手' : tripContext.drivingProficiency || '',
+  };
+}
+
+function parsePeopleCount(value) {
+  if (value === '6+') return 6;
+  if (value === '3-4') return 3;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function pickPlanBySuggestedTier(plans, suggestedTier) {
+  if (suggestedTier === 'basic') return plans[0] || null;
+
+  const minimumRank = suggestedTier === 'premium' ? 3 : 2;
+  const qualified = plans.find((plan) => getInsuranceTierRank(getInsuranceCategory(plan)) >= minimumRank);
+  if (qualified) return qualified;
+
+  const fallbackOrder = suggestedTier === 'premium' ? ['standard', 'basic', 'other'] : ['basic', 'other'];
+
+  for (const tier of fallbackOrder) {
+    const match = plans.find((plan) => getInsuranceCategory(plan) === tier);
+    if (match) return match;
+  }
+
+  return plans[0] || null;
+}
+
+function getInsuranceTierRank(tier) {
+  const ranks = { basic: 1, standard: 2, premium: 3, other: 0 };
+  return ranks[tier] || 0;
+}
+
+function getInsuranceTierLabel(tier) {
+  if (tier === 'premium') return '高保障';
+  if (tier === 'standard') return '中等保障';
+  if (tier === 'basic') return '基础保障';
+  return '其他保障';
+}
+
+function getDestinationTypeLabel(value) {
+  const labels = {
+    'city-short': '城区近郊',
+    'island-leisure': '海岛滨海',
+    'mountain-plateau': '山地高原',
+    'grassland-gobi': '草原戈壁',
+    'grassland-long': '草原长线',
+    'loop-long': '长途环线',
+    'yunnan-mountain': '云贵山地',
+  };
+  return labels[value] || '这类路线';
+}
+
+function getDestinationRiskText(destinationType, primaryAdvice) {
+  const risks = {
+    'city-short': '停车刮擦、窄路会车和小额车损更常见',
+    'island-leisure': '滨海路段石子飞溅、停车刮擦和轮胎小损伤更常见',
+    'mountain-plateau': '山路多弯、坡道和海拔变化会放大轮胎、车损和三者风险',
+    'grassland-gobi': '长距离空旷路段、碎石路和维修距离会放大轮胎、停运费和救援风险',
+    'grassland-long': '长距离环线、草原路段和跨城维修会放大轮胎、停运费和车损风险',
+    'loop-long': '长途环线出险概率累加，维修周期和停运费风险更高',
+    'yunnan-mountain': '城市跨点叠加山路爬升，车损、轮胎和三者额度都要更稳',
+  };
+
+  return risks[destinationType] || (primaryAdvice.riskTags || []).slice(0, 2).join('，') || '路线和用车条件会放大保险缺口';
+}
+
+function formatInsurancePriorityTags(tags = []) {
+  const labels = {
+    tireWheel: '轮胎/轮毂',
+    thirdParty: '三者额度',
+    vehicleDamage: '车损自付',
+    driverPassenger: '司乘保障',
+    downtime: '停运费',
+    depreciation: '折旧/贬值',
+    advancePayment: '费用垫付',
+    glass: '玻璃破损',
+    medicalOutsideInsurance: '医保外费用',
+  };
+
+  return tags.map((tag) => labels[tag] || tag).slice(0, 4).join('、') || '车损自付、三者额度和轮胎/轮毂';
 }
 
 function hasMeaningfulInsuranceGap(plans) {
@@ -1385,17 +1408,12 @@ function buildCompareCopyText(stats) {
     if (stats.lowestBasicHint) lines.push(stats.lowestBasicHint);
     if (stats.priceGapHint) lines.push(stats.priceGapHint);
 
-    // 保障差异对比
+    // 我的建议
     const ic = stats.insuranceCompare;
-    if (ic && ic.ready && ic.highlights.length) {
+    if (ic && ic.ready && ic.advice) {
       lines.push('');
-      lines.push('【保障差异提醒】');
-      lines.push(`对比：${ic.result.planA.platform}「${ic.result.planA.name}」vs ${ic.result.planB.platform}「${ic.result.planB.name}」`);
-      ic.highlights.forEach((h, i) => lines.push(`${i + 1}. ${h}`));
-      if (ic.advice) {
-        lines.push('');
-        lines.push(`建议：${ic.advice.text}`);
-      }
+      lines.push('【我的建议】');
+      lines.push(ic.advice.text);
     }
   }
 
@@ -1434,5 +1452,24 @@ function loadPlans() {
     return Array.isArray(parsed) ? parsed.slice(0, 10).filter((plan) => Number(plan.totalPrice) > 0) : [];
   } catch {
     return [];
+  }
+}
+
+function loadCarRecommendationContext() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CAR_RECOMMEND_CONTEXT_KEY) || 'null');
+    if (!parsed || typeof parsed !== 'object') return null;
+    return {
+      destinationType: parsed.destinationType || '',
+      destinationLabel: parsed.destinationLabel || '',
+      destination: parsed.destination || '',
+      peopleCount: parsed.peopleCount || '',
+      luggage: parsed.luggage || '',
+      energyPreference: parsed.energyPreference || '',
+      drivingProficiency: parsed.drivingProficiency || '',
+      savedAt: parsed.savedAt || 0,
+    };
+  } catch {
+    return null;
   }
 }

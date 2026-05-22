@@ -648,6 +648,7 @@ const emptyForm = {
   energyPreference: '',
   drivingProficiency: '',
 };
+const CAR_RECOMMEND_CONTEXT_KEY = 'rentalDrive.carRecommendationContext';
 
 export default function CarRecommendPage() {
   const [form, setForm] = useState(emptyForm);
@@ -669,7 +670,9 @@ export default function CarRecommendPage() {
       return;
     }
     setFeedback('');
-    setResult(generateRecommendation(form));
+    const nextResult = generateRecommendation(form);
+    setResult(nextResult);
+    saveCarRecommendationContext(form, nextResult);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -677,6 +680,9 @@ export default function CarRecommendPage() {
     setForm(emptyForm);
     setResult(null);
     setFeedback('');
+    try {
+      localStorage.removeItem(CAR_RECOMMEND_CONTEXT_KEY);
+    } catch { /* ignore */ }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -769,6 +775,21 @@ export default function CarRecommendPage() {
       ) : null}
     </main>
   );
+}
+
+function saveCarRecommendationContext(form, result) {
+  try {
+    localStorage.setItem(CAR_RECOMMEND_CONTEXT_KEY, JSON.stringify({
+      destinationType: form.destinationType || '',
+      destinationLabel: result?.tripProfile?.type || getDestinationTypeLabel(form.destinationType),
+      destination: result?.derivedDest || result?.tripProfile?.destination || '',
+      peopleCount: form.peopleCount || '',
+      luggage: form.luggage || '',
+      energyPreference: form.energyPreference || '',
+      drivingProficiency: form.drivingProficiency || '',
+      savedAt: Date.now(),
+    }));
+  } catch { /* ignore */ }
 }
 
 /* ========================================================================
