@@ -1369,7 +1369,7 @@ function ResultView({ result, form }) {
             to="/price-compare"
             className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[18px] bg-gradient-to-r from-[#174B63] to-[#1E6B8A] px-4 text-sm font-bold text-white shadow-lg shadow-pine/20"
           >
-            对比两个租车方案
+            对比租车方案
             <ArrowRight size={16} />
           </Link>
           <Link

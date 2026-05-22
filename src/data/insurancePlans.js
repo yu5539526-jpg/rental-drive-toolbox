@@ -131,8 +131,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: null,
-      passenger: null,
-      note: '该组方案截图中未显示司乘保障',
+      passenger: '0',
+      note: '该组方案未含乘客保障',
     },
     medicalOutsideInsurance: {
       covered: false,
@@ -192,8 +192,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: null,
-      passenger: null,
-      note: '该组方案截图中未显示司乘保障',
+      passenger: '0',
+      note: '该组方案未含乘客保障',
     },
     medicalOutsideInsurance: {
       covered: false,
@@ -245,7 +245,7 @@ export const INSURANCE_PLANS = [
     },
     downtime: {
       covered: '部分',
-      note: '保额 1 万；车行承担 1 万；客户承担 1 万以上部分',
+      note: '停运费 1 万元以下由车行承担，超出部分由客户承担',
     },
     depreciation: {
       covered: '部分',
@@ -253,8 +253,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: null,
-      passenger: null,
-      note: '该组方案截图中未显示司乘保障',
+      passenger: '0',
+      note: '该组方案未含乘客保障',
     },
     medicalOutsideInsurance: {
       covered: false,
@@ -312,7 +312,7 @@ export const INSURANCE_PLANS = [
     },
     downtime: {
       covered: '部分',
-      note: '保额 500 元；车行承担 500 元；客户承担 500 元以上部分',
+      note: '停运费 500 元以下由车行承担，超出部分由客户承担',
     },
     depreciation: {
       covered: '部分',
@@ -320,8 +320,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: null,
-      passenger: null,
-      note: '截图中司机和乘客保障均显示无保额',
+      passenger: '0',
+      note: '乘客保障无保额',
     },
     medicalOutsideInsurance: {
       covered: false,
@@ -381,8 +381,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: '5 万/座',
-      passenger: null,
-      note: '司机保障 5 万/座，乘客保障截图中显示无保额',
+      passenger: '0',
+      note: '司机保障 5 万/座，乘客保障无保额',
     },
     medicalOutsideInsurance: {
       covered: false,
@@ -648,8 +648,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: '继承基本保障 5 万',
-      passenger: '无增加',
-      note: '截图显示乘客保障无增加',
+      passenger: '2 万元/人',
+      note: '乘客保障 2 万元/人',
     },
     medicalOutsideInsurance: {
       covered: false,
@@ -788,8 +788,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: '继承基本保障 5 万',
-      passenger: '无增加',
-      note: '截图显示乘客保障无增加',
+      passenger: '2 万元/人',
+      note: '乘客保障 2 万元/人',
     },
     medicalOutsideInsurance: {
       covered: false,
@@ -878,71 +878,6 @@ export const INSURANCE_PLANS = [
     ],
     sourceConfidence: '用户平台核查',
     confidenceNote: '根据平台保障内容核查更新，实际以下单页为准',
-  },
-  {
-    id: '1hai-quancheng-up',
-    platform: '一嗨租车',
-    platformId: '1hai',
-    name: '全程无忧升级版',
-    groupName: '补充保障',
-    tier: 'premium',
-    requiredType: 'optional',
-    purchaseNote: '同尊享保障购买规则',
-    vehicleDamage: {
-      summary: '车窗、轮胎轮毂、底盘损失无需用户承担；其他车损责任以下单页为准',
-      customerPay: '未明确',
-      covered: '部分明确',
-      includesGlass: true,
-      includesScratch: '下单页待复核',
-    },
-    thirdParty: {
-      note: '未明确',
-    },
-    tireWheel: {
-      covered: true,
-      note: '轮胎、轮毂损失无需用户承担',
-    },
-    glass: {
-      covered: true,
-      note: '车窗/玻璃损失无需用户承担',
-    },
-    chassis: {
-      covered: true,
-      note: '底盘损失无需用户承担',
-    },
-    roadsideAssistance: {
-      covered: '部分',
-      note: '车辆自身问题导致的故障由一嗨承担；人为操作不当导致的故障由客户承担',
-    },
-    downtime: {
-      covered: '部分',
-      note: '未明确',
-    },
-    depreciation: {
-      covered: '部分',
-      note: '未明确',
-    },
-    driverPassenger: {
-      note: '未明确',
-    },
-    medicalOutsideInsurance: {
-      covered: false,
-      note: '未明确',
-    },
-    advancePayment: {
-      required: '未明确',
-      note: '未明确',
-    },
-    theft: {
-      covered: '未明确',
-      note: '未明确',
-    },
-    keyWarnings: [
-      '发生免予赔偿事由时所有费用由承租方自行承担',
-      '救援责任需区分车辆自身问题和人为操作不当',
-    ],
-    sourceConfidence: '用户平台核查',
-    confidenceNote: '根据平台保障内容核查新增，未明确项目实际以下单页为准',
   },
   {
     id: '1hai-chengke',
@@ -1115,8 +1050,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: '5 万元',
-      passenger: '未显示新增',
-      note: '继承基础保障驾驶员 5 万；截图未显示新增乘客保障',
+      passenger: '0',
+      note: '继承基础保障驾驶员 5 万，乘客保障 0',
     },
     medicalOutsideInsurance: {
       covered: false,
@@ -1176,8 +1111,8 @@ export const INSURANCE_PLANS = [
     },
     driverPassenger: {
       driver: '10 万元',
-      passenger: '未显示',
-      note: '驾驶员损失 10 万元；截图未显示乘客损失保障',
+      passenger: '0',
+      note: '驾驶员损失 10 万元，乘客保障 0',
     },
     medicalOutsideInsurance: {
       covered: true,
@@ -1651,7 +1586,7 @@ export const INSURANCE_CHECKLIST_TIPS = {
     },
     '1hai': {
       basicNotice: '一嗨基本保障服务费不赔偿轮胎、轮毂单独损失，停运费按合同承担，车损达 5000 元另收 20% 贬值费。建议四轮逐一拍清楚，车身已有划痕拍近景。',
-      premiumNotice: '一嗨尊享保障、尊享守护、百万守护、全程无忧、全程无忧升级版已覆盖车窗、轮胎轮毂和底盘损失。救援需区分车辆自身故障和人为操作不当。',
+      premiumNotice: '一嗨尊享保障、尊享守护、百万守护、全程无忧已覆盖车窗、轮胎轮毂和底盘损失。救援需区分车辆自身故障和人为操作不当。',
     },
     shenzhou: {
       basicNotice: '神州基础保障不赔车轮单独损失和无明显碰撞痕迹的车身划痕。但基础保障已含停运费覆盖和全车盗抢险。建议重点拍摄轮胎轮毂。',
