@@ -41,7 +41,7 @@ export const INSURANCE_PLATFORMS = [
     aliases: ['一嗨', '一嗨租车', '1hai', '一嗨出行'],
     type: '直营租车平台',
     summary:
-      '全国直营服务网络，支持 APP/官网订车、异地还车、全城送车、自助取还、0 元车辆押金。官方帮助中心清楚列出基本保障服务费；补充保障含尊享保障、尊享守护、百万守护、全程无忧、乘客守护等。',
+      '全国直营服务网络，支持 APP/官网订车、异地还车、全城送车、自助取还、0 元车辆押金。官方帮助中心清楚列出基本保障服务费；补充保障含尊享保障、尊享守护、百万守护、全程无忧、全程无忧升级版、乘客守护等。',
     serviceFeatures: [
       '直营服务网点遍布全国 500+ 城市',
       '官网/App 预订，直营门店、全城送车、自助取还',
@@ -623,12 +623,20 @@ export const INSURANCE_PLANS = [
       note: '从基本保障 20 万提升至 30 万',
     },
     tireWheel: {
-      covered: '以条款为准',
-      note: '请以下单页保障条款为准',
+      covered: true,
+      note: '轮胎、轮毂损失无需用户承担',
     },
     glass: {
-      covered: '下单页待复核',
-      note: '截图未单独列明玻璃',
+      covered: true,
+      note: '车窗/玻璃损失无需用户承担',
+    },
+    chassis: {
+      covered: true,
+      note: '底盘损失无需用户承担',
+    },
+    roadsideAssistance: {
+      covered: '部分',
+      note: '车辆自身问题导致的故障由一嗨承担；人为操作不当导致的故障由客户承担',
     },
     downtime: {
       covered: true,
@@ -661,8 +669,8 @@ export const INSURANCE_PLANS = [
       '事故需第一时间拨打 110 报案并联系一嗨',
       '还车时发现新损伤需提供事故证明等材料方可享受补充保障',
     ],
-    sourceConfidence: '用户截图',
-    confidenceNote: '一嗨 App 截图，不同城市/车型/订单可能存在差异',
+    sourceConfidence: '用户平台核查',
+    confidenceNote: '根据平台保障内容核查更新，实际以下单页为准',
   },
   {
     id: '1hai-zunxiang-shouhu',
@@ -686,12 +694,20 @@ export const INSURANCE_PLANS = [
       note: '从基本保障 20 万提升至 30 万',
     },
     tireWheel: {
-      covered: '以条款为准',
-      note: '请以下单页保障条款为准',
+      covered: true,
+      note: '轮胎、轮毂损失无需用户承担',
     },
     glass: {
-      covered: '下单页待复核',
-      note: '截图未单独列明玻璃',
+      covered: true,
+      note: '车窗/玻璃损失无需用户承担',
+    },
+    chassis: {
+      covered: true,
+      note: '底盘损失无需用户承担',
+    },
+    roadsideAssistance: {
+      covered: '部分',
+      note: '车辆自身问题导致的故障由一嗨承担；人为操作不当导致的故障由客户承担',
     },
     downtime: {
       covered: true,
@@ -722,8 +738,8 @@ export const INSURANCE_PLANS = [
       '发生免予赔偿事由时所有费用由承租方自行承担',
       '车辆不适合继续提供租赁服务时须支付事故前实际价值 20% 的损失费',
     ],
-    sourceConfidence: '用户截图',
-    confidenceNote: '一嗨 App 截图，不同城市/车型/订单可能存在差异',
+    sourceConfidence: '用户平台核查',
+    confidenceNote: '根据平台保障内容核查更新，实际以下单页为准',
   },
   {
     id: '1hai-baiwan',
@@ -747,12 +763,20 @@ export const INSURANCE_PLANS = [
       note: '从基本保障 20 万提升至 100 万',
     },
     tireWheel: {
-      covered: '以条款为准',
-      note: '请以下单页保障条款为准',
+      covered: true,
+      note: '轮胎、轮毂损失无需用户承担',
     },
     glass: {
-      covered: '下单页待复核',
-      note: '截图未单独列明玻璃',
+      covered: true,
+      note: '车窗/玻璃损失无需用户承担',
+    },
+    chassis: {
+      covered: true,
+      note: '底盘损失无需用户承担',
+    },
+    roadsideAssistance: {
+      covered: '部分',
+      note: '车辆自身问题导致的故障由一嗨承担；人为操作不当导致的故障由客户承担',
     },
     downtime: {
       covered: true,
@@ -783,8 +807,8 @@ export const INSURANCE_PLANS = [
       '发生免予赔偿事由时所有费用由承租方自行承担',
       '车辆不适合继续提供租赁服务时须支付事故前实际价值 20% 的损失费',
     ],
-    sourceConfidence: '用户截图',
-    confidenceNote: '一嗨 App 截图，不同城市/车型/订单可能存在差异',
+    sourceConfidence: '用户平台核查',
+    confidenceNote: '根据平台保障内容核查更新，实际以下单页为准',
   },
   {
     id: '1hai-quancheng',
@@ -808,12 +832,20 @@ export const INSURANCE_PLANS = [
       note: '从基本保障 20 万提升至 120 万',
     },
     tireWheel: {
-      covered: '以条款为准',
-      note: '请以下单页保障条款为准',
+      covered: true,
+      note: '轮胎、轮毂损失无需用户承担',
     },
     glass: {
-      covered: '下单页待复核',
-      note: '截图未单独列明玻璃',
+      covered: true,
+      note: '车窗/玻璃损失无需用户承担',
+    },
+    chassis: {
+      covered: true,
+      note: '底盘损失无需用户承担',
+    },
+    roadsideAssistance: {
+      covered: '部分',
+      note: '车辆自身问题导致的故障由一嗨承担；人为操作不当导致的故障由客户承担',
     },
     downtime: {
       covered: true,
@@ -844,8 +876,73 @@ export const INSURANCE_PLANS = [
       '发生免予赔偿事由时所有费用由承租方自行承担',
       '车辆不适合继续提供租赁服务时须支付事故前实际价值 20% 的损失费',
     ],
-    sourceConfidence: '用户截图',
-    confidenceNote: '一嗨 App 截图，不同城市/车型/订单可能存在差异',
+    sourceConfidence: '用户平台核查',
+    confidenceNote: '根据平台保障内容核查更新，实际以下单页为准',
+  },
+  {
+    id: '1hai-quancheng-up',
+    platform: '一嗨租车',
+    platformId: '1hai',
+    name: '全程无忧升级版',
+    groupName: '补充保障',
+    tier: 'premium',
+    requiredType: 'optional',
+    purchaseNote: '同尊享保障购买规则',
+    vehicleDamage: {
+      summary: '车窗、轮胎轮毂、底盘损失无需用户承担；其他车损责任以下单页为准',
+      customerPay: '未明确',
+      covered: '部分明确',
+      includesGlass: true,
+      includesScratch: '下单页待复核',
+    },
+    thirdParty: {
+      note: '未明确',
+    },
+    tireWheel: {
+      covered: true,
+      note: '轮胎、轮毂损失无需用户承担',
+    },
+    glass: {
+      covered: true,
+      note: '车窗/玻璃损失无需用户承担',
+    },
+    chassis: {
+      covered: true,
+      note: '底盘损失无需用户承担',
+    },
+    roadsideAssistance: {
+      covered: '部分',
+      note: '车辆自身问题导致的故障由一嗨承担；人为操作不当导致的故障由客户承担',
+    },
+    downtime: {
+      covered: '部分',
+      note: '未明确',
+    },
+    depreciation: {
+      covered: '部分',
+      note: '未明确',
+    },
+    driverPassenger: {
+      note: '未明确',
+    },
+    medicalOutsideInsurance: {
+      covered: false,
+      note: '未明确',
+    },
+    advancePayment: {
+      required: '未明确',
+      note: '未明确',
+    },
+    theft: {
+      covered: '未明确',
+      note: '未明确',
+    },
+    keyWarnings: [
+      '发生免予赔偿事由时所有费用由承租方自行承担',
+      '救援责任需区分车辆自身问题和人为操作不当',
+    ],
+    sourceConfidence: '用户平台核查',
+    confidenceNote: '根据平台保障内容核查新增，未明确项目实际以下单页为准',
   },
   {
     id: '1hai-chengke',
@@ -1443,7 +1540,7 @@ export const INSURANCE_SCENARIO_RULES = [
       const keywords = [
         'mountain', 'plateau', '山路', '高原', '川西', '西藏', '新疆', '伊犁',
         '独库', '赛里木湖', '那拉提', '甘南', '云南山区', '云南', '香格里拉', '昆大丽香', '青甘',
-        'mountain-plateau', 'yunnan-mountain', 'grassland-long',
+        'mountain-plateau', 'yunnan-mountain', 'grassland-gobi', 'grassland-long',
       ];
       return keywords.some((kw) => dest.includes(kw) || destName.includes(kw));
     },
@@ -1460,6 +1557,7 @@ export const INSURANCE_SCENARIO_RULES = [
       const dest = (ctx.destinationType || '').toLowerCase();
       const intensity = (ctx.tripIntensity || '').toLowerCase();
       return (
+        dest.includes('grassland-gobi') ||
         dest.includes('loop-long') ||
         dest.includes('grassland-long') ||
         dest.includes('yunnan-mountain') ||
@@ -1553,7 +1651,7 @@ export const INSURANCE_CHECKLIST_TIPS = {
     },
     '1hai': {
       basicNotice: '一嗨基本保障服务费不赔偿轮胎、轮毂单独损失，停运费按合同承担，车损达 5000 元另收 20% 贬值费。建议四轮逐一拍清楚，车身已有划痕拍近景。',
-      premiumNotice: '一嗨乘客守护不赔偿轮胎、轮毂单独损失；其他补充保障请以下单页条款为准。还车时发现新损伤需提供事故证明等材料。',
+      premiumNotice: '一嗨尊享保障、尊享守护、百万守护、全程无忧、全程无忧升级版已覆盖车窗、轮胎轮毂和底盘损失。救援需区分车辆自身故障和人为操作不当。',
     },
     shenzhou: {
       basicNotice: '神州基础保障不赔车轮单独损失和无明显碰撞痕迹的车身划痕。但基础保障已含停运费覆盖和全车盗抢险。建议重点拍摄轮胎轮毂。',

@@ -143,6 +143,16 @@ export function compareInsurancePlans(planA, planB) {
     important: true,
   });
 
+  // —— 底盘/救援 ——
+  dimensions.push({
+    label: '底盘/救援',
+    icon: 'chassisRoadside',
+    valueA: formatChassisRoadside(planA),
+    valueB: formatChassisRoadside(planB),
+    difference: compareChassisRoadside(planA, planB),
+    important: true,
+  });
+
   // —— 司机保障 ——
   dimensions.push({
     label: '司机保障',
@@ -369,6 +379,23 @@ function formatCoverageSection(section) {
   return formatCovered(section.covered);
 }
 
+function formatChassisRoadside(plan) {
+  const candidates = [
+    plan?.chassis?.covered,
+    plan?.undercarriage?.covered,
+    plan?.roadsideAssistance?.covered,
+    plan?.roadsideRescue?.covered,
+    plan?.rescue?.covered,
+  ].filter((value) => value !== undefined && value !== null);
+
+  if (!candidates.length) return '未明确';
+  if (candidates.some((value) => value === '部分')) return '部分覆盖';
+  if (candidates.every((value) => value === true)) return '覆盖';
+  if (candidates.some((value) => value === true)) return '部分覆盖';
+  if (candidates.every((value) => value === false)) return '不覆盖';
+  return '未明确';
+}
+
 function formatKnownText(value) {
   if (!value || typeof value !== 'string') return '未明确';
   if (hasInternalInsuranceNote(value)) return '未明确';
@@ -434,6 +461,21 @@ function compareCoverage(dimension, planA, planB) {
   const scoreA = score(valA);
   const scoreB = score(valB);
 
+  if (scoreA === scoreB) return '相同';
+  return scoreA > scoreB ? 'A更优' : 'B更优';
+}
+
+function compareChassisRoadside(planA, planB) {
+  const score = (plan) => {
+    const value = formatChassisRoadside(plan);
+    if (value === '覆盖') return 3;
+    if (value === '部分覆盖') return 2;
+    if (value === '不覆盖') return 1;
+    return 0;
+  };
+
+  const scoreA = score(planA);
+  const scoreB = score(planB);
   if (scoreA === scoreB) return '相同';
   return scoreA > scoreB ? 'A更优' : 'B更优';
 }

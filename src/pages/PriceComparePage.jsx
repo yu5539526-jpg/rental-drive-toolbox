@@ -390,6 +390,19 @@ function formatThirdPartyDetail(plan) {
   return note ? `${amountText}（${note}）` : amountText;
 }
 
+function formatVehicleDamageSummary(plan) {
+  const customerPay = cleanInsuranceText(plan?.vehicleDamage?.customerPay, '');
+  if (customerPay) return customerPay.includes('0') ? '0自付' : `自付${customerPay}`;
+
+  const covered = cleanInsuranceText(plan?.vehicleDamage?.covered, '');
+  if (covered) return covered.includes('100') || covered.includes('全部') ? '0自付' : covered;
+
+  const summary = cleanInsuranceText(plan?.vehicleDamage?.summary, '');
+  if (!summary) return UNCLEAR_TEXT;
+  if (summary.includes('客户承担 0') || summary.includes('承租人承担 0') || summary.includes('0 元')) return '0自付';
+  return summary.length > 12 ? '见详情' : summary;
+}
+
 function formatDriverPassengerDetail(driverPassenger) {
   const note = cleanInsuranceText(driverPassenger?.note, '');
   if (note) return note;
@@ -400,12 +413,26 @@ function formatDriverPassengerDetail(driverPassenger) {
   return `司机${driver}，乘客${passenger}`;
 }
 
+function formatPassengerSummary(driverPassenger) {
+  return cleanInsuranceText(driverPassenger?.passenger);
+}
+
 function formatAdvancePaymentDetail(advancePayment) {
   const note = cleanInsuranceText(advancePayment?.note, '');
   if (note) return note;
   if (advancePayment?.required === false) return '无需垫付';
   if (advancePayment?.required === true) return '需垫付';
   return UNCLEAR_TEXT;
+}
+
+function formatChassisRoadsideDetail(plan) {
+  const details = [];
+  const chassis = formatCoverageDetail(plan?.chassis || plan?.undercarriage);
+  const roadside = formatCoverageDetail(plan?.roadsideAssistance || plan?.roadsideRescue || plan?.rescue);
+
+  if (chassis !== UNCLEAR_TEXT) details.push(`底盘：${chassis}`);
+  if (roadside !== UNCLEAR_TEXT) details.push(`救援：${roadside}`);
+  return details.length ? details.join('；') : UNCLEAR_TEXT;
 }
 
 function InsuranceSummaryInline({ plan }) {
@@ -460,6 +487,7 @@ function InsuranceSummaryInline({ plan }) {
           <DetailRow label="玻璃破损" value={formatCoverageDetail(matched.glass)} />
           <DetailRow label="停运费" value={formatCoverageDetail(matched.downtime)} />
           <DetailRow label="折旧/贬值" value={formatCoverageDetail(matched.depreciation)} />
+          <DetailRow label="底盘/救援" value={formatChassisRoadsideDetail(matched)} />
           <DetailRow label="司乘保障" value={formatDriverPassengerDetail(matched.driverPassenger)} />
           {matched.medicalOutsideInsurance?.covered ? (
             <DetailRow label="医保外费用" value={formatCoverageDetail(matched.medicalOutsideInsurance)} />
@@ -838,11 +866,10 @@ function getPlanInsuranceSummary(plan) {
 
   if (!matched) {
     const items = [
-      { label: '保险档位', value: '未明确' },
-      { label: '三者险', value: '未明确' },
-      { label: '轮胎/轮毂', value: '未明确' },
-      { label: '玻璃', value: '未明确' },
-      { label: '底盘/救援', value: '未明确' },
+      { label: '车损', value: '未明确' },
+      { label: '三者保障', value: '未明确' },
+      { label: '停运费', value: '未明确' },
+      { label: '乘客保障', value: '未明确' },
     ];
 
     return {
@@ -853,13 +880,12 @@ function getPlanInsuranceSummary(plan) {
     };
   }
 
-  const chassisRoadsideValue = getChassisOrRoadsideValue(matched);
+  const passengerSummary = formatPassengerSummary(matched.driverPassenger);
   const items = [
-    { label: '保险档位', value: getTierUserLabel(matched), strong: matched.tier === 'premium' || matched.tier === 'special' },
-    { label: '三者险', value: formatThirdPartyUser(matched), strong: Number(matched.thirdParty?.amount) >= 100 },
-    { label: '轮胎/轮毂', value: formatCoveredUser(matched.tireWheel?.covered, matched.tireWheel?.note), weak: matched.tireWheel?.covered === false && !hasInternalInsuranceNote(matched.tireWheel?.note), strong: matched.tireWheel?.covered === true && !hasInternalInsuranceNote(matched.tireWheel?.note) },
-    { label: '玻璃', value: formatCoveredUser(matched.glass?.covered, matched.glass?.note), weak: matched.glass?.covered === false && !hasInternalInsuranceNote(matched.glass?.note), strong: matched.glass?.covered === true && !hasInternalInsuranceNote(matched.glass?.note) },
-    { label: '底盘/救援', value: chassisRoadsideValue, weak: chassisRoadsideValue === '不包含', strong: chassisRoadsideValue === '包含' },
+    { label: '车损', value: formatVehicleDamageSummary(matched), strong: matched.vehicleDamage?.customerPay?.includes('0') },
+    { label: '三者保障', value: formatThirdPartyUser(matched), strong: Number(matched.thirdParty?.amount) >= 100 },
+    { label: '停运费', value: formatCoveredUser(matched.downtime?.covered, matched.downtime?.note), weak: matched.downtime?.covered === false && !hasInternalInsuranceNote(matched.downtime?.note), strong: matched.downtime?.covered === true && !hasInternalInsuranceNote(matched.downtime?.note) },
+    { label: '乘客保障', value: passengerSummary, weak: passengerSummary === UNCLEAR_TEXT },
   ];
 
   return {
@@ -1206,14 +1232,6 @@ function hasMeaningfulInsuranceGap(plans) {
   return categories.has('basic') && categories.has('premium');
 }
 
-function getTierUserLabel(plan) {
-  if (!plan) return '未明确';
-  if (plan.tier === 'basic') return '基础';
-  if (plan.tier === 'standard') return '中等';
-  if (plan.tier === 'premium' || plan.tier === 'special') return '较全';
-  return '未明确';
-}
-
 function formatThirdPartyUser(plan) {
   const amount = Number(plan?.thirdParty?.amount);
   if (!Number.isFinite(amount) || amount <= 0) return '未明确';
@@ -1238,8 +1256,9 @@ function getChassisOrRoadsideValue(plan) {
   ].filter((value) => value !== undefined && value !== null);
 
   if (!candidates.length) return '未明确';
-  if (candidates.some((value) => value === true)) return '包含';
   if (candidates.some((value) => value === '部分')) return '部分包含';
+  if (candidates.every((value) => value === true)) return '包含';
+  if (candidates.some((value) => value === true)) return '部分包含';
   if (candidates.every((value) => value === false)) return '不包含';
   return '未明确';
 }
@@ -1257,7 +1276,8 @@ function getInsuranceCoverageScore(plan) {
   score += getExplicitCoverageScore(plan.downtime?.covered);
   score += getExplicitCoverageScore(plan.depreciation?.covered);
   score += getExplicitCoverageScore(plan.medicalOutsideInsurance?.covered);
-  score += getChassisOrRoadsideValue(plan) === '包含' ? 1 : 0;
+  const chassisRoadsideValue = getChassisOrRoadsideValue(plan);
+  score += chassisRoadsideValue === '包含' ? 1 : chassisRoadsideValue === '部分包含' ? 0.5 : 0;
 
   if (plan.vehicleDamage?.customerPay?.includes('0')) score += 1;
   if (plan.driverPassenger?.driver || plan.driverPassenger?.passenger) score += 1;

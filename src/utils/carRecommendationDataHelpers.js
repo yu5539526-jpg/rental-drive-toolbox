@@ -497,9 +497,10 @@ export function buildDestinationContext(destinationInput) {
    ======================================================================== */
 
 const DESTINATION_TYPE_SNIPPETS = {
-  'city-short': '路况简单',
+  'city-short': '城区近郊路况简单',
   'island-leisure': '补能友好',
   'mountain-plateau': '山路和海拔变化多',
+  'grassland-gobi': '路线长、补能压力更高',
   'yunnan-mountain': '城市和山路混合',
   'grassland-long': '路线长、景点分散',
   'loop-long': '长途和补能压力更高',
