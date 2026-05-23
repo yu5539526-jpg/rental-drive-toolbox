@@ -67,7 +67,7 @@ export default function BudgetPage() {
         ...current,
         rentalPlatformTotal: String(Math.round(prefillTotal)),
       }));
-      setStep(1);
+      setStep(0);
     }
 
     const planText = incomingPlan
@@ -286,7 +286,7 @@ function BudgetFormStep({ step, stepIndex, draft, result, update }) {
   return (
     <div className="grid gap-4">
       {isBasicStep ? (
-        <BasicInfoStep step={step} draft={draft} update={update} />
+        <BasicInfoStep step={step} draft={draft} result={result} update={update} />
       ) : (
         <StandardBudgetFields step={step} draft={draft} update={update} />
       )}
@@ -296,9 +296,11 @@ function BudgetFormStep({ step, stepIndex, draft, result, update }) {
   );
 }
 
-function BasicInfoStep({ step, draft, update }) {
+function BasicInfoStep({ step, draft, result, update }) {
   const textFields = step.fields.filter((field) => ['destination', 'departureCity'].includes(field.name));
   const routeFields = step.fields.filter((field) => ['tripDays', 'people', 'rentalDays', 'mileage'].includes(field.name));
+  const mileage = Number(draft.mileage);
+  const hasMileage = Number.isFinite(mileage) && mileage > 0;
 
   return (
     <div className="grid gap-5">
@@ -317,7 +319,32 @@ function BasicInfoStep({ step, draft, update }) {
           ))}
         </div>
       </FieldGroup>
+
+      {hasMileage ? <MileageEnergyCard result={result} mileage={mileage} /> : null}
     </div>
+  );
+}
+
+function MileageEnergyCard({ result, mileage }) {
+  const safeType = result.energyType || 'oil';
+  const current = ENERGY_DEFAULTS[safeType] || ENERGY_DEFAULTS.oil;
+  const usesVehicleEnergy = result.energySource === 'vehicle' && result.matchedVehicleName;
+  const label = usesVehicleEnergy ? `${result.matchedVehicleName}（${result.energyLabel}）` : `通用估算（${current.label}）`;
+  const formula = usesVehicleEnergy ? result.energyFormulaText : current.formulaText;
+
+  return (
+    <section className="rounded-[24px] border border-pine/10 bg-aquaCard p-4 shadow-sm">
+      <h3 className="text-sm font-bold text-ink">预计能耗费用</h3>
+      <div className="mt-3 flex items-baseline justify-between">
+        <span className="text-2xl font-bold text-pine">{formatMoney(result.energyCost)}</span>
+        <span className="text-xs font-medium text-muted">总里程 {Number(mileage).toLocaleString('zh-CN')} km</span>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+        <span className="rounded-full bg-card px-2 py-0.5 font-bold text-ink">{label}</span>
+        <span className="font-medium">公式：{formula}</span>
+      </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-muted">{ENERGY_NOTE}</p>
+    </section>
   );
 }
 
