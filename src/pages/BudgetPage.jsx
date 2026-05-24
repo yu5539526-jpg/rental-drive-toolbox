@@ -28,27 +28,33 @@ const SELECTED_PLAN_STORAGE_KEY = 'rentalDrive.selectedRentalPlan';
 export default function BudgetPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const isQuickBudget = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return location.state?.quickBudget === true || params.get('mode') === 'quick';
+  }, [location.search, location.state]);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState(loadBudgetDraft);
-  const [selectedPlan, setSelectedPlan] = useState(loadSelectedRentalPlan);
+  const [selectedPlan, setSelectedPlan] = useState(() => (isQuickBudget ? null : loadSelectedRentalPlan()));
   const [saveStatus, setSaveStatus] = useState('idle');
   const [cardOpen, setCardOpen] = useState(false);
   const [cardStatus, setCardStatus] = useState('');
   const [feedback, setFeedback] = useState('填写任意费用后，预算结果会立刻同步刷新。');
   const prefillAppliedRef = useRef(false);
   const lastSavedRef = useRef(null);
-  const result = useMemo(() => calculateBudget(draft, selectedPlan), [draft, selectedPlan]);
+  const activeSelectedPlan = isQuickBudget ? null : selectedPlan;
+  const result = useMemo(() => calculateBudget(draft, activeSelectedPlan), [draft, activeSelectedPlan]);
   const hasUnsavedChanges = useMemo(() => {
-    const current = JSON.stringify({ draft, selectedPlan });
+    const current = JSON.stringify({ draft, selectedPlan: activeSelectedPlan });
     if (lastSavedRef.current === null) {
       return current !== JSON.stringify({ draft: defaultBudgetDraft, selectedPlan: null });
     }
     return lastSavedRef.current !== current;
-  }, [draft, selectedPlan]);
+  }, [draft, activeSelectedPlan]);
   const currentStep = budgetSteps[step];
   const progress = Math.round(((step + 1) / budgetSteps.length) * 100);
 
   useEffect(() => {
+    if (isQuickBudget) return;
     if (prefillAppliedRef.current) return;
 
     const incomingPlan = normalizeSelectedRentalPlan(location.state?.priceComparePlan);
@@ -74,7 +80,7 @@ export default function BudgetPage() {
       ? `${incomingPlan.platform}｜${incomingPlan.carModel}｜${incomingPlan.insurancePlan}｜${formatMoney(incomingPlan.totalPrice)}`
       : formatMoney(prefillTotal);
     setFeedback(`已带入租车方案：${planText}，可继续补充其他预算信息。`);
-  }, [location.state]);
+  }, [isQuickBudget, location.state]);
 
   useEffect(() => {
     if (prefillAppliedRef.current) return;
@@ -82,7 +88,8 @@ export default function BudgetPage() {
     if (!snapshot) return;
     prefillAppliedRef.current = true;
 
-    lastSavedRef.current = JSON.stringify({ draft: snapshot.draft, selectedPlan: snapshot.selectedPlan });
+    const snapshotSelectedPlan = isQuickBudget ? null : snapshot.selectedPlan;
+    lastSavedRef.current = JSON.stringify({ draft: snapshot.draft, selectedPlan: snapshotSelectedPlan });
 
     const { energyType, ...snapshotDraft } = snapshot.draft || {};
 
@@ -91,13 +98,13 @@ export default function BudgetPage() {
       ...snapshotDraft,
     });
 
-    if (snapshot.selectedPlan) {
+    if (!isQuickBudget && snapshot.selectedPlan) {
       setSelectedPlan(snapshot.selectedPlan);
       localStorage.setItem(SELECTED_PLAN_STORAGE_KEY, JSON.stringify(snapshot.selectedPlan));
     }
 
     setFeedback('已恢复上次保存的预算数据，可继续修改或查看结果。');
-  }, []);
+  }, [isQuickBudget]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
@@ -139,9 +146,9 @@ export default function BudgetPage() {
   };
 
   const handleSave = () => {
-    saveBudgetSnapshot(draft, result, selectedPlan);
-    submitBudgetSnapshotToBackend({ draft, result, selectedPlan, updatedAt: new Date().toISOString() });
-    lastSavedRef.current = JSON.stringify({ draft, selectedPlan });
+    saveBudgetSnapshot(draft, result, activeSelectedPlan);
+    submitBudgetSnapshotToBackend({ draft, result, selectedPlan: activeSelectedPlan, updatedAt: new Date().toISOString() });
+    lastSavedRef.current = JSON.stringify({ draft, selectedPlan: activeSelectedPlan });
     setSaveStatus('saved');
     setFeedback('已保存，下次打开网页可以继续查看。');
     setTimeout(() => setSaveStatus('idle'), 1500);
@@ -166,10 +173,10 @@ export default function BudgetPage() {
       </section>
 
       <section className="page-pad px-4 pt-4">
-        {selectedPlan ? (
+        {activeSelectedPlan ? (
           <SelectedRentalPlanCard
-            plan={selectedPlan}
-            currentTotal={draft.rentalPlatformTotal || selectedPlan.totalPrice}
+            plan={activeSelectedPlan}
+            currentTotal={draft.rentalPlatformTotal || activeSelectedPlan.totalPrice}
             onBack={() => navigate('/price-compare')}
             onClear={clearSelectedPlan}
           />
@@ -178,7 +185,7 @@ export default function BudgetPage() {
           <BudgetResult
             result={result}
             draft={draft}
-            selectedPlan={selectedPlan}
+            selectedPlan={activeSelectedPlan}
             cardStatus={cardStatus}
             onReset={reset}
             onEdit={goPrev}
@@ -213,7 +220,7 @@ export default function BudgetPage() {
         )}
       </BottomActionBar>
 
-      <BudgetCardModal open={cardOpen} onClose={() => setCardOpen(false)} result={result} draft={draft} selectedPlan={selectedPlan} />
+      <BudgetCardModal open={cardOpen} onClose={() => setCardOpen(false)} result={result} draft={draft} selectedPlan={activeSelectedPlan} />
 
       {step === budgetSteps.length - 1 ? (
         <p className="mx-4 mb-28 mt-3 text-center text-[11px] font-medium leading-relaxed text-muted/55 sm:mb-6">
@@ -486,7 +493,6 @@ function hasBudgetPreviewInput(draft) {
     'lunch',
     'dinner',
     'snacks',
-    'specialMeals',
     'ticket',
     'shuttle',
     'cableway',

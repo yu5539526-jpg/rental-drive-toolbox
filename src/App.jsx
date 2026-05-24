@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import EntryHome from './pages/EntryHome.jsx';
 import Home from './pages/Home.jsx';
 import ChecklistPage from './pages/ChecklistPage.jsx';
 import CarInspectionMap from './pages/CarInspectionMap.jsx';
@@ -13,7 +14,8 @@ export default function App() {
     <div className="min-h-screen px-0 text-ink sm:px-4 sm:py-6">
       <div className="app-shell mx-auto">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<EntryHome />} />
+          <Route path="/toolbox" element={<Home />} />
           <Route path="/checklist" element={<ChecklistPage />} />
           <Route path="/car-inspection-map" element={<CarInspectionMap />} />
           <Route path="/budget" element={<BudgetPage />} />
