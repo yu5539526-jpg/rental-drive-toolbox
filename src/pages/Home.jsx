@@ -103,7 +103,7 @@ export default function Home() {
 
         {/* 收藏提示 — 放大 */}
         <p className="mt-5 rounded-[18px] bg-amberSoft/[0.55] px-4 py-3 text-center text-[12px] font-bold leading-relaxed text-amberDark ring-1 ring-warning/20">
-          收藏后可随时回来算预算、选车型、对比方案和验车留证
+          本次计划会保存在当前浏览器中，换设备或浏览器后无法查看噢
         </p>
       </div>
     </main>
