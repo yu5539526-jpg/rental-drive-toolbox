@@ -39,7 +39,7 @@ export const budgetSteps = [
     hint: '估算住几晚、吃几顿，让同行人提前知道大概花费。',
     groups: [
       { title: '住宿费用', fields: ['hotelNightPrice'] },
-      { title: '餐饮费用', fields: ['breakfast', 'lunch', 'dinner', 'snacks', 'specialMeals'] },
+      { title: '餐饮费用', fields: ['breakfast', 'lunch', 'dinner', 'snacks'] },
     ],
     fields: [
       { name: 'hotelNightPrice', label: '酒店/民宿每晚总价', type: 'number', suffix: '元/晚' },
@@ -47,7 +47,6 @@ export const budgetSteps = [
       { name: 'lunch', label: '午餐人均/天', type: 'number', suffix: '元' },
       { name: 'dinner', label: '晚餐人均/天', type: 'number', suffix: '元' },
       { name: 'snacks', label: '零食饮料总费用', type: 'number', suffix: '元' },
-      { name: 'specialMeals', label: '特色餐/大餐总费用', type: 'number', suffix: '元' },
     ],
   },
   {
@@ -84,6 +83,7 @@ export const defaultBudgetDraft = {
   people: 2,
   rentalDays: 3,
   mileage: '',
+  energyType: 'oil',
   rentalPlatformTotal: '',
   tolls: '',
   parking: '',
@@ -95,7 +95,6 @@ export const defaultBudgetDraft = {
   lunch: '',
   dinner: '',
   snacks: '',
-  specialMeals: '',
   ticket: '',
   shuttle: '',
   cableway: '',

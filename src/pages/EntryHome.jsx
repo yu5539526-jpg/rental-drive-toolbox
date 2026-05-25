@@ -7,7 +7,7 @@ const entryActions = [
     state: { quickBudget: true },
     icon: Calculator,
     accent: Zap,
-    eyebrow: '已经有租车总价',
+    eyebrow: '已有租车总价，也适合自用车',
     title: '速速看预算',
     text: '先把整趟大概花费算出来',
     gradient: 'from-[#0EA5D6] to-[#12BFC1]',
@@ -40,12 +40,11 @@ export default function EntryHome() {
 
         <div className="relative">
           {/* 顶部徽章行 */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/20 backdrop-blur-sm">
               <Sparkles size={14} className="text-white" />
               pYuY
             </div>
-            <span className="text-[10px] font-bold tracking-wider text-white/60">租车自驾工具箱</span>
           </div>
 
           {/* 主标题卡片 */}
@@ -58,14 +57,14 @@ export default function EntryHome() {
                   已经知道租车总价就先算预算；还没定方案，就按工具箱慢慢理。
                 </p>
               </div>
-              <div className="shrink-0 rounded-[22px] bg-white/[0.22] p-1.5 shadow-[0_12px_30px_rgba(5,93,125,0.24)] ring-1 ring-white/20">
+              <div className="shrink-0 rounded-[28px] bg-white/[0.22] p-[8px] shadow-[0_12px_30px_rgba(5,93,125,0.24)] ring-1 ring-white/20">
                 <img
                   src="/images/pyuy-lighthouse-hero.png"
                   alt="pyUY 租车自驾工具箱个人图像"
-                  width="78"
-                  height="78"
+                  width="103"
+                  height="103"
                   fetchPriority="high"
-                  className="h-[78px] w-[78px] rounded-[18px] object-cover"
+                  className="h-[103px] w-[103px] rounded-[24px] object-cover"
                 />
               </div>
             </div>
@@ -101,7 +100,7 @@ function EntryAction({ to, state, icon: Icon, accent: AccentIcon, eyebrow, title
       to={to}
       state={state}
       aria-label={title}
-      className="fade-up group relative flex items-stretch gap-4 overflow-hidden rounded-[26px] bg-white p-5 text-ink shadow-[0_10px_26px_rgba(8,116,151,0.12)] ring-1 ring-skyLine transition-[transform,box-shadow] duration-150 active:scale-[0.98] active:shadow-[0_4px_12px_rgba(8,116,151,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
+      className="fade-up group relative flex items-stretch gap-3 overflow-hidden rounded-[26px] bg-white p-5 text-ink shadow-[0_10px_26px_rgba(8,116,151,0.12)] ring-1 ring-skyLine transition-[transform,box-shadow] duration-150 active:scale-[0.98] active:shadow-[0_4px_12px_rgba(8,116,151,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       {/* 背景柔光 */}
@@ -114,13 +113,13 @@ function EntryAction({ to, state, icon: Icon, accent: AccentIcon, eyebrow, title
 
       {/* 中间文字 — 字号加大 */}
       <span className="relative z-0 flex min-w-0 flex-1 flex-col justify-center">
-        <span className="text-[12px] font-black leading-tight text-pine">{eyebrow}</span>
+        <span className="whitespace-nowrap text-[12px] font-black leading-tight text-pine">{eyebrow}</span>
         <span className="mt-1 text-[24px] font-black leading-tight text-ink">{title}</span>
         <span className="mt-2 text-[13px] font-semibold leading-relaxed text-muted">{text}</span>
       </span>
 
       {/* 右侧箭头 — 放大 */}
-      <span className="relative z-0 flex shrink-0 items-center gap-1.5 self-center rounded-full bg-aquaCard/80 px-3.5 py-2.5 text-pine transition-all duration-150 group-active:bg-aquaCard group-active:pr-2">
+      <span className="relative z-0 flex shrink-0 items-center gap-1 self-center rounded-full bg-aquaCard/80 px-2.5 py-2.5 text-pine transition-all duration-150 group-active:bg-aquaCard group-active:pr-1.5">
         <span className="text-[12px] font-black text-pine/70 group-active:text-pine">进入</span>
         <AccentIcon size={16} className="transition-transform duration-150 group-active:translate-x-0.5" />
       </span>

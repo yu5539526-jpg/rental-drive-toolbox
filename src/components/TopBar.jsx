@@ -13,7 +13,7 @@ export default function TopBar({ title, showBack = true, onBack }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 h-14 border-b border-pine/10 bg-cream/92 px-3 backdrop-blur">
+    <header className="sticky top-0 z-20 h-14 border-b border-pine/12 bg-cream/92 px-3 backdrop-blur">
       <div className="grid h-full grid-cols-[44px_minmax(0,1fr)_44px] items-center">
         {showBack ? (
           <button
@@ -27,7 +27,10 @@ export default function TopBar({ title, showBack = true, onBack }) {
         ) : (
           <span className="h-11 w-11" aria-hidden="true" />
         )}
-        <h1 className="truncate px-2 text-center text-[17px] font-bold leading-tight text-ink">{title}</h1>
+        <div className="flex flex-col items-center justify-center px-2">
+          <h1 className="max-w-full truncate text-[17px] font-black leading-tight text-pine">{title}</h1>
+          <span className="mt-0.5 block h-[2px] w-10 rounded-full bg-gradient-to-r from-pine/30 via-pine/15 to-transparent" />
+        </div>
         <span className="h-11 w-11" aria-hidden="true" />
       </div>
     </header>

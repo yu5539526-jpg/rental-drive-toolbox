@@ -25,7 +25,7 @@ export function calculateBudget(draft, selectedPlan = null) {
   const tripDays = count(draft.tripDays);
   const people = count(draft.people);
   const mileage = amount(draft.mileage);
-  const energyConfig = resolveEnergyConfig('oil', selectedPlan);
+  const energyConfig = resolveEnergyConfig(draft.energyType || 'oil', selectedPlan);
   const energyType = energyConfig.energyType;
   const stayNights = Math.max(tripDays - 1, 0);
   const energyCost = energyConfig.getCost(mileage);
@@ -40,8 +40,7 @@ export function calculateBudget(draft, selectedPlan = null) {
   const lodging = amount(draft.hotelNightPrice) * stayNights;
   const dining =
     (amount(draft.breakfast) + amount(draft.lunch) + amount(draft.dinner)) * people * tripDays +
-    amount(draft.snacks) +
-    amount(draft.specialMeals);
+    amount(draft.snacks);
   const scenic =
     (amount(draft.ticket) + amount(draft.shuttle) + amount(draft.cableway)) * people +
     amount(draft.entertainment);

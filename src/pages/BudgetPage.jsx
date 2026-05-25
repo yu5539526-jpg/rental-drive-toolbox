@@ -17,6 +17,7 @@ import BottomActionBar, { BottomActionButton } from '../components/BottomActionB
 import { submitBudgetSnapshotToBackend } from '../services/submitBudgetSnapshotToBackend.js';
 import { loadBudgetSnapshot, saveBudgetSnapshot } from '../utils/budgetSnapshot.js';
 import ProgressBar from '../components/ProgressBar.jsx';
+import SegmentedControl from '../components/SegmentedControl.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { ENERGY_DEFAULTS, ENERGY_NOTE } from '../constants/energyDefaults.js';
 import { budgetSteps, defaultBudgetDraft } from '../data/budgetFields.js';
@@ -303,6 +304,12 @@ function BudgetFormStep({ step, stepIndex, draft, result, update }) {
   );
 }
 
+const ENERGY_TYPE_OPTIONS = [
+  { value: 'oil', label: '油车' },
+  { value: 'electric', label: '新能源' },
+  { value: 'extended', label: '增程' },
+];
+
 function BasicInfoStep({ step, draft, result, update }) {
   const textFields = step.fields.filter((field) => ['destination', 'departureCity'].includes(field.name));
   const routeFields = step.fields.filter((field) => ['tripDays', 'people', 'rentalDays', 'mileage'].includes(field.name));
@@ -325,6 +332,17 @@ function BasicInfoStep({ step, draft, result, update }) {
             <BudgetInputField key={field.name} field={field} value={draft[field.name]} onChange={(value) => update(field.name, value)} />
           ))}
         </div>
+      </FieldGroup>
+
+      <FieldGroup title="能源类型" compact>
+        <p className="mb-3 text-xs font-medium leading-relaxed text-muted">选择车辆能源类型，系统会按对应公式估算行驶能耗费用。</p>
+        <SegmentedControl
+          options={ENERGY_TYPE_OPTIONS}
+          value={draft.energyType || 'oil'}
+          onChange={(value) => update('energyType', value)}
+          columns={3}
+          ariaLabel="选择能源类型"
+        />
       </FieldGroup>
 
       {hasMileage ? <MileageEnergyCard result={result} mileage={mileage} /> : null}
@@ -1175,7 +1193,6 @@ function loadSelectedRentalPlan() {
 function loadBudgetDraft() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const { energyType, ...draftWithoutLegacyEnergyType } = parsed;
     const migratedTotal =
       Number(parsed.rentalPlatformTotal) > 0
         ? parsed.rentalPlatformTotal
@@ -1183,7 +1200,7 @@ function loadBudgetDraft() {
 
     return {
       ...defaultBudgetDraft,
-      ...draftWithoutLegacyEnergyType,
+      ...parsed,
       rentalPlatformTotal: migratedTotal || defaultBudgetDraft.rentalPlatformTotal,
     };
   } catch {
