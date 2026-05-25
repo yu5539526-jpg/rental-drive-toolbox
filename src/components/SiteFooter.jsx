@@ -6,22 +6,30 @@ export default function SiteFooter() {
 
   return (
     <footer
-      className={`border-t border-pine/10 bg-cream/70 px-5 pt-5 text-center text-[11px] font-medium leading-relaxed text-muted ${
+      className={`border-t border-pine/10 bg-cream/70 px-5 pt-5 text-center text-[12px] font-medium leading-relaxed text-muted ${
         hasFixedActions ? 'footer-action-pad' : 'pb-5'
       }`}
     >
       <p>&copy; 2026 租车自驾工具箱</p>
-      <p>
+      <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
         <a
-          className="hover:text-pine hover:underline"
+          className="text-muted transition-colors hover:text-pine hover:underline"
           href="https://beian.miit.gov.cn/"
           rel="noreferrer"
           target="_blank"
         >
           渝ICP备2026009822号
         </a>
-      </p>
-      <p>公安备案号：审核通过后填写</p>
+        <a
+          className="inline-flex items-center justify-center gap-1 text-muted transition-colors hover:text-pine hover:underline"
+          href="https://beian.mps.gov.cn/#/query/webSearch?code=50010502504666"
+          rel="noreferrer"
+          target="_blank"
+        >
+          <img src="/images/beian-police.png" alt="公安备案图标" className="h-4 w-4 shrink-0" />
+          <span>渝公网安备50010502504666号</span>
+        </a>
+      </div>
     </footer>
   );
 }
