@@ -242,7 +242,6 @@ function StepProgressCard({ step, total, progress, currentStep }) {
         <span className="text-sm font-bold text-muted">{progress}%</span>
       </div>
       <h1 className="text-[20px] font-bold leading-tight text-ink">{currentStep.title}</h1>
-      <p className="mt-2 text-sm font-medium leading-relaxed text-muted">{currentStep.hint}</p>
       <div className="mt-4">
         <ProgressBar value={progress} />
       </div>
@@ -335,7 +334,6 @@ function BasicInfoStep({ step, draft, result, update }) {
       </FieldGroup>
 
       <FieldGroup title="能源类型" compact>
-        <p className="mb-3 text-xs font-medium leading-relaxed text-muted">选择车辆能源类型，系统会按对应公式估算行驶能耗费用。</p>
         <SegmentedControl
           options={ENERGY_TYPE_OPTIONS}
           value={draft.energyType || 'oil'}
@@ -439,7 +437,6 @@ function BudgetInputField({ field, value, onChange }) {
           </span>
         ) : null}
       </div>
-      {field.help ? <span className="mt-1.5 block text-xs leading-relaxed text-muted">{field.help}</span> : null}
     </label>
   );
 }
@@ -471,9 +468,6 @@ function BudgetPreview({ result, draft }) {
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-bold text-ink">当前预估</p>
-          <p className="mt-1 text-xs font-medium leading-relaxed text-muted">
-            {result.completenessPercent < 40 ? '继续补充里程和费用后，预算会更准确。' : result.completenessText}
-          </p>
         </div>
         <span className="shrink-0 rounded-full bg-aquaCard px-3 py-1.5 text-xs font-bold text-pine">{result.completenessPercent}%</span>
       </div>

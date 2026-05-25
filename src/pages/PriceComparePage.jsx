@@ -159,7 +159,6 @@ export default function PriceComparePage() {
             </span>
             <div>
               <h1 className="text-lg font-bold text-ink">{editingId ? '编辑一个租车方案' : '添加一个租车方案'}</h1>
-              <p className="mt-0.5 text-xs font-medium leading-relaxed text-muted">只填平台、车型、保险方案和含保险总价。</p>
             </div>
           </div>
 
@@ -184,9 +183,6 @@ export default function PriceComparePage() {
                   );
                 })}
               </div>
-              <p className="mt-1.5 text-[10px] font-medium leading-relaxed text-muted/70">
-                点击上方选择平台，下方自动展示该平台真实保险方案
-              </p>
             </Field>
             <Field label="车型">
               <input

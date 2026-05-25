@@ -15,8 +15,7 @@ const tools = [
     step: 1,
     icon: MapPin,
     title: '目的地车型推荐',
-    text: '按目的地、人数和行李选车',
-    button: '看看适合什么车',
+    button: '我该租啥车',
     gradient: 'from-[#0EA5D6] to-[#12BFC1]',
   },
   {
@@ -24,8 +23,7 @@ const tools = [
     step: 2,
     icon: Scale,
     title: '比租车方案',
-    text: '平台、车型、保险放一起看',
-    button: '哪个平台更划算',
+    button: '我来比比价',
     gradient: 'from-[#0797BD] to-[#10A7D8]',
   },
   {
@@ -33,8 +31,7 @@ const tools = [
     step: 3,
     icon: Calculator,
     title: '算整趟预算',
-    text: '租车、油电、住宿一次算清',
-    button: '这趟大概花多少',
+    button: '我要准备多少金币',
     gradient: 'from-[#0B8DB8] to-[#0EA5D6]',
   },
   {
@@ -42,8 +39,7 @@ const tools = [
     step: 4,
     icon: ShieldCheck,
     title: '车身验车避坑图',
-    text: '点车身部位看哪里要重点拍',
-    button: '取车时重点拍哪里',
+    button: '我要好好验车',
     gradient: 'from-[#087FA5] to-[#0B93C2]',
   },
 ];
@@ -56,13 +52,8 @@ export default function Home() {
       <TopBar title="租车自驾工具箱" showBack={true} />
 
       <div className="px-4 pb-8 pt-4">
-        {/* 页面引导语 */}
-        <p className="text-[14px] font-semibold leading-relaxed text-muted">
-          四个步骤，从选车到验车，把租车这件事一次理顺。
-        </p>
-
         {/* 工具卡片网格 — 放大卡片尺寸和间距 */}
-        <section className="mt-4 grid grid-cols-2 gap-3.5">
+        <section className="grid grid-cols-2 gap-3.5">
           {tools.map((tool, index) => (
             <ToolEntry key={tool.to} {...tool} index={index} />
           ))}
@@ -110,7 +101,7 @@ export default function Home() {
   );
 }
 
-function ToolEntry({ to, step, icon: Icon, title, text, button, gradient, index }) {
+function ToolEntry({ to, step, icon: Icon, title, button, gradient, index }) {
   return (
     <Link
       to={to}
@@ -132,7 +123,6 @@ function ToolEntry({ to, step, icon: Icon, title, text, button, gradient, index 
       {/* 标题 + 描述 — 字号加大 */}
       <div className="mt-3.5 min-w-0 flex-1">
         <h2 className="text-[17px] font-black leading-tight text-ink">{title}</h2>
-        <p className="mt-1.5 text-[12px] font-semibold leading-relaxed text-muted">{text}</p>
       </div>
 
       {/* 底部按钮 — 加大高度 */}

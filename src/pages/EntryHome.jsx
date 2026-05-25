@@ -9,7 +9,6 @@ const entryActions = [
     accent: Zap,
     eyebrow: '已有租车总价，也适合自用车',
     title: '速速看预算',
-    text: '先把整趟大概花费算出来',
     gradient: 'from-[#0EA5D6] to-[#12BFC1]',
     bgGlow: 'bg-[#0EA5D6]/10',
   },
@@ -17,9 +16,8 @@ const entryActions = [
     to: '/toolbox',
     icon: ClipboardList,
     accent: ArrowRight,
-    eyebrow: '还想慢慢比较',
+    eyebrow: '适合从0开始规划租车自驾',
     title: '慢慢出方案',
-    text: '车型、平台、预算、验车一步步来',
     gradient: 'from-[#0797BD] to-[#18C3C7]',
     bgGlow: 'bg-[#0797BD]/10',
   },
@@ -51,7 +49,6 @@ export default function EntryHome() {
           <div className="mt-4 rounded-[24px] bg-white/[0.15] p-4 text-white ring-1 ring-white/20 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold tracking-[0.08em] text-white/80">出发前 3 分钟，一次理顺</p>
                 <h1 className="mt-1 text-[26px] font-black leading-tight">今天想怎么开始？</h1>
                 <p className="mt-2 max-w-[15rem] text-[13px] font-semibold leading-relaxed text-white/90">
                   已经知道租车总价就先算预算；还没定方案，就按工具箱慢慢理。
@@ -94,7 +91,7 @@ export default function EntryHome() {
   );
 }
 
-function EntryAction({ to, state, icon: Icon, accent: AccentIcon, eyebrow, title, text, gradient, bgGlow, index }) {
+function EntryAction({ to, state, icon: Icon, accent: AccentIcon, eyebrow, title, gradient, bgGlow, index }) {
   return (
     <Link
       to={to}
@@ -115,7 +112,6 @@ function EntryAction({ to, state, icon: Icon, accent: AccentIcon, eyebrow, title
       <span className="relative z-0 flex min-w-0 flex-1 flex-col justify-center">
         <span className="whitespace-nowrap text-[12px] font-black leading-tight text-pine">{eyebrow}</span>
         <span className="mt-1 text-[24px] font-black leading-tight text-ink">{title}</span>
-        <span className="mt-2 text-[13px] font-semibold leading-relaxed text-muted">{text}</span>
       </span>
 
       {/* 右侧箭头 — 放大 */}
