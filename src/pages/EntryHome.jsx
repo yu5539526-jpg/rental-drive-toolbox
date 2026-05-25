@@ -29,7 +29,7 @@ export default function EntryHome() {
   return (
     <main className="overflow-hidden bg-cream text-ink">
       <section className="relative px-4 pb-8 pt-4">
-        {/* 顶部渐变背景 — 缩短到仅覆盖头部区域 */}
+        {/* 顶部渐变背景 */}
         <div className="absolute inset-x-0 top-0 h-[220px] bg-[linear-gradient(160deg,#10A7D8_0%,#0797BD_38%,#18C3C7_100%)]" />
         {/* 渐变到奶油色的平滑过渡层 */}
         <div className="absolute inset-x-0 top-[140px] h-[140px] bg-gradient-to-b from-transparent via-[#b3e4f2]/60 to-cream" />
@@ -71,22 +71,22 @@ export default function EntryHome() {
             </div>
           </div>
 
-          {/* 过渡区装饰 — 浅色背景下的小点缀 */}
+          {/* 过渡区装饰 */}
           <div className="mt-6 flex items-center justify-center gap-2">
             <span className="h-[3px] w-8 rounded-full bg-pine/20" />
             <span className="h-[3px] w-3 rounded-full bg-pine/35" />
             <span className="h-[3px] w-8 rounded-full bg-pine/20" />
           </div>
 
-          {/* 两个入口按钮 — 完全在浅色背景上 */}
-          <section className="mt-4 grid gap-3.5">
+          {/* 两个入口按钮 — 放大尺寸填充空白 */}
+          <section className="mt-5 grid gap-4">
             {entryActions.map((action, index) => (
               <EntryAction key={action.to} {...action} index={index} />
             ))}
           </section>
 
           {/* 底部提示 */}
-          <p className="mt-5 rounded-[16px] bg-amberSoft/[0.5] px-4 py-2.5 text-center text-[11px] font-bold leading-relaxed text-amberDark ring-1 ring-warning/15">
+          <p className="mt-6 rounded-[18px] bg-amberSoft/[0.5] px-4 py-3 text-center text-[12px] font-bold leading-relaxed text-amberDark ring-1 ring-warning/15">
             收藏后可随时回来算预算、选车型、对比方案和验车留证
           </p>
         </div>
@@ -101,28 +101,28 @@ function EntryAction({ to, state, icon: Icon, accent: AccentIcon, eyebrow, title
       to={to}
       state={state}
       aria-label={title}
-      className="fade-up group relative flex items-stretch gap-3.5 overflow-hidden rounded-[24px] bg-white p-4 text-ink shadow-[0_10px_26px_rgba(8,116,151,0.12)] ring-1 ring-skyLine hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(8,116,151,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
+      className="fade-up group relative flex items-stretch gap-4 overflow-hidden rounded-[26px] bg-white p-5 text-ink shadow-[0_10px_26px_rgba(8,116,151,0.12)] ring-1 ring-skyLine transition-[transform,box-shadow] duration-150 active:scale-[0.98] active:shadow-[0_4px_12px_rgba(8,116,151,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine/[0.35]"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       {/* 背景柔光 */}
-      <div className={`absolute -right-6 -top-6 h-20 w-20 rounded-full ${bgGlow} blur-2xl transition-[transform,opacity] duration-300 group-hover:scale-150 group-hover:opacity-80`} />
+      <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full ${bgGlow} blur-2xl transition-[transform,opacity] duration-200 group-active:scale-125 group-active:opacity-70`} />
 
-      {/* 左侧图标 */}
-      <span className={`relative z-0 grid h-[52px] w-[52px] shrink-0 place-items-center self-center rounded-[18px] bg-gradient-to-br ${gradient} text-white shadow-md shadow-pine/15`}>
-        <Icon size={26} />
+      {/* 左侧图标 — 放大 */}
+      <span className={`relative z-0 grid h-[64px] w-[64px] shrink-0 place-items-center self-center rounded-[20px] bg-gradient-to-br ${gradient} text-white shadow-md shadow-pine/15`}>
+        <Icon size={32} />
       </span>
 
-      {/* 中间文字 */}
+      {/* 中间文字 — 字号加大 */}
       <span className="relative z-0 flex min-w-0 flex-1 flex-col justify-center">
-        <span className="text-[11px] font-black leading-tight text-pine">{eyebrow}</span>
-        <span className="mt-0.5 text-[21px] font-black leading-tight text-ink">{title}</span>
-        <span className="mt-1.5 text-[12px] font-semibold leading-relaxed text-muted">{text}</span>
+        <span className="text-[12px] font-black leading-tight text-pine">{eyebrow}</span>
+        <span className="mt-1 text-[24px] font-black leading-tight text-ink">{title}</span>
+        <span className="mt-2 text-[13px] font-semibold leading-relaxed text-muted">{text}</span>
       </span>
 
-      {/* 右侧箭头 */}
-      <span className="relative z-0 flex shrink-0 items-center gap-1.5 self-center rounded-full bg-aquaCard/80 px-3 py-2 text-pine transition-all duration-200 group-hover:bg-aquaCard group-hover:pr-2">
-        <span className="text-[11px] font-black text-pine/70 group-hover:text-pine">进入</span>
-        <AccentIcon size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+      {/* 右侧箭头 — 放大 */}
+      <span className="relative z-0 flex shrink-0 items-center gap-1.5 self-center rounded-full bg-aquaCard/80 px-3.5 py-2.5 text-pine transition-all duration-150 group-active:bg-aquaCard group-active:pr-2">
+        <span className="text-[12px] font-black text-pine/70 group-active:text-pine">进入</span>
+        <AccentIcon size={16} className="transition-transform duration-150 group-active:translate-x-0.5" />
       </span>
     </Link>
   );
