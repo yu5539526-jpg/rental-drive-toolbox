@@ -1035,6 +1035,44 @@ function buildVehicleShortReason(vehicle, form, destContext) {
   return `${type}在空间、补能和驾驶难度上比较均衡，适合这次${fit}的自驾需求。`;
 }
 
+/** 为展开前的卡片生成一句独特的推荐亮点 —— 不依赖 vehicle.reason，避免与展开后的详细标题重复 */
+function buildVehicleHighlight(vehicle, form) {
+  const dest = form.destinationType;
+  const comfortScore = Number(vehicle?.comfortScore) || 0;
+  const spaceScore = Number(vehicle?.spaceScore) || 0;
+  const beginnerScore = Number(vehicle?.beginnerFriendlyScore) || 0;
+  const hp = parseHorsepowerText(vehicle?.horsepower);
+  const energyType = vehicle?.energyType || '';
+  const score = Number(vehicle?.recommendationScore ?? vehicle?.overallScore ?? 0);
+
+  const isLongDistance = ['grassland-gobi', 'grassland-long', 'loop-long'].includes(dest);
+  const isMountain = ['mountain-plateau', 'yunnan-mountain'].includes(dest);
+  const isCityOrIsland = ['city-short', 'island-leisure'].includes(dest);
+  const manyPeople = ['5', '6+'].includes(form.peopleCount);
+  const heavyLuggage = form.luggage === 'heavy';
+  const isBeginner = form.drivingProficiency === 'beginner';
+
+  if (isLongDistance && comfortScore >= 4) return '长途舒适性突出，座椅和隔音表现扎实';
+  if (isLongDistance && hp >= 220) return '动力储备充足，长距离高速巡航从容不迫';
+  if (isMountain && hp >= 220) return '动力充沛，高原山路爬坡超车更有底气';
+  if (isMountain && comfortScore >= 4) return '底盘扎实视野好，山路弯道开着更安心';
+  if (isCityOrIsland && energyType === '纯电动') return '城市充电方便，纯电使用成本优势明显';
+  if (isCityOrIsland && beginnerScore >= 4) return '好开好停，城市窄路和地库都很友好';
+  if (manyPeople && spaceScore >= 4) return '空间宽裕，满员出行每人都有舒服位置';
+  if (heavyLuggage && spaceScore >= 4) return '后备箱能装，行李装备不用担心塞不下';
+  if (isBeginner && beginnerScore >= 4) return '新手友好，视野好停车轻松上手无压力';
+  if (score >= 4.35) return '综合适配度高，是这个行程的稳妥之选';
+  if (energyType === '增程式' || energyType === '插电混动') return '可油可电，长途补能灵活没有续航焦虑';
+  if (comfortScore >= 4) return '乘坐舒适性好，长时间驾驶也不容易累';
+  if (spaceScore >= 4) return '空间表现不错，人和行李都安排得开';
+
+  if (isCityOrIsland) return '城市近郊够用，灵活好停使用成本可控';
+  if (isMountain) return '山路场景适配，动力和通过性有保障';
+  if (isLongDistance) return '长途自驾均衡之选，可靠性和舒适性兼顾';
+
+  return '整体均衡，适合这次自驾的各方面需求';
+}
+
 function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keywords) {
   const typeTag = getVehicleTypeTag(vehicle) || '这类车';
   const energyTag = getEnergyTag(vehicle?.energyType) || '能源';
@@ -1057,7 +1095,7 @@ function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keyw
 
   const routeText = compactText(
     `${fitTag}。${destContext?.highlights || `${tripProfile.type}重点看路况、补能和停车压力。`}`,
-    54,
+    72,
   );
 
   const spaceParts = [
@@ -1068,7 +1106,7 @@ function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keyw
   ].filter(Boolean);
   const spaceText = compactText(
     spaceParts.length ? spaceParts.join('，') : `${typeTag}在空间和驾驶难度上更均衡。`,
-    46,
+    64,
   );
 
   const energyParts = [
@@ -1078,7 +1116,7 @@ function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keyw
   ].filter(Boolean);
   const energyText = compactText(
     energyParts.length ? energyParts.join('，') : '按能源、价格和补能便利性做平衡。',
-    52,
+    72,
   );
 
   const riskText = vehicle?.notSuitableCase || vehicle?.warning || '';
@@ -1092,8 +1130,8 @@ function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keyw
       { label: '能源/成本', text: energyText },
     ],
     note: riskText
-      ? { label: '注意', text: compactText(riskText, 54), tone: 'warning' }
-      : { label: '平台可搜', text: compactText(searchText || `${getVehicleName(vehicle)} 同级`, 54), tone: 'search' },
+      ? { label: '注意', text: compactText(riskText, 72), tone: 'warning' }
+      : { label: '平台可搜', text: compactText(searchText || `${getVehicleName(vehicle)} 同级`, 72), tone: 'search' },
   };
 }
 
@@ -1188,35 +1226,55 @@ function ResultView({ result, form }) {
         <div className="mt-3">
           <p className="text-xs font-bold text-muted">三档车型推荐</p>
           {tieredVehicles.length > 0 ? (
-            <div className="mt-2 grid gap-2">
-              {tieredVehicles.map((v) => (
-                <div key={`${v.priceTier}-${v.vehicleId}`} className="rounded-2xl bg-aquaCard/70 px-3 py-3 ring-1 ring-pine/5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-bold text-muted">{v.priceTierLabel || '推荐方案'}</p>
-                      <p className="mt-0.5 break-words text-base font-bold leading-snug text-ink">{getVehicleName(v)}</p>
+            <div className="mt-2 grid gap-3">
+              {tieredVehicles.map((v) => {
+                const highlight = buildVehicleHighlight(v, form);
+                return (
+                <div key={`${v.priceTier}-${v.vehicleId}`} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-pine/8">
+                  {/* 顶部信息区 */}
+                  <div className="px-4 pt-3.5">
+                    {/* 第一行：价格档位 + 适配度 */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="rounded-full bg-aquaCard px-2.5 py-0.5 text-[11px] font-bold text-pine">
+                        {v.priceTierLabel || '推荐方案'}
+                      </span>
+                      <span className="rounded-full bg-mint px-2.5 py-0.5 text-[11px] font-bold text-pine">
+                        {getFitLabel(v)}
+                      </span>
                     </div>
-                    <span className="shrink-0 rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold text-pine">
-                      {getFitLabel(v)}
-                    </span>
+
+                    {/* 车型名称 */}
+                    <p className="mt-2.5 break-words text-[17px] font-bold leading-tight text-ink">
+                      {getVehicleName(v)}
+                    </p>
+
+                    {/* 关键标签 */}
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {getVehicleTags(v, form, destContext).map((tag) => (
+                        <span key={tag} className="rounded-full bg-cream px-2.5 py-0.5 text-[11px] font-bold text-pine/80 ring-1 ring-pine/8">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* 一句亮点 — 独特，不与展开后标题重复 */}
+                    <div className="mt-3 flex items-start gap-2 rounded-xl bg-gradient-to-r from-mint/40 to-mint/20 px-3 py-2.5">
+                      <Sparkles size={13} className="mt-0.5 shrink-0 text-pine/60" />
+                      <p className="text-[13px] font-bold leading-snug text-pine">{highlight}</p>
+                    </div>
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {getVehicleTags(v, form, destContext).map((tag) => (
-                      <span key={tag} className="rounded-full bg-card/80 px-2 py-0.5 text-[10px] font-bold text-pine ring-1 ring-pine/10">{tag}</span>
-                    ))}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="mt-2 line-clamp-2 text-xs font-medium leading-relaxed text-ink">{buildVehicleShortReason(v, form, destContext)}</p>
-                    <VehicleDecisionDetails
-                      vehicle={v}
-                      form={form}
-                      tripProfile={tripProfile}
-                      destContext={destContext}
-                      keywords={keywords}
-                    />
-                  </div>
+
+                  {/* 展开详情区 */}
+                  <VehicleDecisionDetails
+                    vehicle={v}
+                    form={form}
+                    tripProfile={tripProfile}
+                    destContext={destContext}
+                    keywords={keywords}
+                  />
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="mt-2 rounded-2xl bg-aquaCard/50 px-3 py-2.5 text-sm font-medium text-muted">
@@ -1442,35 +1500,44 @@ function ResultView({ result, form }) {
 function VehicleDecisionDetails({ vehicle, form, tripProfile, destContext, keywords }) {
   const brief = buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keywords);
   const noteClass = brief.note.tone === 'warning'
-    ? 'bg-coral/5 text-coral ring-coral/10'
-    : 'bg-mint/45 text-pine ring-pine/10';
+    ? 'bg-coral/8 text-coral'
+    : 'bg-mint/50 text-pine';
 
   return (
-    <details className="group mt-2 rounded-xl bg-card/60 px-3 py-2 ring-1 ring-pine/10">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[11px] font-bold text-pine">
-        <span>展开看选择依据</span>
-        <span className="text-[10px] font-medium text-muted group-open:hidden">3点速览</span>
-        <span className="hidden text-[10px] font-medium text-muted group-open:inline">收起</span>
+    <details className="group border-t border-pine/6 bg-gradient-to-b from-aquaCard/30 to-transparent">
+      <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 px-4 py-3 text-[12px] font-bold text-pine/70 transition-colors hover:text-pine">
+        <span className="group-open:hidden">展开看选择依据</span>
+        <span className="hidden group-open:inline">收起选择依据</span>
+        <svg className="h-3.5 w-3.5 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </summary>
 
-      <div className="mt-2 grid gap-2">
-        <div className="rounded-xl bg-mint/40 px-3 py-2 ring-1 ring-pine/10">
-          <p className="text-xs font-bold leading-relaxed text-pine">{brief.headline}</p>
+      <div className="px-4 pb-4 grid gap-3">
+        {/* 核心判据标题 */}
+        <div className="rounded-xl bg-gradient-to-r from-mint/50 to-mint/25 px-3.5 py-3 ring-1 ring-pine/8">
+          <p className="text-[12px] font-bold leading-relaxed text-pine">{brief.headline}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {/* 三个维度分析 —— 单列布局确保移动端完整可读 */}
+        <div className="grid gap-2">
           {brief.evidence.map((item) => (
-            <div key={item.label} className="min-w-0 rounded-xl bg-aquaCard/55 px-2.5 py-2 ring-1 ring-pine/5">
-              <p className="text-[10px] font-bold text-muted">{item.label}</p>
-              <p className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-ink">{item.text}</p>
+            <div key={item.label} className="flex items-start gap-3 rounded-xl bg-aquaCard/50 px-3 py-2.5 ring-1 ring-pine/5">
+              <span className="mt-0.5 shrink-0 rounded-md bg-pine/10 px-1.5 py-0.5 text-[10px] font-bold text-pine">
+                {item.label}
+              </span>
+              <p className="text-[12px] font-medium leading-relaxed text-ink">{item.text}</p>
             </div>
           ))}
         </div>
 
+        {/* 注意 / 搜索建议 */}
         {brief.note.text ? (
-          <div className={`rounded-xl px-3 py-2 text-xs font-medium leading-snug ring-1 ${noteClass}`}>
-            <span className="mr-1 font-bold">{brief.note.label}</span>
-            {brief.note.text}
+          <div className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-[12px] font-medium leading-relaxed ring-1 ${noteClass}`}>
+            <span className="shrink-0 rounded-full bg-current/10 px-2 py-0.5 text-[10px] font-bold">
+              {brief.note.label}
+            </span>
+            <span>{brief.note.text}</span>
           </div>
         ) : null}
       </div>
