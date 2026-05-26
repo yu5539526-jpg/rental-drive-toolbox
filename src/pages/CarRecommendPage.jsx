@@ -132,22 +132,22 @@ function generateRecommendation(form) {
 /* —— 第一步：人数 + 行李 → 基础车型 —— */
 
 function buildProfile(form) {
-  // 仅作为 CheXingKu 数据未命中时的轻量 fallback，不作为车型推荐主数据源。
-  // 真实推荐车型来自 src/data/car-recommendation/index.js 中的 optimized* 数据。
+  // 仅作为 curated 数据未命中时的轻量 fallback，不作为车型推荐主数据源。
+  // 真实推荐车型来自 src/data/car-recommendation/index.js 中的 curated JSON。
   const key = `${form.peopleCount}|${form.luggage}`;
   const map = {
-    '1-2|light':  { category: '经济轿车 / 紧凑型 SUV', models: '卡罗拉、飞度、比亚迪秦 PLUS、探歌', size: 'compact', energyOpen: true },
-    '1-2|medium': { category: '紧凑型 SUV / 中型 SUV',   models: 'RAV4 荣放、本田 CR-V、哈弗大狗、逍客', size: 'compact-mid', energyOpen: true },
-    '1-2|heavy':  { category: '紧凑型 SUV / 中型 SUV',   models: 'RAV4 荣放、坦克300、本田 CR-V、途观 L', size: 'mid', energyOpen: true },
-    '3-4|light':  { category: '紧凑型 SUV / 中型 SUV',   models: 'RAV4 荣放、本田 CR-V、哈弗大狗、逍客', size: 'compact-mid', energyOpen: true },
-    '3-4|medium': { category: '中型 SUV',                 models: 'RAV4 荣放、本田 CR-V、途观 L、坦克300', size: 'mid', energyOpen: true },
-    '3-4|heavy':  { category: '中大型 SUV',               models: '汉兰达、坦克500、途昂、理想 L9', size: 'mid-large', energyOpen: true },
-    '5|light':    { category: '中大型 SUV / MPV',         models: '汉兰达、GL8、理想 L9、途昂', size: 'large', energyOpen: true },
-    '5|medium':   { category: '中大型 SUV / MPV',         models: 'GL8、汉兰达、理想 L9、途昂', size: 'large', energyOpen: true },
-    '5|heavy':    { category: '中大型 SUV / MPV',         models: 'GL8、赛那、理想 L9、途昂', size: 'large', energyOpen: true },
-    '6+|light':   { category: 'MPV 优先',                  models: 'GL8、赛那、传祺 M8、奥德赛', size: 'xlarge', energyOpen: false },
-    '6+|medium':  { category: 'MPV 优先',                  models: 'GL8、赛那、传祺 M8、威然', size: 'xlarge', energyOpen: false },
-    '6+|heavy':   { category: 'MPV 优先',                  models: 'GL8、赛那、大通 G90、威然', size: 'xlarge', energyOpen: false },
+    '1-2|light':  { category: '轿车 / 小型 SUV',           models: '比亚迪海鸥、小米 SU7、宝马 3系', size: 'compact', energyOpen: true },
+    '1-2|medium': { category: '轿车 / 紧凑型 SUV',         models: '小米 SU7、蔚来 ET5T、特斯拉 Model Y', size: 'compact-mid', energyOpen: true },
+    '1-2|heavy':  { category: '紧凑型 SUV / 中型 SUV',     models: '特斯拉 Model Y、理想 L6、坦克 300', size: 'mid', energyOpen: true },
+    '3-4|light':  { category: '轿车 / 紧凑型 SUV',         models: '小米 SU7、蔚来 ET5T、特斯拉 Model Y', size: 'compact-mid', energyOpen: true },
+    '3-4|medium': { category: '中型 SUV',                  models: '理想 L6、问界 M7、特斯拉 Model Y', size: 'mid', energyOpen: true },
+    '3-4|heavy':  { category: '中大型 SUV',                models: '小米 YU7、理想 L9、问界 M8', size: 'mid-large', energyOpen: true },
+    '5|light':    { category: '中大型 SUV / MPV',          models: '问界 M7、理想 L9、蔚来 ES8', size: 'large', energyOpen: true },
+    '5|medium':   { category: '中大型 SUV / 六座 SUV',     models: '问界 M8、理想 L9、理想 L8', size: 'large', energyOpen: true },
+    '5|heavy':    { category: '中大型 SUV / 六座 SUV',     models: '问界 M9、理想 L9、理想 L8', size: 'large', energyOpen: true },
+    '6+|light':   { category: '六座 SUV 优先',             models: '问界 M8、理想 L9、理想 L8', size: 'xlarge', energyOpen: false },
+    '6+|medium':  { category: '六座 SUV 优先',             models: '问界 M9、理想 L9、理想 L8', size: 'xlarge', energyOpen: false },
+    '6+|heavy':   { category: '六座 SUV 优先',             models: '问界 M9、蔚来 ES8、理想 L9', size: 'xlarge', energyOpen: false },
   };
   return map[key] || map['3-4|medium'];
 }
@@ -1625,4 +1625,3 @@ function InsuranceAdviceCard({ advice, suggestions, destContext, compact = false
     </section>
   );
 }
-
