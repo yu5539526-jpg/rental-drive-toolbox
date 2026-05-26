@@ -1035,40 +1035,78 @@ function buildVehicleShortReason(vehicle, form, destContext) {
   return `${type}在空间、补能和驾驶难度上比较均衡，适合这次${fit}的自驾需求。`;
 }
 
-function buildVehicleDetailItems(vehicle, form, tripProfile, destContext, keywords) {
-  const items = [
-    {
-      label: '为什么适合当前目的地',
-      text: vehicle?.reason || destContext?.highlights || `${tripProfile.type}会同时考虑路况、距离、补能和停车难度，这台车综合适配更稳。`,
-    },
-    {
-      label: '动力判断',
-      text: getPowerDisplay(vehicle, form, true) || '这次推荐没有把马力数字放在最前面，主要看它是否满足当前路线和载人载物需求。',
-    },
-    {
-      label: '适配依据',
-      text: '综合看了车型类型、能源形式、空间表现、驾驶难度、目的地路况和补能风险，不只按单一分数或最低价格排序。',
-    },
-  ];
+function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keywords) {
+  const typeTag = getVehicleTypeTag(vehicle) || '这类车';
+  const energyTag = getEnergyTag(vehicle?.energyType) || '能源';
+  const fitTag = getDestinationFitTag(form, destContext);
+  const priceLabel = vehicle?.priceTierLabel || (vehicle?.priceTier ? `${vehicle.priceTier}价方案` : '推荐方案');
+  const seats = Number(vehicle?.seatCount) || 0;
+  const people = form.peopleCount === '6+' ? 6 : Number.parseInt(form.peopleCount, 10) || 0;
+  const luggage = vehicle?.luggageCapacity || vehicle?.trunkSpace || '';
+  const parking = vehicle?.parkingDifficulty ? `停车${vehicle.parkingDifficulty}` : '';
+  const driving = vehicle?.drivingDifficulty ? `驾驶${vehicle.drivingDifficulty}` : '';
+  const charge = vehicle?.refuelChargeConvenience || '';
+  const power = getPowerDisplay(vehicle, form, true);
 
-  if (vehicle?.notSuitableCase) {
-    items.push({ label: '需要留意', text: vehicle.notSuitableCase });
-  } else if (vehicle?.warning) {
-    items.push({ label: '需要留意', text: vehicle.warning });
+  const headline = compactText(
+    vehicle?.reason
+      || vehicle?.summarySentence
+      || buildDestinationHeadline(typeTag, form, tripProfile, destContext),
+    50,
+  );
+
+  const routeText = compactText(
+    `${fitTag}。${destContext?.highlights || `${tripProfile.type}重点看路况、补能和停车压力。`}`,
+    54,
+  );
+
+  const spaceParts = [
+    seats ? `${seats}座` : '',
+    people ? `适合${form.peopleCount}人` : '',
+    luggage ? `行李${luggage}` : '',
+    parking || driving,
+  ].filter(Boolean);
+  const spaceText = compactText(
+    spaceParts.length ? spaceParts.join('，') : `${typeTag}在空间和驾驶难度上更均衡。`,
+    46,
+  );
+
+  const energyParts = [
+    `${energyTag} / ${priceLabel}`,
+    charge,
+    power,
+  ].filter(Boolean);
+  const energyText = compactText(
+    energyParts.length ? energyParts.join('，') : '按能源、价格和补能便利性做平衡。',
+    52,
+  );
+
+  const riskText = vehicle?.notSuitableCase || vehicle?.warning || '';
+  const searchText = keywords?.length ? `平台可搜：${keywords.slice(0, 3).join('、')}` : '';
+
+  return {
+    headline,
+    evidence: [
+      { label: '路线匹配', text: routeText },
+      { label: '空间/驾驶', text: spaceText },
+      { label: '能源/成本', text: energyText },
+    ],
+    note: riskText
+      ? { label: '注意', text: compactText(riskText, 54), tone: 'warning' }
+      : { label: '平台可搜', text: compactText(searchText || `${getVehicleName(vehicle)} 同级`, 54), tone: 'search' },
+  };
+}
+
+function buildDestinationHeadline(typeTag, form, tripProfile, destContext) {
+  if (form.destinationType === 'city-short') return `适合城市短途，重点优势是好开好停和使用成本可控。`;
+  if (form.destinationType === 'island-leisure') return `适合滨海轻松自驾，${typeTag}更看重舒适、颜值和补能便利。`;
+  if (['mountain-plateau', 'yunnan-mountain'].includes(form.destinationType)) {
+    return `适合山路高原场景，优先看动力、底盘和补能容错。`;
   }
-
-  if (vehicle?.energyType) {
-    items.push({
-      label: '能源选择',
-      text: `${getEnergyTag(vehicle.energyType)}适合度会结合目的地补能条件判断；长途、山路和偏远路线不建议只看使用成本。`,
-    });
+  if (['grassland-gobi', 'grassland-long', 'loop-long'].includes(form.destinationType)) {
+    return `适合长距离自驾，重点看续航余量、舒适性和可靠性。`;
   }
-
-  if (keywords?.length) {
-    items.push({ label: '平台搜索建议', text: `可以优先搜索：${keywords.slice(0, 5).join('、')}。` });
-  }
-
-  return items;
+  return `${typeTag}适合这次${tripProfile?.type || destContext?.name || '自驾'}，整体更均衡。`;
 }
 
 /* ========================================================================
@@ -1169,19 +1207,13 @@ function ResultView({ result, form }) {
                   </div>
                   <div className="min-w-0">
                     <p className="mt-2 line-clamp-2 text-xs font-medium leading-relaxed text-ink">{buildVehicleShortReason(v, form, destContext)}</p>
-                    <details className="group mt-2 rounded-xl bg-card/60 px-3 py-2 ring-1 ring-pine/10">
-                      <summary className="cursor-pointer list-none text-[11px] font-bold text-pine">
-                        展开看选择依据
-                      </summary>
-                      <div className="mt-2 grid gap-2">
-                        {buildVehicleDetailItems(v, form, tripProfile, destContext, keywords).map((item) => (
-                          <div key={item.label}>
-                            <p className="text-[10px] font-bold text-muted">{item.label}</p>
-                            <p className="mt-0.5 text-xs font-medium leading-relaxed text-ink">{item.text}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </details>
+                    <VehicleDecisionDetails
+                      vehicle={v}
+                      form={form}
+                      tripProfile={tripProfile}
+                      destContext={destContext}
+                      keywords={keywords}
+                    />
                   </div>
                 </div>
               ))}
@@ -1404,6 +1436,45 @@ function ResultView({ result, form }) {
         </p>
       </div>
     </div>
+  );
+}
+
+function VehicleDecisionDetails({ vehicle, form, tripProfile, destContext, keywords }) {
+  const brief = buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keywords);
+  const noteClass = brief.note.tone === 'warning'
+    ? 'bg-coral/5 text-coral ring-coral/10'
+    : 'bg-mint/45 text-pine ring-pine/10';
+
+  return (
+    <details className="group mt-2 rounded-xl bg-card/60 px-3 py-2 ring-1 ring-pine/10">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[11px] font-bold text-pine">
+        <span>展开看选择依据</span>
+        <span className="text-[10px] font-medium text-muted group-open:hidden">3点速览</span>
+        <span className="hidden text-[10px] font-medium text-muted group-open:inline">收起</span>
+      </summary>
+
+      <div className="mt-2 grid gap-2">
+        <div className="rounded-xl bg-mint/40 px-3 py-2 ring-1 ring-pine/10">
+          <p className="text-xs font-bold leading-relaxed text-pine">{brief.headline}</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {brief.evidence.map((item) => (
+            <div key={item.label} className="min-w-0 rounded-xl bg-aquaCard/55 px-2.5 py-2 ring-1 ring-pine/5">
+              <p className="text-[10px] font-bold text-muted">{item.label}</p>
+              <p className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-ink">{item.text}</p>
+            </div>
+          ))}
+        </div>
+
+        {brief.note.text ? (
+          <div className={`rounded-xl px-3 py-2 text-xs font-medium leading-snug ring-1 ${noteClass}`}>
+            <span className="mr-1 font-bold">{brief.note.label}</span>
+            {brief.note.text}
+          </div>
+        ) : null}
+      </div>
+    </details>
   );
 }
 
