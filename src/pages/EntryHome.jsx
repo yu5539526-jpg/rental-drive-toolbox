@@ -23,42 +23,115 @@ const entryActions = [
   },
 ];
 
+function TravelLineArtBackground() {
+  return (
+    <svg
+      className="pointer-events-none absolute inset-x-0 top-8 h-[206px] w-full text-white sm:top-9"
+      viewBox="0 0 430 206"
+      fill="none"
+      aria-hidden="true"
+      preserveAspectRatio="none"
+    >
+      <path
+        d="M-18 136 L26 116 L56 126 L88 94 L132 126 L166 105 L206 132 L248 91 L288 124 L326 108 L372 134 L448 102"
+        stroke="currentColor"
+        strokeOpacity="0.24"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M-24 154 L34 139 L82 148 L122 124 L174 151 L226 118 L272 150 L320 130 L366 152 L456 132"
+        stroke="currentColor"
+        strokeOpacity="0.18"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M-20 174 L38 166 L92 171 L146 156 L198 172 L248 160 L304 174 L356 162 L452 169"
+        stroke="currentColor"
+        strokeOpacity="0.13"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M28 184 C74 164 122 168 164 151 C204 135 242 130 280 142 C318 154 346 143 386 124"
+        stroke="currentColor"
+        strokeOpacity="0.25"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeDasharray="7 10"
+      />
+      <path
+        d="M62 57 C74 48 91 49 100 61 M106 61 H134 M292 52 C302 45 316 47 324 57 M330 57 H354"
+        stroke="currentColor"
+        strokeOpacity="0.22"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M42 198 C58 193 74 193 90 198 M112 198 C126 194 141 194 154 198 M296 190 C310 186 324 186 338 190"
+        stroke="currentColor"
+        strokeOpacity="0.16"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function EntryHome() {
   return (
     <main className="overflow-hidden bg-cream text-ink">
       <section className="relative px-4 pb-8 pt-4">
-        {/* 顶部渐变背景 */}
-        <div className="absolute inset-x-0 top-0 h-[220px] bg-[linear-gradient(160deg,#10A7D8_0%,#0797BD_38%,#18C3C7_100%)]" />
-        {/* 渐变到奶油色的平滑过渡层 */}
-        <div className="absolute inset-x-0 top-[140px] h-[140px] bg-gradient-to-b from-transparent via-[#b3e4f2]/60 to-cream" />
-        {/* 装饰光晕 */}
-        <div className="absolute right-[-60px] top-[-40px] h-40 w-40 rounded-full bg-white/20 blur-3xl" />
-        <div className="absolute left-[-40px] top-20 h-28 w-28 rounded-full bg-[#48E0CF]/20 blur-3xl" />
-        <div className="absolute right-[30px] top-[120px] h-20 w-20 rounded-full bg-white/10 blur-2xl" />
+        {/* Hero 背景：旅行感线稿山水 + 轻路线感 */}
+        <div className="absolute inset-x-0 top-0 h-[292px] overflow-hidden bg-[linear-gradient(155deg,#0FA3D4_0%,#078FBE_42%,#22C7C2_100%)]">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_18%_18%,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0)_34%),linear-gradient(180deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_48%)]" />
+          <TravelLineArtBackground />
+          <div className="absolute bottom-[-68px] left-1/2 h-[150px] w-[118%] -translate-x-1/2 rounded-t-[55%] bg-[#C6EEF6]/72" />
+          <div className="absolute bottom-[-104px] left-1/2 h-[142px] w-[92%] -translate-x-1/2 rounded-t-[52%] bg-cream" />
+        </div>
+        <div className="absolute inset-x-0 top-[236px] h-[92px] bg-gradient-to-b from-transparent via-cream/80 to-cream" />
 
         <div className="relative">
           {/* 顶部徽章行 */}
-          <div className="flex items-center">
-            <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/20 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/25 px-3 text-xs font-bold text-white shadow-[0_8px_20px_rgba(5,86,118,0.12)] ring-1 ring-white/30 backdrop-blur-md">
               <Sparkles size={14} className="text-white" />
               pYuY
+            </div>
+            <div className="flex items-center gap-1.5" aria-hidden="true">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
+              <span className="h-1.5 w-5 rounded-full bg-white/80" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
             </div>
           </div>
 
           {/* 主标题卡片 */}
-          <div className="mt-4 rounded-[24px] bg-white/[0.15] p-4 text-white ring-1 ring-white/20 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
+          <div className="relative mt-4 overflow-hidden rounded-[28px] bg-white/[0.17] p-4 text-white shadow-[0_18px_44px_rgba(5,86,118,0.20)] ring-1 ring-white/25 backdrop-blur-md">
+            <div className="absolute inset-x-4 bottom-3 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
+            <div className="absolute -right-10 bottom-4 h-14 w-36 -rotate-12 rounded-full border border-white/18" aria-hidden="true" />
+            <div className="relative flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <h1 className="mt-1 text-[26px] font-black leading-tight">租车自驾工具箱</h1>
+                <h1 className="mt-1 text-[27px] font-black leading-tight tracking-normal drop-shadow-[0_2px_10px_rgba(4,69,92,0.16)]">
+                  租车自驾工具箱
+                </h1>
+                <div className="mt-3 flex items-center gap-1.5" aria-hidden="true">
+                  <span className="h-1 w-10 rounded-full bg-white/80" />
+                  <span className="h-1 w-2.5 rounded-full bg-white/45" />
+                  <span className="h-1 w-6 rounded-full bg-white/55" />
+                </div>
               </div>
-              <div className="shrink-0 rounded-[28px] bg-white/[0.22] p-[8px] shadow-[0_12px_30px_rgba(5,93,125,0.24)] ring-1 ring-white/20">
+              <div className="shrink-0 rounded-[30px] bg-white/[0.24] p-[8px] shadow-[0_16px_34px_rgba(5,93,125,0.26)] ring-1 ring-white/30">
                 <img
                   src="/images/pyuy-lighthouse-hero.png"
                   alt="pyUY 租车自驾工具箱个人图像"
                   width="103"
                   height="103"
                   fetchPriority="high"
-                  className="h-[103px] w-[103px] rounded-[24px] object-cover"
+                  className="h-[104px] w-[104px] rounded-[24px] object-cover shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28)]"
                 />
               </div>
             </div>
@@ -66,9 +139,9 @@ export default function EntryHome() {
 
           {/* 过渡区装饰 */}
           <div className="mt-6 flex items-center justify-center gap-2">
-            <span className="h-[3px] w-8 rounded-full bg-pine/20" />
-            <span className="h-[3px] w-3 rounded-full bg-pine/35" />
-            <span className="h-[3px] w-8 rounded-full bg-pine/20" />
+            <span className="h-[3px] w-8 rounded-full bg-pine/[0.18]" />
+            <span className="h-[3px] w-3 rounded-full bg-[#18C3C7]/55" />
+            <span className="h-[3px] w-8 rounded-full bg-pine/[0.18]" />
           </div>
 
           {/* 两个入口按钮 — 放大尺寸填充空白 */}

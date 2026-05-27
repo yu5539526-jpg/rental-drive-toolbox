@@ -75,7 +75,7 @@ const energyPreferenceOptions = [
 const drivingProficiencyOptions = [
   { value: 'beginner', label: '新手：更重视好开好停' },
   { value: 'normal', label: '普通：日常驾驶没问题' },
-  { value: 'experienced', label: '熟练：能接受山路长途' },
+  { value: 'experienced', label: '熟练：我是车神你放心' },
 ];
 
 /* ========================================================================
