@@ -324,6 +324,33 @@ function getBodyTypeAdjustment(rec, profile) {
   const category = getDestinationCategory(profile);
   const body = `${rec.bodyType || ''}${rec.vehicleLevel || ''}${rec.carType || ''}`;
 
+  // 优先使用目的地画像中的偏好/非偏好车身类型
+  const preferredBody = profile?.preferredBodyTypes || [];
+  const notPreferredBody = profile?.notPreferredBodyTypes || [];
+  const preferredLevel = profile?.preferredVehicleLevels || [];
+  const notPreferredLevel = profile?.notPreferredVehicleLevels || [];
+
+  if (preferredBody.length || notPreferredBody.length) {
+    let score = 0;
+    const bodyType = rec.bodyType || '';
+    const level = rec.vehicleLevel || '';
+
+    for (const pref of preferredBody) {
+      if (bodyType.includes(pref) || pref.includes(bodyType)) { score += 0.2; break; }
+    }
+    for (const notPref of notPreferredBody) {
+      if (bodyType.includes(notPref) || notPref.includes(bodyType)) { score -= 0.22; break; }
+    }
+    for (const pref of preferredLevel) {
+      if (level.includes(pref) || pref.includes(level)) { score += 0.12; break; }
+    }
+    for (const notPref of notPreferredLevel) {
+      if (level.includes(notPref) || notPref.includes(level)) { score -= 0.12; break; }
+    }
+    if (score !== 0) return score;
+  }
+
+  // 降级：使用硬编码规则
   if (category === 'city-short') {
     if (/轿车|小型|紧凑/.test(body)) return 0.18;
     if (/大型|中大型|MPV|硬派/.test(body)) return -0.18;
@@ -541,7 +568,8 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
   const limit = options.limit ?? 5;
   const VEHICLE_FALLBACKS = {
     brand: '', model: '', vehicleLevel: '中型', bodyType: 'SUV', energyType: '',
-    driveType: '', fuelConsumption: '', groundClearance: '', luggageCapacity: '',
+    driveType: '', fuelConsumption: '', officialRange: '', realRangeEstimate: '',
+    groundClearance: '', luggageCapacity: '',
     trunkSpace: '', summarySentence: '', bestUseCase: '', notSuitableCase: '',
     commonProblems: '', recommendationLevel: '可选', priceTier: '',
   };
@@ -560,6 +588,8 @@ export function getTopVehicleExamples(destinationInput, options = {}) {
       priceTier: rec.priceTier,
       driveType: rec.driveType,
       horsepower: rec.horsepower,
+      officialRange: rec.officialRange,
+      realRangeEstimate: rec.realRangeEstimate,
       powerReserveLabel: rec.powerReserveLabel,
       seatCount: rec.seatCount,
       suitablePeopleCount: rec.suitablePeopleCount,
@@ -781,7 +811,7 @@ export function buildDestinationContext(destinationInput) {
    ======================================================================== */
 
 const DESTINATION_TYPE_SNIPPETS = {
-  'city-short': '城区近郊路况简单',
+  'city-short': '城市短途更看重好开好停和低使用成本',
   'island-leisure': '补能友好',
   'mountain-plateau': '山路和海拔变化多',
   'grassland-gobi': '路线长、补能压力更高',

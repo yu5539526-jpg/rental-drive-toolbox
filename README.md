@@ -67,6 +67,14 @@ http://127.0.0.1:4173/
 - 刷新页面不会白屏或 404
 - 手机尺寸下页面可正常使用
 
+## 当前部署：腾讯云 CloudBase
+
+**正式链接：** [https://pyuy-trip-d8g0ttzhed2f4cbec-1400284972.tcloudbaseapp.com/](https://pyuy-trip-d8g0ttzhed2f4cbec-1400284972.tcloudbaseapp.com/)
+
+部署方式：`npx tcb hosting deploy dist -e pyuy-trip-d8g0ttzhed2f4cbec`
+
+CloudBase 控制台：[https://tcb.cloud.tencent.com/dev?envId=pyuy-trip-d8g0ttzhed2f4cbec](https://tcb.cloud.tencent.com/dev?envId=pyuy-trip-d8g0ttzhed2f4cbec)
+
 ## 推荐部署方式一：Vercel
 
 适合长期正式使用，推荐优先选择。

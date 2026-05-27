@@ -1027,16 +1027,30 @@ function getVehicleTags(vehicle, form, destContext) {
 }
 
 function buildVehicleShortReason(vehicle, form, destContext) {
-  const source = vehicle?.reason || vehicle?.summarySentence || vehicle?.bestUseCase || '';
-  if (source) return compactText(source);
+  // 优先使用 curated CSV 精标的 summarySentence（车型数据库精标文案）
+  const curated = vehicle?.summarySentence || '';
+  if (curated && curated !== '待补充') return compactText(curated, 80);
+
+  // 降级：使用 bestUseCase 或 reason
+  const fallback = vehicle?.bestUseCase || vehicle?.reason || '';
+  if (fallback && fallback !== '待补充') return compactText(fallback, 72);
 
   const type = getVehicleTypeTag(vehicle) || '这类车';
   const fit = getDestinationFitTag(form, destContext);
   return `${type}在空间、补能和驾驶难度上比较均衡，适合这次${fit}的自驾需求。`;
 }
 
-/** 为展开前的卡片生成一句独特的推荐亮点 —— 不依赖 vehicle.reason，避免与展开后的详细标题重复 */
+/** 为展开前的卡片生成一句独特的推荐亮点 —— 优先用 CSV 精标的 bestUseCase，降级才动态生成 */
 function buildVehicleHighlight(vehicle, form) {
+  // 优先使用 curated CSV 精标的 bestUseCase
+  const bestUse = vehicle?.bestUseCase || '';
+  if (bestUse && bestUse !== '待补充') {
+    // bestUseCase 格式如 "家庭自驾/五座舒适出行/中长途"，取第一个最相关的
+    const parts = bestUse.split(/[/,，、]/).map((s) => s.trim()).filter(Boolean);
+    if (parts.length) return `适合${parts.slice(0, 2).join('、')}`;
+  }
+
+  // 降级：基于评分动态生成
   const dest = form.destinationType;
   const comfortScore = Number(vehicle?.comfortScore) || 0;
   const spaceScore = Number(vehicle?.spaceScore) || 0;
@@ -1073,10 +1087,65 @@ function buildVehicleHighlight(vehicle, form) {
   return '整体均衡，适合这次自驾的各方面需求';
 }
 
-function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keywords) {
+function splitVehicleRiskTags(value) {
+  if (!value || value === '待补充') return [];
+  return String(value)
+    .split(/[/、，,；;]+/)
+    .map((item) => item.trim())
+    .filter((item) => item && item !== '待补充');
+}
+
+function includesRisk(tags, keywords) {
+  return tags.some((tag) => keywords.some((keyword) => tag.includes(keyword)));
+}
+
+function buildVehicleRiskNote(vehicle, form) {
+  const unsuitable = splitVehicleRiskTags(vehicle?.notSuitableCase);
+  const problems = splitVehicleRiskTags(vehicle?.commonProblems);
+  const tags = [...unsuitable, ...problems];
+  if (!tags.length) return '';
+
+  const name = getVehicleName(vehicle);
+  const energyType = vehicle?.energyType || '';
+  const isEv = energyType.includes('纯电');
+  const isLongRoute = ['grassland-gobi', 'grassland-long', 'loop-long'].includes(form.destinationType);
+  const isMountainRoute = ['mountain-plateau', 'yunnan-mountain'].includes(form.destinationType);
+  const rangeText = vehicle?.realRangeEstimate || vehicle?.officialRange || '';
+  const rangeHint = rangeText ? `，参考续航${rangeText.replace(/^约/, '约')}` : '';
+
+  if (isEv && includesRisk(tags, ['续航偏短', '充电不便', '无充电', '偏远', '长途', '高原'])) {
+    const routeAdvice = (isLongRoute || isMountainRoute)
+      ? '这次如果要跑长距离、进山或去补能不确定的地方，先查好沿途快充；充电点不稳时，优先换增程、混动或油车'
+      : '城市短途没问题；如果临时跑远路，先确认目的地和返程充电点';
+    const peopleAdvice = includesRisk(tags, ['多人', '大家庭'])
+      ? '；多人带行李时，也建议换空间更大的车型'
+      : '';
+    return `${name}更适合城市和近郊用车${rangeHint}。${routeAdvice}${peopleAdvice}。`;
+  }
+
+  if (includesRisk(tags, ['多人', '大家庭']) || (Number.parseInt(form.peopleCount, 10) >= 5 && Number(vehicle?.seatCount) <= 5)) {
+    return `${name}满员或多人带行李时空间余量有限；3人以上或行李较多，建议优先看空间更大的 SUV、MPV 或六座车型。`;
+  }
+
+  if (includesRisk(tags, ['非铺装', '越野', '极限越野', '狭窄山路'])) {
+    const groundHint = vehicle?.groundClearance ? `，离地间隙约${vehicle.groundClearance}` : '';
+    return `${name}主要适合铺装路和城市道路${groundHint}；如果路线有烂路、砂石路或连续山路，建议换底盘更高、通过性更强的 SUV。`;
+  }
+
+  if (includesRisk(tags, ['预算有限', '租金高', '价格偏高', '品牌溢价'])) {
+    return `${name}品牌和配置溢价更明显，日租价可能不低；预算敏感时，建议先对比同级国产新能源或普通合资车型。`;
+  }
+
+  if (includesRisk(tags, ['车身太大', '停车场受限', '狭窄'])) {
+    return `${name}车身尺寸偏大，商圈地库、古城窄路和景区停车会更费心；新手或高频停车场景建议换紧凑一些的车型。`;
+  }
+
+  return `${name}不太适合${unsuitable.slice(0, 2).join('、') || tags.slice(0, 2).join('、')}；如果行程包含这些场景，建议提前确认路况、补能和空间是否够用。`;
+}
+
+function buildVehicleDecisionBrief(vehicle, form, keywords) {
   const typeTag = getVehicleTypeTag(vehicle) || '这类车';
   const energyTag = getEnergyTag(vehicle?.energyType) || '能源';
-  const fitTag = getDestinationFitTag(form, destContext);
   const priceLabel = vehicle?.priceTierLabel || (vehicle?.priceTier ? `${vehicle.priceTier}价方案` : '推荐方案');
   const seats = Number(vehicle?.seatCount) || 0;
   const people = form.peopleCount === '6+' ? 6 : Number.parseInt(form.peopleCount, 10) || 0;
@@ -1085,18 +1154,6 @@ function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keyw
   const driving = vehicle?.drivingDifficulty ? `驾驶${vehicle.drivingDifficulty}` : '';
   const charge = vehicle?.refuelChargeConvenience || '';
   const power = getPowerDisplay(vehicle, form, true);
-
-  const headline = compactText(
-    vehicle?.reason
-      || vehicle?.summarySentence
-      || buildDestinationHeadline(typeTag, form, tripProfile, destContext),
-    50,
-  );
-
-  const routeText = compactText(
-    `${fitTag}。${destContext?.highlights || `${tripProfile.type}重点看路况、补能和停车压力。`}`,
-    72,
-  );
 
   const spaceParts = [
     seats ? `${seats}座` : '',
@@ -1119,13 +1176,11 @@ function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keyw
     72,
   );
 
-  const riskText = vehicle?.notSuitableCase || vehicle?.warning || '';
+  const riskText = buildVehicleRiskNote(vehicle, form) || vehicle?.warning || '';
   const searchText = keywords?.length ? `平台可搜：${keywords.slice(0, 3).join('、')}` : '';
 
   return {
-    headline,
     evidence: [
-      { label: '路线匹配', text: routeText },
       { label: '空间/驾驶', text: spaceText },
       { label: '能源/成本', text: energyText },
     ],
@@ -1133,18 +1188,6 @@ function buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keyw
       ? { label: '注意', text: compactText(riskText, 72), tone: 'warning' }
       : { label: '平台可搜', text: compactText(searchText || `${getVehicleName(vehicle)} 同级`, 72), tone: 'search' },
   };
-}
-
-function buildDestinationHeadline(typeTag, form, tripProfile, destContext) {
-  if (form.destinationType === 'city-short') return `适合城市短途，重点优势是好开好停和使用成本可控。`;
-  if (form.destinationType === 'island-leisure') return `适合滨海轻松自驾，${typeTag}更看重舒适、颜值和补能便利。`;
-  if (['mountain-plateau', 'yunnan-mountain'].includes(form.destinationType)) {
-    return `适合山路高原场景，优先看动力、底盘和补能容错。`;
-  }
-  if (['grassland-gobi', 'grassland-long', 'loop-long'].includes(form.destinationType)) {
-    return `适合长距离自驾，重点看续航余量、舒适性和可靠性。`;
-  }
-  return `${typeTag}适合这次${tripProfile?.type || destContext?.name || '自驾'}，整体更均衡。`;
 }
 
 /* ========================================================================
@@ -1268,8 +1311,6 @@ function ResultView({ result, form }) {
                   <VehicleDecisionDetails
                     vehicle={v}
                     form={form}
-                    tripProfile={tripProfile}
-                    destContext={destContext}
                     keywords={keywords}
                   />
                 </div>
@@ -1497,11 +1538,14 @@ function ResultView({ result, form }) {
   );
 }
 
-function VehicleDecisionDetails({ vehicle, form, tripProfile, destContext, keywords }) {
-  const brief = buildVehicleDecisionBrief(vehicle, form, tripProfile, destContext, keywords);
+function VehicleDecisionDetails({ vehicle, form, keywords }) {
+  const brief = buildVehicleDecisionBrief(vehicle, form, keywords);
   const noteClass = brief.note.tone === 'warning'
-    ? 'bg-coral/8 text-coral'
+    ? 'bg-coral/6 text-ink ring-coral/20'
     : 'bg-mint/50 text-pine';
+  const noteLabelClass = brief.note.tone === 'warning'
+    ? 'bg-coral/10 text-coral'
+    : 'bg-pine/10 text-pine';
 
   return (
     <details className="group border-t border-pine/6 bg-gradient-to-b from-aquaCard/30 to-transparent">
@@ -1514,12 +1558,7 @@ function VehicleDecisionDetails({ vehicle, form, tripProfile, destContext, keywo
       </summary>
 
       <div className="px-4 pb-4 grid gap-3">
-        {/* 核心判据标题 */}
-        <div className="rounded-xl bg-gradient-to-r from-mint/50 to-mint/25 px-3.5 py-3 ring-1 ring-pine/8">
-          <p className="text-[12px] font-bold leading-relaxed text-pine">{brief.headline}</p>
-        </div>
-
-        {/* 三个维度分析 —— 单列布局确保移动端完整可读 */}
+        {/* 车型差异分析 —— 单列布局确保移动端完整可读 */}
         <div className="grid gap-2">
           {brief.evidence.map((item) => (
             <div key={item.label} className="flex items-start gap-3 rounded-xl bg-aquaCard/50 px-3 py-2.5 ring-1 ring-pine/5">
@@ -1534,7 +1573,7 @@ function VehicleDecisionDetails({ vehicle, form, tripProfile, destContext, keywo
         {/* 注意 / 搜索建议 */}
         {brief.note.text ? (
           <div className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-[12px] font-medium leading-relaxed ring-1 ${noteClass}`}>
-            <span className="shrink-0 rounded-full bg-current/10 px-2 py-0.5 text-[10px] font-bold">
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${noteLabelClass}`}>
               {brief.note.label}
             </span>
             <span>{brief.note.text}</span>

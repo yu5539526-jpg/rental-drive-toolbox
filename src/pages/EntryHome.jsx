@@ -49,10 +49,7 @@ export default function EntryHome() {
           <div className="mt-4 rounded-[24px] bg-white/[0.15] p-4 text-white ring-1 ring-white/20 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <h1 className="mt-1 text-[26px] font-black leading-tight">今天想怎么开始？</h1>
-                <p className="mt-2 max-w-[15rem] text-[13px] font-semibold leading-relaxed text-white/90">
-                  已经知道租车总价就先算预算；还没定方案，就按工具箱慢慢理。
-                </p>
+                <h1 className="mt-1 text-[26px] font-black leading-tight">租车自驾工具箱</h1>
               </div>
               <div className="shrink-0 rounded-[28px] bg-white/[0.22] p-[8px] shadow-[0_12px_30px_rgba(5,93,125,0.24)] ring-1 ring-white/20">
                 <img
