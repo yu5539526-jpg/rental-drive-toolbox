@@ -131,15 +131,17 @@ export default function EntryHome() {
             </div>
           </div>
 
-          {/* 过渡区装饰 */}
-          <div className="mt-6 flex items-center justify-center gap-2">
-            <span className="h-[3px] w-8 rounded-full bg-pine/[0.18]" />
-            <span className="h-[3px] w-3 rounded-full bg-[#18C3C7]/55" />
-            <span className="h-[3px] w-8 rounded-full bg-pine/[0.18]" />
+          {/* 旅行路线过渡：虚线路径 + 定位点，呼应"自驾攻略"主题 */}
+          <div className="mt-5 flex items-center justify-center gap-2.5">
+            <span className="h-px w-11 bg-[length:6px_6px] bg-[image:repeating-linear-gradient(90deg,#0B8DB8_0_3px,transparent_3px_6px)]" />
+            <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-[#18C3C7]/18 ring-1 ring-[#18C3C7]/30">
+              <span className="absolute h-1.5 w-1.5 rounded-full bg-[#18C3C7] shadow-[0_0_6px_rgba(24,195,199,0.5)]" />
+            </span>
+            <span className="h-px w-11 bg-[length:6px_6px] bg-[image:repeating-linear-gradient(90deg,#0B8DB8_0_3px,transparent_3px_6px)]" />
           </div>
 
-          {/* 两个入口按钮 — 放大尺寸填充空白 */}
-          <section className="mt-20 grid gap-4">
+          {/* 两个入口按钮 */}
+          <section className="mt-5 grid gap-4">
             {entryActions.map((action, index) => (
               <EntryAction key={action.to} {...action} index={index} />
             ))}
