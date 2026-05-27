@@ -97,15 +97,10 @@ export default function EntryHome() {
 
         <div className="relative">
           {/* 顶部徽章行 */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <div className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-white/25 px-3 text-xs font-bold text-white shadow-[0_8px_20px_rgba(5,86,118,0.12)] ring-1 ring-white/30 backdrop-blur-md">
               <Sparkles size={14} className="text-white" />
               pYuY
-            </div>
-            <div className="flex items-center gap-1.5" aria-hidden="true">
-              <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
-              <span className="h-1.5 w-5 rounded-full bg-white/80" />
-              <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
             </div>
           </div>
 
@@ -145,7 +140,7 @@ export default function EntryHome() {
           </div>
 
           {/* 两个入口按钮 — 放大尺寸填充空白 */}
-          <section className="mt-5 grid gap-4">
+          <section className="mt-20 grid gap-4">
             {entryActions.map((action, index) => (
               <EntryAction key={action.to} {...action} index={index} />
             ))}

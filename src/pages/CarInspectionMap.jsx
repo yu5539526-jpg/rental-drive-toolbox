@@ -1,6 +1,5 @@
-import { Camera, Car, ChevronDown, ChevronRight, ChevronUp, Lightbulb, ShieldCheck, Sparkles } from 'lucide-react';
+import { Camera, Car, ChevronDown, ChevronUp, Lightbulb, ShieldCheck } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar.jsx';
 import { CarInspectionImageMap, CarViewTabs, HotspotDetailCard } from '../components/CarInspection/index.js';
 import { primaryZonesByView } from '../data/vehicleInspectionZones.js';
@@ -446,7 +445,7 @@ export default function CarInspectionMap() {
         </div>
 
         {/* 拍照小贴士 */}
-        <section className="mt-3 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
+        <section className="mt-3 mb-4 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <Lightbulb size={16} className="text-[#D97706]" />
             <h3 className="text-sm font-bold text-ink">验车拍照小贴士</h3>
@@ -464,26 +463,6 @@ export default function CarInspectionMap() {
           </p>
         </section>
 
-        {/* 完整清单入口 */}
-        <div className="mt-3 mb-4 rounded-[24px] border border-pine/10 bg-card p-4 shadow-card">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mint text-pine">
-              <Sparkles size={17} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-ink">需要逐项打钩核对？</p>
-              <p className="mt-0.5 text-[12px] text-muted leading-relaxed">
-                互动图适合快速定位，打钩核对可用完整版清单。
-              </p>
-            </div>
-            <Link
-              to="/checklist"
-              className="shrink-0 inline-flex items-center gap-1 rounded-xl bg-aquaCard px-3.5 py-2.5 text-[12px] font-bold text-pine hover:bg-mint/60 transition-colors"
-            >
-              打开<ChevronRight size={14} />
-            </Link>
-          </div>
-        </div>
       </section>
     </main>
   );
