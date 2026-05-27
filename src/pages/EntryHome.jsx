@@ -90,10 +90,9 @@ export default function EntryHome() {
         <div className="absolute inset-x-0 top-0 h-[292px] overflow-hidden bg-[linear-gradient(155deg,#0FA3D4_0%,#078FBE_42%,#22C7C2_100%)]">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_18%_18%,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0)_34%),linear-gradient(180deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_48%)]" />
           <TravelLineArtBackground />
-          <div className="absolute bottom-[-68px] left-1/2 h-[150px] w-[118%] -translate-x-1/2 rounded-t-[55%] bg-[#C6EEF6]/72" />
-          <div className="absolute bottom-[-104px] left-1/2 h-[142px] w-[92%] -translate-x-1/2 rounded-t-[52%] bg-cream" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,rgba(34,199,194,0)_0%,rgba(24,195,199,0.58)_48%,#18C3C7_100%)]" />
         </div>
-        <div className="absolute inset-x-0 top-[236px] h-[92px] bg-gradient-to-b from-transparent via-cream/80 to-cream" />
+        <div className="absolute inset-x-0 top-[292px] h-[64px] bg-gradient-to-b from-[#18C3C7] to-cream" />
 
         <div className="relative">
           {/* 顶部徽章行 */}

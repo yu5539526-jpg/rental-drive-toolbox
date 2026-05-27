@@ -11,6 +11,7 @@
     "deploy:cloudbase": "npm run build && tcb hosting deploy dist -e pyuy-trip-d8g0ttzhed2f4cbec"
   },
   "dependencies": {
+    "@cloudbase/js-sdk": "^3.3.11",
     "@vitejs/plugin-react": "^5.1.1",
     "lucide-react": "^0.555.0",
     "react": "^19.2.1",
