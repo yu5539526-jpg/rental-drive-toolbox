@@ -95,7 +95,6 @@ export default function BudgetPage() {
     prefillAppliedRef.current = true;
 
     const snapshotSelectedPlan = isQuickBudget ? null : snapshot.selectedPlan;
-    lastSavedRef.current = JSON.stringify({ draft: snapshot.draft, selectedPlan: snapshotSelectedPlan });
 
     const { energyType, ...snapshotDraft } = snapshot.draft || {};
 
