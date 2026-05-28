@@ -20,16 +20,15 @@ const TOP_LEVEL_WHITELIST = [
   'budgetAdvice',
   'anonymousClientId',
   'clientSubmittedAt',
-  // 元信息字段
-  'pagePath',
-  'sourcePage',
   'appVersion',
-  'destinationType',
-  'pickupCity',
-  'energyPreference',
+  'entryMode',
+  'sourceChannel',
+  'sourceCampaign',
+  'sourceNoteId',
+  'sourceKeyword',
 ];
 
-const BUDGET_INPUT_WHITELIST = [
+const BUDGET_INPUT_RAW_WHITELIST = [
   'tripDays',
   'people',
   'rentalDays',
@@ -60,17 +59,12 @@ const BUDGET_INPUT_WHITELIST = [
 ];
 
 const BUDGET_RESULT_WHITELIST = [
-  'tripDays',
-  'people',
-  'mileage',
   'tripTotal',
   'perPerson',
-  'perPersonBudget',
   'dailyAverage',
   'perPersonDaily',
   'temporaryFunds',
   'preparedFunds',
-  'totalBudget',
   'vehicleCostRatio',
   'vehicleTransport',
   'lodgingDining',
@@ -78,6 +72,7 @@ const BUDGET_RESULT_WHITELIST = [
   'bigTraffic',
   'otherFees',
   'energyLabel',
+  'energyCost',
   'energyType',
   'energySource',
   'matchedVehicleName',
@@ -86,6 +81,9 @@ const BUDGET_RESULT_WHITELIST = [
   'isRoughEstimate',
   'vehicleCostJudgment',
   'suggestions',
+  'mileage',
+  'tripDays',
+  'people',
 ];
 
 // ============================================================
@@ -93,47 +91,18 @@ const BUDGET_RESULT_WHITELIST = [
 // ============================================================
 
 const SENSITIVE_KEYS = new Set([
-  'phone',
-  'mobile',
-  'tel',
-  'telephone',
-  'name',
-  'realname',
-  'real_name',
-  'idcard',
-  'idnumber',
-  'id_number',
-  'idcardnumber',
-  'wechat',
-  'weixin',
-  'wx',
-  'exactlocation',
-  'exact_location',
-  'latitude',
-  'longitude',
-  'lat',
-  'lng',
-  'gps',
-  'useragent',
-  'user_agent',
-  'ua',
-  'fingerprint',
-  'deviceid',
-  'device_id',
-  'device',
-  'platenumber',
-  'plate_number',
-  'plate',
-  'address',
-  'homeaddress',
-  'home_address',
-  'email',
-  'mail',
-  'birthday',
-  'birth',
-  'gender',
-  'sex',
-  'age',
+  'phone', 'mobile', 'tel', 'telephone',
+  'name', 'realname', 'real_name',
+  'idcard', 'idnumber', 'id_number', 'idcardnumber',
+  'wechat', 'weixin', 'wx',
+  'exactlocation', 'exact_location',
+  'latitude', 'longitude', 'lat', 'lng', 'gps',
+  'useragent', 'user_agent', 'ua',
+  'fingerprint', 'deviceid', 'device_id', 'device',
+  'platenumber', 'plate_number', 'plate',
+  'address', 'homeaddress', 'home_address',
+  'email', 'mail',
+  'birthday', 'birth', 'gender', 'sex', 'age',
 ]);
 
 // ============================================================
@@ -161,7 +130,7 @@ function sanitizeString(value, maxLen) {
 
 function sanitizeNumber(value) {
   if (value == null || value === '') return 0;
-  const n = Number(value);
+  var n = Number(value);
   return Number.isFinite(n) ? n : 0;
 }
 
@@ -195,15 +164,10 @@ function filterObject(obj, whitelist, maxStrLen) {
     } else if (Array.isArray(val)) {
       result[key] = sanitizeArray(val, MAX_ARRAY_LENGTH);
     }
-    // 不认识的类型静默跳过
   }
   return result;
 }
 
-/**
- * 递归扫描对象所有 key，精确匹配敏感字段名
- * 不再使用子串匹配，避免 pagePath 被 'age' 误伤
- */
 function scanSensitiveKeys(obj, path) {
   if (!obj || typeof obj !== 'object') return null;
   var keys = Object.keys(obj);
@@ -241,6 +205,121 @@ function validatePayload(payload) {
 }
 
 // ============================================================
+// 数据映射：将前端原始字段映射为 v2 标准结构
+// ============================================================
+
+/**
+ * 只保存非零、非空的有效预算输入字段。
+ * 空字段或 0 值字段不写入，减少存储膨胀。
+ */
+function mapBudgetInput(raw) {
+  var result = {};
+
+  var fields = [
+    { key: 'carRentalCost', src: 'rentalPlatformTotal' },
+    { key: 'insuranceCost', src: null },
+    { key: 'energyCost', src: null },
+    { key: 'tollCost', src: 'tolls' },
+    { key: 'parkingCost', src: 'parking' },
+    { key: 'hotelCost', src: 'hotelNightPrice' },
+    { key: 'foodCost', src: null, computed: function(r) {
+      return sanitizeNumber(r.breakfast) + sanitizeNumber(r.lunch) +
+             sanitizeNumber(r.dinner) + sanitizeNumber(r.snacks);
+    }},
+    { key: 'ticketCost', src: 'ticket' },
+    { key: 'otherCost', src: null, computed: function(r) {
+      return sanitizeNumber(r.cityTransport) + sanitizeNumber(r.shopping) +
+             sanitizeNumber(r.gear) + sanitizeNumber(r.other) +
+             sanitizeNumber(r.carWash) + sanitizeNumber(r.shuttle) +
+             sanitizeNumber(r.cableway) + sanitizeNumber(r.entertainment) +
+             sanitizeNumber(r.roundTripTransit);
+    }},
+  ];
+
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i];
+    var val;
+    if (f.computed) {
+      val = f.computed(raw);
+    } else if (f.src) {
+      val = sanitizeNumber(raw[f.src]);
+    } else {
+      val = null;
+    }
+    // 只保存非零、非 null 的有效值
+    if (val !== null && val !== 0) {
+      result[f.key] = val;
+    }
+  }
+
+  return result;
+}
+
+function mapBudgetResult(raw) {
+  var result = {};
+
+  var fields = [
+    'tripTotal',
+    'perPerson',
+    'dailyAverage',
+    'perPersonDaily',
+    'vehicleTransport',
+    'lodgingDining',
+    'scenic',
+    'otherFees',
+  ];
+
+  for (var i = 0; i < fields.length; i++) {
+    var key = fields[i];
+    var val = sanitizeNumber(raw[key]);
+    if (val !== 0) result[key] = val;
+  }
+
+  // vehicleCostRatio 保留一位小数
+  var ratio = sanitizeNumber(raw.vehicleCostRatio);
+  if (ratio !== 0) result.vehicleCostRatio = ratio;
+
+  // 文本字段 — 只在非空时写入
+  var budgetLevel = sanitizeString(raw.budgetLevel, MAX_STRING_LENGTH);
+  if (budgetLevel) result.budgetLevel = budgetLevel;
+
+  // 布尔字段 — 始终写入，方便分析
+  result.isRoughEstimate = Boolean(raw.isRoughEstimate);
+
+  return result;
+}
+
+function mapTripInfo(topLevel, rawBudgetInput, rawBudgetResult) {
+  var result = {};
+
+  var strFields = [
+    { key: 'destination', src: topLevel.destination },
+    { key: 'departureCity', src: topLevel.departureCity },
+    { key: 'energyType', src: topLevel.energyType },
+  ];
+  for (var i = 0; i < strFields.length; i++) {
+    var val = sanitizeString(strFields[i].src, MAX_STRING_LENGTH);
+    if (val) result[strFields[i].key] = val;
+  }
+
+  var numFields = [
+    { key: 'travelDays', src: topLevel.travelDays },
+    { key: 'rentalDays', src: topLevel.rentalDays },
+    { key: 'peopleCount', src: topLevel.peopleCount },
+  ];
+  for (var j = 0; j < numFields.length; j++) {
+    var n = sanitizeNumber(numFields[j].src);
+    if (n !== 0) result[numFields[j].key] = n;
+  }
+
+  // mileage 可能来自 budgetInput 或 budgetResult
+  var mileage = sanitizeNumber(rawBudgetInput.mileage) || sanitizeNumber(rawBudgetResult.mileage);
+  if (mileage !== 0) result.mileage = mileage;
+
+  return result;
+}
+
+// ============================================================
 // 云函数入口
 // ============================================================
 
@@ -261,96 +340,44 @@ exports.main = async function (event, context) {
 
   // -------- 字段白名单过滤 --------
   var topLevel = filterObject(data, TOP_LEVEL_WHITELIST, MAX_STRING_LENGTH);
-  var budgetInputs = filterObject(data.budgetInputs, BUDGET_INPUT_WHITELIST, MAX_NESTED_STRING_LENGTH);
-  var budgetResult = filterObject(data.budgetResult, BUDGET_RESULT_WHITELIST, MAX_NESTED_STRING_LENGTH);
-
-  // 兼容 tripInfo 扁平字段（来自控制台测试或新版前端）
-  var tripInfoRaw = data.tripInfo || {};
-  var tripInfo = {
-    destination: sanitizeString(tripInfoRaw.destination || topLevel.destination, MAX_STRING_LENGTH),
-    departureCity: sanitizeString(tripInfoRaw.pickupCity || tripInfoRaw.departureCity || topLevel.departureCity, MAX_STRING_LENGTH),
-    destinationType: sanitizeString(tripInfoRaw.destinationType || topLevel.destinationType, MAX_STRING_LENGTH),
-    travelDays: sanitizeNumber(tripInfoRaw.travelDays || topLevel.travelDays),
-    rentalDays: sanitizeNumber(tripInfoRaw.rentalDays || topLevel.rentalDays),
-    peopleCount: sanitizeNumber(tripInfoRaw.peopleCount || topLevel.peopleCount),
-    energyType: sanitizeString(tripInfoRaw.energyPreference || topLevel.energyPreference || topLevel.energyType, MAX_STRING_LENGTH),
-    energySource: sanitizeString(topLevel.energySource, MAX_STRING_LENGTH),
-    matchedVehicleName: sanitizeString(topLevel.matchedVehicleName, MAX_STRING_LENGTH),
-  };
-
-  // budgetAdvice 单独处理，限制数组长度
+  var rawBudgetInput = filterObject(data.budgetInputs, BUDGET_INPUT_RAW_WHITELIST, MAX_NESTED_STRING_LENGTH);
+  var rawBudgetResult = filterObject(data.budgetResult, BUDGET_RESULT_WHITELIST, MAX_NESTED_STRING_LENGTH);
   var budgetAdvice = sanitizeArray(data.budgetAdvice, MAX_BUDGET_ADVICE_LENGTH);
-
-  // 合并 budgetResult（兼容 totalBudget/perPersonBudget 扁平字段）
-  var totalBudget = sanitizeNumber(budgetResult.totalBudget || budgetResult.tripTotal);
-  var perPersonBudget = sanitizeNumber(budgetResult.perPersonBudget || budgetResult.perPerson);
 
   var now = new Date().toISOString();
 
-  // -------- 组装入库文档 --------
+  // -------- 组装入库文档 (v2) --------
   var doc = {
-    schemaVersion: 'travel_plan_budget_v1',
-    source: 'budget_generate_card',
-    sourcePage: sanitizeString(topLevel.sourcePage || 'budget', 64),
-    pagePath: sanitizeString(topLevel.pagePath || '', 256),
-    appVersion: sanitizeString(topLevel.appVersion || '', 64),
+    schemaVersion: 'travel_plan_budget_v2',
+
+    entryMode: sanitizeString(topLevel.entryMode, 32) || null,
+    appVersion: sanitizeString(topLevel.appVersion, 64) || null,
+
     createdAt: now,
     clientSubmittedAt: sanitizeString(topLevel.clientSubmittedAt, 64) || null,
     anonymousClientId: sanitizeString(topLevel.anonymousClientId, 128) || null,
 
-    tripInfo: tripInfo,
+    source: {
+      page: 'budget',
+      action: 'generate_budget_card',
+      sourceChannel: sanitizeString(topLevel.sourceChannel, 64) || null,
+      sourceCampaign: sanitizeString(topLevel.sourceCampaign, 64) || null,
+      sourceNoteId: sanitizeString(topLevel.sourceNoteId, 128) || null,
+      sourceKeyword: sanitizeString(topLevel.sourceKeyword, 128) || null,
+      appVersion: sanitizeString(topLevel.appVersion, 64) || null,
+    },
+
+    tripInfo: mapTripInfo(topLevel, rawBudgetInput, rawBudgetResult),
 
     rentalPlan: {
-      platform: sanitizeString(topLevel.platform, MAX_STRING_LENGTH),
-      carModel: sanitizeString(topLevel.carModel, MAX_STRING_LENGTH),
-      insuranceType: sanitizeString(topLevel.insuranceType, MAX_STRING_LENGTH),
+      platform: sanitizeString(topLevel.platform, MAX_STRING_LENGTH) || null,
+      carModel: sanitizeString(topLevel.carModel, MAX_STRING_LENGTH) || null,
+      insuranceType: sanitizeString(topLevel.insuranceType, MAX_STRING_LENGTH) || null,
     },
 
-    budgetInput: {
-      tripDays: sanitizeNumber(budgetInputs.tripDays),
-      people: sanitizeNumber(budgetInputs.people),
-      rentalDays: sanitizeNumber(budgetInputs.rentalDays),
-      mileage: sanitizeNumber(budgetInputs.mileage),
-      rentalPlatformTotal: sanitizeNumber(budgetInputs.rentalPlatformTotal),
-      tolls: sanitizeNumber(budgetInputs.tolls),
-      parking: sanitizeNumber(budgetInputs.parking),
-      carWash: sanitizeNumber(budgetInputs.carWash),
-      vehicleDeposit: sanitizeNumber(budgetInputs.vehicleDeposit),
-      violationDeposit: sanitizeNumber(budgetInputs.violationDeposit),
-      hotelNightPrice: sanitizeNumber(budgetInputs.hotelNightPrice),
-      breakfast: sanitizeNumber(budgetInputs.breakfast),
-      lunch: sanitizeNumber(budgetInputs.lunch),
-      dinner: sanitizeNumber(budgetInputs.dinner),
-      snacks: sanitizeNumber(budgetInputs.snacks),
-      ticket: sanitizeNumber(budgetInputs.ticket),
-      shuttle: sanitizeNumber(budgetInputs.shuttle),
-      cableway: sanitizeNumber(budgetInputs.cableway),
-      entertainment: sanitizeNumber(budgetInputs.entertainment),
-      roundTripTransit: sanitizeNumber(budgetInputs.roundTripTransit),
-      cityTransport: sanitizeNumber(budgetInputs.cityTransport),
-      shopping: sanitizeNumber(budgetInputs.shopping),
-      gear: sanitizeNumber(budgetInputs.gear),
-      other: sanitizeNumber(budgetInputs.other),
-    },
+    budgetInput: mapBudgetInput(rawBudgetInput),
 
-    budgetResult: {
-      totalBudget: totalBudget,
-      perPersonBudget: perPersonBudget,
-      dailyAverage: sanitizeNumber(budgetResult.dailyAverage),
-      perPersonDaily: sanitizeNumber(budgetResult.perPersonDaily),
-      temporaryFunds: sanitizeNumber(budgetResult.temporaryFunds),
-      preparedFunds: sanitizeNumber(budgetResult.preparedFunds),
-      vehicleCostRatio: sanitizeNumber(budgetResult.vehicleCostRatio),
-      vehicleTransport: sanitizeNumber(budgetResult.vehicleTransport),
-      lodgingDining: sanitizeNumber(budgetResult.lodgingDining),
-      scenic: sanitizeNumber(budgetResult.scenic),
-      bigTraffic: sanitizeNumber(budgetResult.bigTraffic),
-      otherFees: sanitizeNumber(budgetResult.otherFees),
-      energyLabel: sanitizeString(budgetResult.energyLabel, MAX_STRING_LENGTH),
-      budgetLevel: sanitizeString(budgetResult.budgetLevel, MAX_STRING_LENGTH),
-      isRoughEstimate: Boolean(budgetResult.isRoughEstimate),
-      completenessPercent: sanitizeNumber(budgetResult.completenessPercent),
-    },
+    budgetResult: mapBudgetResult(rawBudgetResult),
 
     budgetAdvice: budgetAdvice,
 

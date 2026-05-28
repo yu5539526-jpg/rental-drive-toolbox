@@ -24,6 +24,58 @@ import { budgetSteps, defaultBudgetDraft } from '../data/budgetFields.js';
 import { calculateBudget, formatMoney, formatPercent } from '../utils/budget.js';
 import { findInsurancePlan, getTierLabel, isBasicPlan, INSURANCE_DISCLAIMER } from '../utils/insuranceUtils.js';
 
+/**
+ * 解析 URL 来源参数，兼容 HashRouter 两种链接形式：
+ *   1. https://pyuygo.cn/?from=xhs&note=xhs_note_001#/budget
+ *   2. https://pyuygo.cn/#/budget?from=xhs&note=xhs_note_001
+ *
+ * 只提取白名单参数，忽略其他参数和敏感值。
+ * 如果没有任何来源参数，返回 sourceChannel: null（云函数会存为 null）。
+ */
+function parseSourceParams() {
+  // 合并两处参数：hash 中 ? 之后的 优先于 search
+  var hash = window.location.hash || '';
+  var hashQuery = '';
+  var hashQIdx = hash.indexOf('?');
+  if (hashQIdx !== -1) {
+    hashQuery = hash.slice(hashQIdx + 1);
+  }
+
+  var searchQuery = (window.location.search || '').replace(/^\?/, '');
+  var combined = searchQuery ? searchQuery + '&' + hashQuery : hashQuery;
+  if (!combined) {
+    return { sourceChannel: null, sourceCampaign: null, sourceNoteId: null, sourceKeyword: null };
+  }
+
+  var params = {};
+  var pairs = combined.split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var parts = pairs[i].split('=');
+    if (parts.length >= 2) {
+      var key = decodeURIComponent(parts[0]).toLowerCase().trim();
+      var val = decodeURIComponent(parts.slice(1).join('=')).trim();
+      if (key && val) params[key] = val;
+    }
+  }
+
+  return {
+    sourceChannel: params['from'] || params['source'] || params['utm_source'] || null,
+    sourceCampaign: params['campaign'] || params['utm_campaign'] || null,
+    sourceNoteId: params['note'] || params['noteid'] || params['xhs_note'] || null,
+    sourceKeyword: params['keyword'] || params['kw'] || null,
+  };
+}
+
+/** 调试：在 openBudgetCard 中打印解析结果，不打印完整 URL */
+function logSourceParams(result) {
+  console.log('[budget] source params parsed', {
+    sourceChannel: result.sourceChannel,
+    sourceCampaign: result.sourceCampaign,
+    sourceNoteId: result.sourceNoteId,
+    sourceKeyword: result.sourceKeyword,
+  });
+}
+
 const STORAGE_KEY = 'rentalDrive.budgetDraft';
 const SELECTED_PLAN_STORAGE_KEY = 'rentalDrive.selectedRentalPlan';
 export default function BudgetPage() {
@@ -115,6 +167,11 @@ export default function BudgetPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
   }, [draft]);
 
+  // 调试：组件挂载时打印来源参数解析结果
+  useEffect(() => {
+    logSourceParams(parseSourceParams());
+  }, []);
+
   const update = (name, value) => {
     setDraft((current) => ({ ...current, [name]: value }));
     setFeedback('预算已更新，下方实时预览已同步刷新。');
@@ -162,6 +219,14 @@ export default function BudgetPage() {
     if (submitting) return;
     setSubmitting(true);
 
+    const sourceParams = parseSourceParams();
+    logSourceParams(sourceParams);
+    const entryMode = isQuickBudget
+      ? 'quick'
+      : activeSelectedPlan
+        ? 'price-compare'
+        : 'full';
+
     const payload = {
       destination: draft.destination || '',
       departureCity: draft.departureCity || '',
@@ -180,6 +245,14 @@ export default function BudgetPage() {
       budgetResult: result,
       anonymousClientId: getAnonymousId(),
       clientSubmittedAt: new Date().toISOString(),
+      // 来源追踪
+      entryMode,
+      pagePath: window.location.pathname || null,
+      routePath: window.location.hash || null,
+      sourceChannel: sourceParams.sourceChannel || null,
+      sourceCampaign: sourceParams.sourceCampaign || null,
+      sourceNoteId: sourceParams.sourceNoteId || null,
+      sourceKeyword: sourceParams.sourceKeyword || null,
     };
 
     try {

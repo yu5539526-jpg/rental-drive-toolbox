@@ -1,5 +1,80 @@
 # 版本记录
 
+## v1.5.0 - 2026-05-28
+
+### 更新摘要
+本次更新新增后台数据查看页面 /admin，通过 listTravelPlans 云函数安全读取 travel_plans 提交记录，支持口令校验、数据表格展示和 CSV 导出。
+
+### 主要改动
+- 新增 `src/pages/AdminPage.jsx`：后台数据查看页面，含口令输入、数据表格、CSV 导出、复制摘要功能。
+- 新增 `cloudfunctions/listTravelPlans/`：后台列表云函数，校验 ADMIN_ACCESS_TOKEN 后按 createdAt 倒序返回最近 50 条记录。
+- 修改 `src/services/cloudbaseClient.js`：新增 `listTravelPlans(adminToken, options)` 方法，封装云函数调用。
+- 修改 `src/App.jsx`：注册 `/admin` 路由，不出现在首页导航中。
+- 云函数只返回后台展示白名单字段，不返回完整原始记录和敏感字段。
+
+### 数据安全
+- 后台口令 ADMIN_ACCESS_TOKEN 仅在 CloudBase 云函数环境变量中配置，不写入前端代码和 Git。
+- 前端通过云函数间接读取，不直接操作 ADMINONLY 数据库。
+- 云函数双重保障：字段投影 + 敏感 key 二次扫描，防止旧数据异常字段泄露。
+- 不返回手机号、身份证、姓名、微信号、精确定位、User-Agent、设备指纹等敏感信息。
+
+### 涉及文件
+- `src/pages/AdminPage.jsx`：新增后台页面。
+- `src/services/cloudbaseClient.js`：新增 listTravelPlans 方法。
+- `src/App.jsx`：注册 /admin 路由。
+- `cloudfunctions/listTravelPlans/index.js`：新增云函数。
+- `cloudfunctions/listTravelPlans/package.json`：新增云函数依赖。
+- `VERSION.md`：追加本次版本记录。
+
+### 验证情况
+- 是否已运行构建：是，`npm run build` 通过，2029 模块转换无错误。
+- 是否已本地预览：是，Playwright 验证通过 — /#/admin 页面可打开不空白，口令输入框和"查看数据"按钮正常显示，空口令提示正确，错误口令提示正确，控制台零 JS 报错，首页和预算页不受影响。
+- 构建产物安全检查：`ADMIN_ACCESS_TOKEN` 不在 dist 中，`adminToken` 仅作为云函数调用参数名传递用户输入。
+- 是否存在待处理问题：需在 CloudBase 控制台为 listTravelPlans 云函数配置 ADMIN_ACCESS_TOKEN 环境变量并部署。
+
+### Git 信息
+- Commit ID：待提交
+- Commit message：feat: 新增后台数据查看页面与 listTravelPlans 云函数
+
+---
+
+## v1.4.1 - 2026-05-28
+
+### 更新摘要
+本次更新规范化 travel_plans 数据结构，新增 schemaVersion 和 source 来源字段，支持通过 URL 参数追踪小红书笔记、活动、关键词等来源渠道。同时修复 lastSavedRef 残留引用导致预算页空白崩溃的问题。
+
+### 主要改动
+- 新增 schemaVersion: "travel_plan_budget_v1"，方便后续区分不同版本数据。
+- 新增 source 嵌套对象（page/action/entryMode/pagePath/routePath/sourceChannel/sourceCampaign/sourceNoteId/sourceKeyword/appVersion），用于分析不同入口的转化效果。
+- 前端新增 parseSourceParams()，兼容 HashRouter 两种 URL 参数形式（?from=xhs&note=xxx#/budget 和 #/budget?from=xhs&note=xxx）。
+- 前端新增 entryMode 字段，区分"速速看预算"(quick)、"慢慢出方案"(full)、比价后带入(price-compare) 三种入口。
+- 云函数 budgetInput 从 25 个扁平字段重组为 9 项分组（carRentalCost/insuranceCost/energyCost/tollCost/parkingCost/hotelCost/foodCost/ticketCost/otherCost），减少空字段存储。
+- 新增 recommendationSnapshot 预留字段（carTypeSuggestion/insuranceSuggestion/energySuggestion/riskTips）。
+- 修复 lastSavedRef 未定义导致预算页空白崩溃（0cb964e）。
+- 敏感字段检测从子串匹配改为精确匹配，避免 pagePath 被 'age' 误伤。
+
+### 数据安全
+- 不收集手机号、身份证、姓名、微信号、精确定位、设备指纹、完整 User-Agent、车牌号等敏感信息。
+- 前端不直接写 ADMINONLY 数据库，只通过 submitTravelPlan 云函数写入。
+- URL 参数只提取白名单字段（from/source/utm_source/campaign/utm_campaign/note/noteId/xhs_note/keyword/kw），忽略其他参数。
+- 不在前端代码中硬编码 SecretId、SecretKey、服务端 API Key。
+
+### 涉及文件
+- cloudfunctions/submitTravelPlan/index.js：重写数据结构，新增 source 嵌套对象、映射函数、白名单更新。
+- src/pages/BudgetPage.jsx：新增 URL 参数解析、entryMode 判断、来源字段传入 payload。
+- VERSION.md：追加本次版本记录。
+
+### 验证情况
+- 是否已运行构建：是，npm run build 通过，2028 模块转换无错误。
+- 是否已本地预览：是，Playwright 三项测试全部 PASS（普通预算页、带来源参数、search 参数形式），零 JS 报错。
+- 是否存在待处理问题：云函数代码已更新但尚未部署到线上。
+
+### Git 信息
+- Commit ID：待提交
+- Commit message：chore: 规范 travel_plans 数据结构与来源字段
+
+---
+
 ## v1.4.0 - 2026-05-28
 
 ### 更新摘要
@@ -264,9 +339,9 @@
 
 ## 当前版本
 
-- v1.4.0
+- v1.5.0
 - 日期：2026-05-28
-- 说明：接入 CloudBase 数据库匿名提交，精简预算结果页底部按钮，新增 submitTravelPlan 云函数。
+- 说明：新增后台数据查看页面 /admin 与 listTravelPlans 云函数，支持口令校验、数据表格和 CSV 导出。
 
 ## 版本规则
 
