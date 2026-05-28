@@ -1,0 +1,9 @@
+{
+  "name": "submitTravelPlan",
+  "version": "1.0.0",
+  "description": "接收前端预算卡生成事件，写入 travel_plans 集合",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.0.0"
+  }
+}

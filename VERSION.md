@@ -1,5 +1,43 @@
 # 版本记录
 
+## v1.4.0 - 2026-05-28
+
+### 更新摘要
+本次更新接入 CloudBase 数据库，用户点击"生成预算卡"时，匿名提交非敏感旅行预算信息到云函数 submitTravelPlan，写入文档型数据库集合 travel_plans。同时精简预算结果页底部按钮，删除"保存，下次继续看"，统一为"生成预算卡"单一入口。
+
+### 主要改动
+- 预算结果页底部删除"保存，下次继续看"按钮，只保留"生成预算卡"。
+- 点击"生成预算卡"异步调用 submitTravelPlan 云函数，匿名提交非敏感旅行预算信息。
+- 新增 `src/services/cloudbaseClient.js`：CloudBase JS SDK 初始化封装，从环境变量读取配置。
+- 新增 `cloudfunctions/submitTravelPlan/`：云函数代码，含字段白名单、敏感字段过滤、数据校验、写入 travel_plans。
+- `.gitignore` 新增 `.env.*.local` 规则，防止衍生本地环境文件误提交。
+- 优化预算结果页隐私说明文案。
+
+### 数据安全
+- 不收集手机号、身份证、姓名、微信号、精确定位、设备指纹、完整 User-Agent、车牌号等敏感信息。
+- 前端不直接写 ADMINONLY 数据库，只通过云函数间接写入。
+- 不在前端代码中硬编码 SecretId、SecretKey、服务端 API Key。
+- `.env.local` 不提交到 Git，Publishable Key 仅从环境变量读取。
+
+### 涉及文件
+- src/pages/BudgetPage.jsx：删除保存按钮，新增 CloudBase 异步提交逻辑。
+- src/services/cloudbaseClient.js：新增 CloudBase 客户端封装。
+- cloudfunctions/submitTravelPlan/index.js：新增云函数代码。
+- cloudfunctions/submitTravelPlan/package.json：新增云函数依赖声明。
+- .gitignore：新增 `.env.*.local` 规则。
+- VERSION.md：追加本次版本记录。
+
+### 验证情况
+- 是否已运行构建：是，`npm run build` 通过，2028 模块转换无错误。
+- 是否已本地预览：否。
+- 是否存在待处理问题：云函数已通过 MCP 部署至 CloudBase（lam-iatlveuj，Active），`travel_plans` 集合需在控制台手动创建。
+
+### Git 信息
+- Commit ID：待提交
+- Commit message：feat: 接入 CloudBase 旅行预算匿名提交
+
+---
+
 ## v1.3.0 - 2026-05-22 17:32
 
 ### 更新摘要
@@ -222,12 +260,13 @@
 - v0.5.0：新增提交并保存出行计划
 - v1.0.0：pyuygo.cn 备案正式上线版
 - v1.0.1：移动端 H5 体验优化版，统一空状态、底部安全区、预算卡和留证清单交互
+- v1.4.0：接入 CloudBase 数据库，匿名提交旅行预算信息到云函数
 
 ## 当前版本
 
-- v1.0.1
-- 日期：2026-05-17
-- 说明：优化小红书 H5 使用体验，重点统一顶部导航、底部操作栏、安全区留白、预算/方案/自测/留证空状态和提交保存弹窗。
+- v1.4.0
+- 日期：2026-05-28
+- 说明：接入 CloudBase 数据库匿名提交，精简预算结果页底部按钮，新增 submitTravelPlan 云函数。
 
 ## 版本规则
 

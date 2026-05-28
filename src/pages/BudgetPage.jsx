@@ -14,8 +14,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import BottomActionBar, { BottomActionButton } from '../components/BottomActionBar.jsx';
-import { submitBudgetSnapshotToBackend } from '../services/submitBudgetSnapshotToBackend.js';
-import { loadBudgetSnapshot, saveBudgetSnapshot } from '../utils/budgetSnapshot.js';
+import { submitTravelPlan } from '../services/cloudbaseClient.js';
+import { loadBudgetSnapshot } from '../utils/budgetSnapshot.js';
 import ProgressBar from '../components/ProgressBar.jsx';
 import SegmentedControl from '../components/SegmentedControl.jsx';
 import TopBar from '../components/TopBar.jsx';
@@ -36,21 +36,26 @@ export default function BudgetPage() {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState(loadBudgetDraft);
   const [selectedPlan, setSelectedPlan] = useState(() => (isQuickBudget ? null : loadSelectedRentalPlan()));
-  const [saveStatus, setSaveStatus] = useState('idle');
   const [cardOpen, setCardOpen] = useState(false);
   const [cardStatus, setCardStatus] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState('填写任意费用后，预算结果会立刻同步刷新。');
   const prefillAppliedRef = useRef(false);
-  const lastSavedRef = useRef(null);
   const activeSelectedPlan = isQuickBudget ? null : selectedPlan;
   const result = useMemo(() => calculateBudget(draft, activeSelectedPlan), [draft, activeSelectedPlan]);
-  const hasUnsavedChanges = useMemo(() => {
-    const current = JSON.stringify({ draft, selectedPlan: activeSelectedPlan });
-    if (lastSavedRef.current === null) {
-      return current !== JSON.stringify({ draft: defaultBudgetDraft, selectedPlan: null });
+  const getAnonymousId = () => {
+    const key = 'pyuy_anonymous_client_id';
+    try {
+      let id = localStorage.getItem(key);
+      if (!id) {
+        id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+        localStorage.setItem(key, id);
+      }
+      return id;
+    } catch {
+      return `session-${Date.now().toString(36)}`;
     }
-    return lastSavedRef.current !== current;
-  }, [draft, activeSelectedPlan]);
+  };
   const currentStep = budgetSteps[step];
   const progress = Math.round(((step + 1) / budgetSteps.length) * 100);
 
@@ -146,16 +151,7 @@ export default function BudgetPage() {
     setFeedback('已清除租车方案信息，已填写的预算金额和其他信息会保留。');
   };
 
-  const handleSave = () => {
-    saveBudgetSnapshot(draft, result, activeSelectedPlan);
-    submitBudgetSnapshotToBackend({ draft, result, selectedPlan: activeSelectedPlan, updatedAt: new Date().toISOString() });
-    lastSavedRef.current = JSON.stringify({ draft, selectedPlan: activeSelectedPlan });
-    setSaveStatus('saved');
-    setFeedback('已保存，下次打开网页可以继续查看。');
-    setTimeout(() => setSaveStatus('idle'), 1500);
-  };
-
-  const openBudgetCard = () => {
+  const openBudgetCard = async () => {
     if (!hasBudgetCardBase(draft, result)) {
       setCardStatus('先填写基础信息和主要费用，再生成适合截图的预算卡。');
       return;
@@ -163,6 +159,42 @@ export default function BudgetPage() {
 
     setCardStatus('');
     setCardOpen(true);
+
+    if (submitting) return;
+    setSubmitting(true);
+
+    const payload = {
+      destination: draft.destination || '',
+      departureCity: draft.departureCity || '',
+      travelDays: Number(draft.tripDays) || 0,
+      peopleCount: Number(draft.people) || 0,
+      rentalDays: Number(draft.rentalDays) || 0,
+      energyType: result.energyType || draft.energyType || '',
+      energySource: result.energySource || '',
+      matchedVehicleName: result.matchedVehicleName || '',
+      platform: activeSelectedPlan?.platform || '',
+      carModel: activeSelectedPlan?.carModel || '',
+      insuranceType: activeSelectedPlan?.insurancePlan || '',
+      budgetLevel: result.budgetLevel || '',
+      budgetAdvice: result.suggestions || [],
+      budgetInputs: draft,
+      budgetResult: result,
+      anonymousClientId: getAnonymousId(),
+      clientSubmittedAt: new Date().toISOString(),
+    };
+
+    try {
+      const res = await submitTravelPlan(payload);
+      if (res.success) {
+        setFeedback('预算卡已生成，本次出行预算信息已匿名保存，用于优化工具体验。');
+      } else {
+        setFeedback('预算卡已生成，信息保存失败，不影响本次使用。');
+      }
+    } catch {
+      setFeedback('预算卡已生成，信息保存失败，不影响本次使用。');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -196,17 +228,12 @@ export default function BudgetPage() {
         )}
       </section>
 
-      <BottomActionBar layout="double">
+      <BottomActionBar layout={step === budgetSteps.length - 1 ? 'single' : 'double'}>
         {step === budgetSteps.length - 1 ? (
-          <>
-            <BottomActionButton type="button" variant="secondary" className={`text-xs ${hasUnsavedChanges ? 'bg-aquaCard ring-pine/25' : 'text-pine/70'}`} onClick={handleSave} disabled={saveStatus === 'saved'}>
-              {saveStatus === 'saved' ? '已保存' : '保存，下次继续看'}
-            </BottomActionButton>
-            <BottomActionButton type="button" onClick={openBudgetCard}>
-              <Image size={18} />
-              生成预算卡
-            </BottomActionButton>
-          </>
+          <BottomActionButton type="button" onClick={openBudgetCard} disabled={submitting}>
+            <Image size={18} />
+            {submitting ? '正在生成…' : '生成预算卡'}
+          </BottomActionButton>
         ) : (
           <>
             <BottomActionButton type="button" variant="secondary" onClick={goPrev} disabled={step === 0}>
@@ -225,7 +252,7 @@ export default function BudgetPage() {
 
       {step === budgetSteps.length - 1 ? (
         <p className="mx-4 mb-28 mt-3 text-center text-[11px] font-medium leading-relaxed text-muted/55 sm:mb-6">
-          点击保存即表示你了解：本次预算信息会保存到本机，并提交给 pyUY 用于工具优化和需求分析，不收集手机号、身份证等敏感信息。
+          点击生成预算卡后，将匿名保存本次出行预算信息，用于优化需求分析；不收集手机号、身份证、微信号、姓名等敏感信息。
         </p>
       ) : null}
     </main>
