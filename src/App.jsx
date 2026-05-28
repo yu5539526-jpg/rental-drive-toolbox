@@ -6,6 +6,7 @@ import CarInspectionMap from './pages/CarInspectionMap.jsx';
 import BudgetPage from './pages/BudgetPage.jsx';
 import PriceComparePage from './pages/PriceComparePage.jsx';
 import CarRecommendPage from './pages/CarRecommendPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 import SuccessPage from './pages/SuccessPage.jsx';
 import SiteFooter from './components/SiteFooter.jsx';
 
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/price-compare" element={<PriceComparePage />} />
           <Route path="/car-recommend" element={<CarRecommendPage />} />
           <Route path="/success" element={<SuccessPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <SiteFooter />

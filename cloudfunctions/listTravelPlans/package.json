@@ -1,0 +1,9 @@
+{
+  "name": "listTravelPlans",
+  "version": "1.0.0",
+  "description": "后台查看 travel_plans 最近 50 条记录，需校验 ADMIN_ACCESS_TOKEN",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.0.0"
+  }
+}

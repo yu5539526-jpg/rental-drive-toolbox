@@ -121,3 +121,55 @@ export async function submitTravelPlan(payload) {
     return { success: false, message: '提交失败，请稍后重试' };
   }
 }
+
+/**
+ * 调用后台云函数 listTravelPlans 获取最近提交记录。
+ *
+ * 此方法只负责调用云函数，不直接操作数据库。
+ * 云函数内部负责校验口令、读取数据库、字段投影。
+ *
+ * @param {string} adminToken - 后台访问口令
+ * @param {object} [options]
+ * @param {number} [options.pageSize] - 每页条数，默认 50，最大 100
+ * @returns {Promise<{ success: boolean, records?: Array, total?: number, message?: string }>}
+ */
+export async function listTravelPlans(adminToken, options = {}) {
+  try {
+    const app = await ensureApp();
+
+    const result = await app.callFunction({
+      name: 'listTravelPlans',
+      data: {
+        adminToken: adminToken || '',
+        pageSize: options.pageSize || 50,
+      },
+    });
+
+    const data = result?.result || result;
+
+    if (data?.success) {
+      return {
+        success: true,
+        records: data.records || [],
+        total: data.total || 0,
+      };
+    }
+
+    return {
+      success: false,
+      message: data?.message || '读取失败，请稍后重试',
+    };
+  } catch (error) {
+    console.warn('[cloudbaseClient] listTravelPlans 调用失败:', error.message);
+
+    if (error.message?.includes('FUNCTION_NOT_FOUND') || error.code === 'FUNCTION_NOT_FOUND') {
+      return { success: false, message: '服务暂不可用，请稍后重试' };
+    }
+
+    if (error.message?.includes('timeout') || error.message?.includes('network')) {
+      return { success: false, message: '网络连接失败，请稍后重试' };
+    }
+
+    return { success: false, message: '读取失败，请稍后重试' };
+  }
+}
